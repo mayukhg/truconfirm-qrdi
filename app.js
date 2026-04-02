@@ -1609,3 +1609,237 @@ function init(){
 }
 
 document.addEventListener('DOMContentLoaded', init);
+
+// ─────────────────────────────────────────────
+//  MOCK BACKEND API LAYER
+//  Connects to json-server running on port 3001.
+//  Falls back silently if the backend is not running.
+// ─────────────────────────────────────────────
+
+const API_BASE = 'http://localhost:3001/api';
+let backendOnline = false;
+
+// ── Probe the backend once on load ──────────────────────────────────────────
+async function probeBackend(){
+  try {
+    const r = await fetch(`${API_BASE}/stats`, { signal: AbortSignal.timeout(1500) });
+    if(r.ok){
+      backendOnline = true;
+      showToast('Backend connected ✓', 'tok');
+      await loadSignaturesFromAPI();
+      await loadProfilesFromAPI();
+      updateDashboardFromAPI();
+    }
+  } catch(e){
+    // Backend not running — app works fine with in-memory data
+    console.info('[API] Backend offline — using in-memory data');
+  }
+}
+
+// ── Load signatures from /api/signatures ─────────────────────────────────────
+async function loadSignaturesFromAPI(){
+  try {
+    const r = await fetch(`${API_BASE}/signatures`);
+    if(!r.ok) return;
+    const sigs = await r.json();
+    if(!sigs.length) return;
+    // Merge API signatures into in-memory state (API is source of truth when online)
+    S.entries = sigs.map(s => ({
+      id:          s.id,
+      qid:         s.qid,
+      title:       s.title,
+      sev:         s.sev,
+      score:       s.score,
+      cvss:        s.cvss,
+      type:        'qrdi',
+      detType:     s.detection_type || 'http dialog',
+      debugLevel:  s.debug_level || 0,
+      status:      s.status || 'Active',
+      enabled:     s.enabled !== false,
+      cve:         s.cve || '',
+      definition:  s.definition ? JSON.stringify(s.definition, null, 2) : '',
+      expl:        s.expl || '',
+      apiId:       s.id     // keep the DB id for PUT/DELETE
+    }));
+    renderAll();
+  } catch(e){ console.warn('[API] loadSignatures failed', e); }
+}
+
+// ── Load profiles from /api/profiles ─────────────────────────────────────────
+async function loadProfilesFromAPI(){
+  try {
+    const r = await fetch(`${API_BASE}/profiles`);
+    if(!r.ok) return;
+    const profiles = await r.json();
+    // Map to the in-memory SCAN_PROFILES shape
+    profiles.forEach(p => {
+      const existing = SCAN_PROFILES.find(x => x.id === p.id);
+      if(existing){
+        existing.name       = p.name;
+        existing.assetGroup = p.assetGroup;
+        existing.schedule   = p.schedule;
+        existing.checks     = (p.attachedQids||[]).map(qid => {
+          const sig = S.entries.find(e => e.qid === qid);
+          return { qid, title: sig?.title||`QID ${qid}`, enabled: (p.perScanEnabled||{})[String(qid)] !== false, results: [] };
+        });
+      }
+    });
+    if(document.querySelector('#view-scan.on')) renderScanTab();
+  } catch(e){ console.warn('[API] loadProfiles failed', e); }
+}
+
+// ── Load findings for a profile ───────────────────────────────────────────────
+async function loadFindingsFromAPI(profileId){
+  try {
+    const r = await fetch(`${API_BASE}/findings?profileId=${profileId}`);
+    if(!r.ok) return [];
+    return await r.json();
+  } catch(e){ return []; }
+}
+
+// ── POST /api/scan/run — run a mock scan ──────────────────────────────────────
+async function runScanAPI(profileId){
+  if(!backendOnline){ showToast('Backend offline — start the mock server first','terr'); return; }
+
+  const profile = SCAN_PROFILES.find(p=>p.id===profileId);
+  if(!profile) return;
+
+  const qids = profile.checks.filter(c=>c.enabled).map(c=>c.qid);
+  if(!qids.length){ showToast('No enabled checks attached to this profile','terr'); return; }
+
+  showToast('Scan running…', 'tok');
+
+  try {
+    const r = await fetch(`${API_BASE}/scan/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ profileId, qids })
+    });
+    if(!r.ok) throw new Error(`HTTP ${r.status}`);
+    const data = await r.json();
+    const { scan, findings } = data;
+
+    showToast(`Scan complete — ${scan.vulnerable} vulnerable, ${scan.errors} errors`, 'tok');
+
+    // Push results into in-memory profile checks
+    qids.forEach(qid => {
+      const check = profile.checks.find(c=>c.qid===qid);
+      if(!check) return;
+      const checkFindings = findings.filter(f=>f.qid===qid);
+      check.results = checkFindings.map(f=>({
+        status: f.status, host: f.host, ts: f.ts, detail: f
+      }));
+    });
+
+    // Refresh the scan tab view
+    if(document.querySelector('#view-scan.on')) selectProfile(profileId);
+
+    // Log telemetry
+    logTelemetry({ event:'scan_executed', scanId: scan.id, profileId });
+
+    // Refresh dashboard stats
+    updateDashboardFromAPI();
+  } catch(e){
+    showToast('Scan failed: ' + e.message, 'terr');
+  }
+}
+
+// ── Save a signature to /api/signatures ──────────────────────────────────────
+async function saveSignatureToAPI(entry){
+  if(!backendOnline) return;
+  try {
+    const payload = {
+      qid:             entry.qid,
+      title:           entry.title,
+      sev:             entry.sev,
+      score:           entry.score,
+      cvss:            entry.cvss,
+      detection_type:  entry.detType,
+      debug_level:     entry.debugLevel,
+      status:          entry.status,
+      enabled:         entry.enabled,
+      cve:             entry.cve || '',
+      definition:      entry.definition ? JSON.parse(entry.definition) : {}
+    };
+    if(entry.apiId){
+      // Update existing
+      await fetch(`${API_BASE}/signatures/${entry.apiId}`, {
+        method: 'PUT', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+      });
+    } else {
+      // Create new
+      const r = await fetch(`${API_BASE}/signatures`, {
+        method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+      });
+      if(r.ok){ const saved = await r.json(); entry.apiId = saved.id; }
+    }
+    logTelemetry({ event: entry.apiId ? 'signature_updated' : 'signature_created', qid: entry.qid, title: entry.title });
+  } catch(e){ console.warn('[API] saveSignature failed', e); }
+}
+
+// ── POST /api/telemetry ───────────────────────────────────────────────────────
+async function logTelemetry(payload){
+  if(!backendOnline) return;
+  try {
+    await fetch(`${API_BASE}/telemetry`, {
+      method: 'POST', headers:{'Content-Type':'application/json'}, body: JSON.stringify(payload)
+    });
+  } catch(e){ /* silent */ }
+}
+
+// ── Update Overview dashboard from /api/stats ─────────────────────────────────
+async function updateDashboardFromAPI(){
+  if(!backendOnline) return;
+  try {
+    const r = await fetch(`${API_BASE}/stats`);
+    if(!r.ok) return;
+    const stats = await r.json();
+    // Patch KPI cards if they are rendered
+    const patch = (id, val) => { const el=$('kpi-'+id); if(el) el.textContent=val; };
+    patch('total',    stats.total);
+    patch('active',   stats.active);
+    patch('lua',      stats.luaLibs);
+    patch('pending',  stats.pending);
+    // Telemetry chips
+    patch('ai-runs',  stats.aiInvocations);
+    patch('scans',    stats.scansExecuted);
+    patch('vulns',    stats.vulns);
+  } catch(e){ /* silent */ }
+}
+
+// ── Wire saveQrdiVuln to also push to API ────────────────────────────────────
+const _origSaveQrdi = saveQrdiVuln;
+saveQrdiVuln = async function(){
+  _origSaveQrdi();
+  // Find the entry that was just saved (last modified)
+  const entry = S.entries[S.entries.length - 1];
+  if(entry && entry.type === 'qrdi') await saveSignatureToAPI(entry);
+  if(backendOnline) logTelemetry({ event:'signature_created', qid: entry?.qid, title: entry?.title });
+};
+
+// ── Wire runAIGenerate to log telemetry ──────────────────────────────────────
+const _origRunAI = runAIGenerate;
+runAIGenerate = async function(){
+  await _origRunAI();
+  logTelemetry({ event:'ai_generation_invoked', mode: AI.mode });
+};
+
+// ── Add Run Scan button to the Scan tab profile detail ───────────────────────
+// Patches renderProfileDetail to inject a "▶ Run Scan" button when backend is online.
+const _origRenderProfile = renderProfileDetail;
+renderProfileDetail = function(profile){
+  _origRenderProfile(profile);
+  const detailEl = document.querySelector('.scan-right');
+  if(!detailEl || !backendOnline) return;
+  // Only inject if not already there
+  if(detailEl.querySelector('.run-scan-btn')) return;
+  const btn = document.createElement('button');
+  btn.className = 'btn-primary run-scan-btn';
+  btn.style.cssText = 'margin:16px 0 8px;width:100%;font-size:14px;padding:10px 0;';
+  btn.innerHTML = '▶ Run Scan Now';
+  btn.onclick = () => runScanAPI(profile.id);
+  detailEl.prepend(btn);
+};
+
+// ── Boot the API layer ────────────────────────────────────────────────────────
+probeBackend();

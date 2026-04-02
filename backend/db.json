@@ -1,0 +1,300 @@
+{
+  "signatures": [
+    {
+      "id": "q410001",
+      "qid": 410001,
+      "title": "Apache HTTP Server Version Disclosure",
+      "sev": "High",
+      "score": 6.8,
+      "cvss": 6.5,
+      "detection_type": "http dialog",
+      "debug_level": 100,
+      "status": "Active",
+      "enabled": true,
+      "cve": "CVE-2024-1001",
+      "definition": {
+        "detection_type": "http dialog",
+        "api_version": 1,
+        "trigger_type": "service",
+        "title": "Apache HTTP Server Version Disclosure",
+        "debug_level": 100,
+        "dialog": [
+          { "transaction": "http get", "object": "/", "on_error": "stop", "timeout": 30000 },
+          { "transaction": "process", "mode": "regexp", "match": "Apache/([0-9\\.]+)", "extract": [{}, { "var": "apache_ver" }], "on_missing": "stop" },
+          { "transaction": "report", "result": { "concat": ["Apache version: ", { "user": "apache_ver" }] } }
+        ]
+      }
+    },
+    {
+      "id": "q410002",
+      "qid": 410002,
+      "title": "IMAP Authentication Check",
+      "sev": "High",
+      "score": 6.8,
+      "cvss": 6.5,
+      "detection_type": "tcp dialog",
+      "debug_level": 0,
+      "status": "Active",
+      "enabled": true,
+      "cve": "",
+      "definition": {
+        "detection_type": "tcp dialog",
+        "api_version": 1,
+        "trigger_type": "service",
+        "services": ["imap", "imaps"],
+        "title": "IMAP Authentication Check",
+        "dialog": [
+          { "transaction": "send", "data": "a001 LOGIN testuser testpass\n", "on_error": "stop" },
+          { "transaction": "receive", "mode": "luapattern", "match": "\na001 [^\n]*\n", "timeout": 10000 },
+          { "transaction": "report", "result": { "system": "body" } }
+        ]
+      }
+    },
+    {
+      "id": "q410003",
+      "qid": 410003,
+      "title": "Cross-Site Scripting (XSS) Detection",
+      "sev": "Critical",
+      "score": 9.0,
+      "cvss": 7.5,
+      "detection_type": "http dialog",
+      "debug_level": 200,
+      "status": "Active",
+      "enabled": true,
+      "cve": "CVE-2024-3003",
+      "definition": {
+        "detection_type": "http dialog",
+        "api_version": 1,
+        "trigger_type": "virtual host",
+        "title": "Cross-Site Scripting (XSS) Detection",
+        "debug_level": 200,
+        "dialog": [
+          { "transaction": "http get", "object": "/search?q=\"><script>alert(73541);</script>", "on_error": "stop", "timeout": 30000 },
+          { "transaction": "process", "mode": "regexp", "match": "><script>alert\\(73541\\);</script>", "on_missing": "stop" },
+          { "transaction": "report", "result": "XSS reflection confirmed in search parameter" }
+        ]
+      }
+    },
+    {
+      "id": "q410004",
+      "qid": 410004,
+      "title": "SMB Protocol Version Detection",
+      "sev": "Critical",
+      "score": 8.5,
+      "cvss": 8.2,
+      "detection_type": "tcp dialog",
+      "debug_level": 0,
+      "status": "Active",
+      "enabled": true,
+      "cve": "CVE-2024-4004",
+      "definition": {
+        "detection_type": "tcp dialog",
+        "api_version": 1,
+        "trigger_type": "service",
+        "services": ["microsoft-ds"],
+        "title": "SMB Protocol Version Detection",
+        "dialog": [
+          { "transaction": "send", "data": { "call": { "name": "qrdiuser_smb_create_v1_negotiate" } }, "on_error": "stop" },
+          { "transaction": "receive", "mode": "regexp", "match": ".+", "timeout": 10000 },
+          { "transaction": "report", "result": { "user": "smb_version" } }
+        ]
+      }
+    },
+    {
+      "id": "q410005",
+      "qid": 410005,
+      "title": "SQL Error Disclosure Detection",
+      "sev": "Low",
+      "score": 2.4,
+      "cvss": 3.1,
+      "detection_type": "http dialog",
+      "debug_level": 0,
+      "status": "Disabled",
+      "enabled": false,
+      "cve": "",
+      "definition": {
+        "detection_type": "http dialog",
+        "api_version": 1,
+        "trigger_type": "service",
+        "title": "SQL Error Disclosure Detection",
+        "dialog": [
+          { "transaction": "http get", "object": "/login?user='", "on_error": "stop", "timeout": 30000 },
+          { "transaction": "process", "mode": "regexp", "match": "(SQL syntax|mysql_fetch|ORA-|SQLSTATE|Unclosed quotation)", "on_missing": "stop" },
+          { "transaction": "report", "result": "SQL error string exposed in HTTP response" }
+        ]
+      }
+    }
+  ],
+
+  "profiles": [
+    {
+      "id": "sp1",
+      "name": "Production Web Servers",
+      "assetGroup": "DMZ-PROD-01",
+      "schedule": "Daily 02:00",
+      "attachedQids": [410001, 410003],
+      "perScanEnabled": { "410001": true, "410003": true }
+    },
+    {
+      "id": "sp2",
+      "name": "Internal Mail Servers",
+      "assetGroup": "CORP-MAIL",
+      "schedule": "Weekly Mon",
+      "attachedQids": [410002],
+      "perScanEnabled": { "410002": true }
+    },
+    {
+      "id": "sp3",
+      "name": "Windows File Servers",
+      "assetGroup": "WIN-FS-POOL",
+      "schedule": "Daily 04:00",
+      "attachedQids": [410004],
+      "perScanEnabled": { "410004": true }
+    }
+  ],
+
+  "findings": [
+    {
+      "id": "f001",
+      "qid": 410001,
+      "title": "Apache HTTP Server Version Disclosure",
+      "profileId": "sp1",
+      "profileName": "Production Web Servers",
+      "status": "VULNERABLE",
+      "result": "Apache version: 2.4.51",
+      "evidence": "HTTP/1.1 200 OK\nServer: Apache/2.4.51 (Ubuntu)\nContent-Type: text/html",
+      "debug": "[100] Detection started: Apache HTTP Server Version Disclosure\n[200] TX1 http get / -> HTTP 200\n[200] TX2 process regexp match: Apache/2.4.51\n[300] VAR apache_ver = '2.4.51'\n[100] Detection ended: VULNERABLE",
+      "errors": "",
+      "host": "10.0.1.45",
+      "ts": "2026-04-02 03:12",
+      "scanId": "sc001"
+    },
+    {
+      "id": "f002",
+      "qid": 410003,
+      "title": "Cross-Site Scripting (XSS) Detection",
+      "profileId": "sp1",
+      "profileName": "Production Web Servers",
+      "status": "VULNERABLE",
+      "result": "XSS reflection confirmed in search parameter",
+      "evidence": "GET /search?q=\"><script>alert(73541);</script> HTTP/1.1\n\nHTTP/1.1 200 OK\n...<body>Results for: \"><script>alert(73541);</script></body>",
+      "debug": "[100] Detection started: XSS Detection\n[200] TX1 http get /search?q=... -> HTTP 200\n[200] TX2 process regexp MATCH FOUND\n[100] Detection ended: VULNERABLE",
+      "errors": "",
+      "host": "10.0.1.47",
+      "ts": "2026-04-02 03:14",
+      "scanId": "sc001"
+    },
+    {
+      "id": "f003",
+      "qid": 410001,
+      "title": "Apache HTTP Server Version Disclosure",
+      "profileId": "sp1",
+      "profileName": "Production Web Servers",
+      "status": "NOT VULNERABLE",
+      "result": "",
+      "evidence": "HTTP/1.1 200 OK\nServer: nginx/1.24.0\nContent-Type: text/html",
+      "debug": "[100] Detection started\n[200] TX1 http get / -> HTTP 200\n[200] TX2 process regexp NO MATCH (nginx, not Apache)\n[100] Detection ended: NOT VULNERABLE",
+      "errors": "",
+      "host": "10.0.1.48",
+      "ts": "2026-04-02 03:15",
+      "scanId": "sc001"
+    },
+    {
+      "id": "f004",
+      "qid": 410002,
+      "title": "IMAP Authentication Check",
+      "profileId": "sp2",
+      "profileName": "Internal Mail Servers",
+      "status": "VULNERABLE",
+      "result": "a001 NO [AUTHENTICATIONFAILED] Invalid credentials",
+      "evidence": "SENT: a001 LOGIN testuser testpass\nRECV: * OK Dovecot ready.\na001 NO [AUTHENTICATIONFAILED] Invalid credentials",
+      "debug": "[100] Detection started: IMAP Auth Check\n[200] TX1 send LOGIN -> ok\n[200] TX2 receive luapattern match found\n[100] Detection ended: VULNERABLE",
+      "errors": "",
+      "host": "10.0.2.11",
+      "ts": "2026-04-01 09:10",
+      "scanId": "sc002"
+    },
+    {
+      "id": "f005",
+      "qid": 410004,
+      "title": "SMB Protocol Version Detection",
+      "profileId": "sp3",
+      "profileName": "Windows File Servers",
+      "status": "ERROR",
+      "result": "",
+      "evidence": "",
+      "debug": "[100] Detection started: SMB Detection\n[200] TX1 send SMBv1 negotiate\n[200] TX2 receive -> TIMEOUT after 10000ms",
+      "errors": "RESULT_ERRORS: Connection timed out after 10000ms on 10.0.3.21:445",
+      "host": "10.0.3.21",
+      "ts": "2026-04-01 11:45",
+      "scanId": "sc003"
+    }
+  ],
+
+  "scans": [
+    {
+      "id": "sc001",
+      "profileId": "sp1",
+      "profileName": "Production Web Servers",
+      "startedAt": "2026-04-02 03:10",
+      "completedAt": "2026-04-02 03:18",
+      "status": "COMPLETED",
+      "totalHosts": 12,
+      "vulnerable": 2,
+      "notVulnerable": 8,
+      "errors": 0,
+      "qidsRun": [410001, 410003]
+    },
+    {
+      "id": "sc002",
+      "profileId": "sp2",
+      "startedAt": "2026-04-01 09:00",
+      "completedAt": "2026-04-01 09:22",
+      "status": "COMPLETED",
+      "totalHosts": 4,
+      "vulnerable": 1,
+      "notVulnerable": 3,
+      "errors": 0,
+      "qidsRun": [410002]
+    },
+    {
+      "id": "sc003",
+      "profileId": "sp3",
+      "startedAt": "2026-04-01 11:40",
+      "completedAt": "2026-04-01 11:55",
+      "status": "COMPLETED_WITH_ERRORS",
+      "totalHosts": 8,
+      "vulnerable": 0,
+      "notVulnerable": 7,
+      "errors": 1,
+      "qidsRun": [410004]
+    }
+  ],
+
+  "telemetry": [
+    { "id": "t001", "event": "signature_created",    "qid": 410001, "title": "Apache HTTP Server Version Disclosure", "ts": "2026-04-01 08:00", "user": "maghosh" },
+    { "id": "t002", "event": "ai_generation_invoked","qid": 410003, "title": "XSS Detection",                         "ts": "2026-04-01 08:45", "user": "maghosh" },
+    { "id": "t003", "event": "validation_passed",    "qid": 410003, "title": "XSS Detection",                         "ts": "2026-04-01 08:46", "user": "maghosh" },
+    { "id": "t004", "event": "signature_activated",  "qid": 410001, "title": "Apache HTTP Server Version Disclosure", "ts": "2026-04-01 09:00", "user": "maghosh" },
+    { "id": "t005", "event": "scan_executed",        "scanId": "sc001", "profileId": "sp1",                           "ts": "2026-04-02 03:10", "user": "system"  }
+  ],
+
+  "lua_libs": [
+    {
+      "id": "ll001",
+      "name": "qrdiuser_smb_helpers",
+      "description": "SMB packet construction helpers — negotiate, session setup, tree connect",
+      "status": "Published",
+      "size": 8420,
+      "updatedAt": "2026-03-28"
+    },
+    {
+      "id": "ll002",
+      "name": "qrdiuser_http_utils",
+      "description": "HTTP response parsing utilities — header extraction, status code helpers",
+      "status": "Published",
+      "size": 3210,
+      "updatedAt": "2026-03-30"
+    }
+  ]
+}
