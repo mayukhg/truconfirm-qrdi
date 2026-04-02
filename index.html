@@ -1,0 +1,923 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>TruConfirm – KnowledgeBase</title>
+<link rel="stylesheet" href="styles.css" />
+</head>
+<body>
+
+<!-- TOP HEADER -->
+<div class="top-header">
+  <div class="q-logo">
+    <span class="q">Q</span>
+    <span class="qt">Qualys. Express</span>
+  </div>
+  <div class="hd"></div>
+  <div class="hdr">
+    <button class="hibtn hibtn hnotif"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 0 1-3.46 0"/></svg><span class="nbadge"></span></button>
+    <button class="hibtn"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></button>
+    <div class="uavatar">ST</div>
+  </div>
+</div>
+
+<div class="shell">
+  <!-- ICON SIDEBAR -->
+  <div class="icon-sb">
+    <button class="inav" title="CTM">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/></svg>
+    </button>
+    <button class="inav" title="Dashboard">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
+    </button>
+    <button class="inav on" title="TruConfirm">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </button>
+    <button class="inav" title="Assets">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
+    </button>
+    <button class="inav" title="Scans">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="22 12 18 12 15 21 9 3 6 12 2 12"/></svg>
+    </button>
+    <button class="inav" title="Reports">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+    </button>
+    <div class="inav-sp"></div>
+    <button class="inav" title="Settings">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+    </button>
+    <button class="inav" title="Users">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+    </button>
+  </div>
+
+  <!-- MAIN AREA -->
+  <div class="main-area">
+    <!-- APP HEADER -->
+    <div class="app-hdr">
+      <div class="app-title">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <h1>TruConfirm</h1>
+      </div>
+      <div class="nav-tabs">
+        <button class="ntab" id="tab-btn-overview" onclick="switchTab('overview')">Overview</button>
+        <button class="ntab" id="tab-btn-scan" onclick="switchTab('scan')">Scan</button>
+        <button class="ntab on" id="tab-btn-kb" onclick="switchTab('kb')">KnowledgeBase</button>
+      </div>
+    </div>
+
+    <!-- ══ OVERVIEW TAB ══ -->
+    <div class="tab-view" id="view-overview">
+      <div class="ov-layout">
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div>
+            <div style="font-size:15px;font-weight:600">QRDI Metrics Dashboard</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Custom detection adoption, lifecycle health and AI usage</div>
+          </div>
+          <span style="font-size:11px;color:var(--text-muted)">As of April 2, 2026</span>
+        </div>
+        <!-- KPI Cards -->
+        <div class="metric-grid" id="metric-grid"></div>
+        <!-- Lifecycle board + bar chart -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
+          <div class="lifecycle-board">
+            <h3>QRDI Lifecycle Stage Distribution</h3>
+            <div class="lc-steps" id="lc-steps"></div>
+          </div>
+          <div class="bar-chart">
+            <h3>Signatures Created — Last 7 Days</h3>
+            <div id="bar-chart-body"></div>
+          </div>
+        </div>
+        <!-- Activity feed -->
+        <div class="activity-feed">
+          <h3>Recent Activity</h3>
+          <div id="activity-feed"></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ SCAN TAB ══ -->
+    <div class="tab-view" id="view-scan">
+      <div class="scan-layout">
+        <!-- Left: Profiles list -->
+        <div class="scan-left">
+          <div class="scan-left-hdr">
+            <span class="scan-left-title">Scan Profiles</span>
+            <button class="btn btn-p btn-sm" onclick="newProfile()">+ New</button>
+          </div>
+          <div id="profile-list"></div>
+        </div>
+        <!-- Right: Profile detail -->
+        <div class="scan-right">
+          <div class="scan-right-hdr" id="scan-right-hdr">
+            <span style="color:var(--text-muted);font-size:13px">Select a scan profile</span>
+          </div>
+          <div class="scan-right-body" id="scan-right-body">
+            <div class="attach-empty"><div class="ei">📋</div><p>Select a scan profile from the left to manage QRDI checks and view results.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- KB LAYOUT -->
+    <div class="tab-view on" id="view-kb">
+    <div class="kb-layout">
+
+      <!-- FILTER PANEL -->
+      <div class="fp">
+        <!-- Total stat -->
+        <div class="fp-stat" onclick="setCatFilter('all')">
+          <div class="sn" style="color:var(--text-primary)">1.63K</div>
+          <div class="sl">Total CVEs</div>
+          <span class="fp-arrow">‹</span>
+        </div>
+
+        <div class="fp-div"></div>
+
+        <!-- QRDI Section -->
+        <div class="fp-sec">
+          <div class="fp-sechdr" onclick="setCatFilter('qrdi')">
+            <span class="fp-sectitle">QRDI</span>
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+          </div>
+          <div class="fp-item" onclick="setCatFilter('qrdi')">
+            <span class="lbl">All QRDI</span>
+            <span class="cnt" id="fp-qrdi-count">5</span>
+          </div>
+          <div class="fp-item" onclick="setRtiFilter('debug')">
+            <span class="lbl">Debug Mode</span>
+            <span class="cnt" id="fp-debug-count">2</span>
+          </div>
+          <div class="fp-item" onclick="setRtiFilter('disabled')">
+            <span class="lbl">Disabled</span>
+            <span class="cnt" id="fp-disabled-count">1</span>
+          </div>
+        </div>
+
+        <div class="fp-div"></div>
+
+        <!-- Lua Library Quick Access -->
+        <div class="fp-sec">
+          <div class="fp-sechdr">
+            <span class="fp-sectitle">Lua Library</span>
+          </div>
+          <button class="lua-btn" onclick="openLuaLib()">
+            <span class="lua-dot" id="lua-dot"></span>
+            <span id="lua-txt" style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;flex:1"></span>
+          </button>
+        </div>
+
+        <div class="fp-div"></div>
+
+        <!-- QVSS Base -->
+        <div class="fp-sec">
+          <div class="fp-sechdr">
+            <span class="fp-sectitle">QVSS Base</span>
+          </div>
+          <div class="fp-item" onclick="setSevFilter('Low')">
+            <span class="lbl">Low</span><span class="cnt">740</span>
+          </div>
+          <div class="fp-item" onclick="setSevFilter('Critical')">
+            <span class="lbl">Critical</span><span class="cnt">414</span>
+          </div>
+          <div class="fp-item" onclick="setSevFilter('Medium')">
+            <span class="lbl">Medium</span><span class="cnt">248</span>
+          </div>
+          <div class="fp-item" onclick="setSevFilter('High')">
+            <span class="lbl">High</span><span class="cnt">227</span>
+          </div>
+        </div>
+
+        <div class="fp-div"></div>
+
+        <!-- RTI -->
+        <div class="fp-sec">
+          <div class="fp-sechdr">
+            <span class="fp-sectitle">RTI</span>
+          </div>
+          <div class="fp-item" onclick="setRtiFilter('exploit_public')">
+            <span class="lbl">Exploit_Public</span><span class="cnt">1.1k</span>
+          </div>
+          <div class="fp-item" onclick="setRtiFilter('easy_exploit')">
+            <span class="lbl">Easy_Exploit</span><span class="cnt">1.04k</span>
+          </div>
+          <div class="fp-item" onclick="setRtiFilter('predicted')">
+            <span class="lbl">Predicted_Hig...</span><span class="cnt">1.04k</span>
+          </div>
+          <div class="fp-item" onclick="setRtiFilter('rce')">
+            <span class="lbl">Remote_Code...</span><span class="cnt">456</span>
+          </div>
+          <div class="fp-item" onclick="setRtiFilter('cisa_kev')">
+            <span class="lbl">Cisa_Known_E...</span><span class="cnt">246</span>
+          </div>
+          <div class="fp-item">
+            <span class="lbl" style="color:var(--accent)">7 more ∨</span>
+          </div>
+        </div>
+
+        <div class="fp-div"></div>
+
+        <!-- Exploitability -->
+        <div class="fp-sec">
+          <div class="fp-sechdr">
+            <span class="fp-sectitle">Exploitability</span>
+          </div>
+          <div class="fp-item">
+            <span class="lbl">POC</span><span class="cnt">1.32k</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- KB CONTENT -->
+      <div class="kb-content">
+
+        <!-- TOOLBAR ROW 1: Search + icon buttons -->
+        <div class="kb-toolbar">
+          <div class="sw">
+            <span class="sico">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            </span>
+            <input class="si" id="search-input" placeholder="Search..." />
+          </div>
+          <button class="tbtn" title="Refresh" onclick="renderAll()">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+          </button>
+          <button class="tbtn" title="Column Settings">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="8" y1="6" x2="21" y2="6"/><line x1="8" y1="12" x2="21" y2="12"/><line x1="8" y1="18" x2="21" y2="18"/><line x1="3" y1="6" x2="3.01" y2="6"/><line x1="3" y1="12" x2="3.01" y2="12"/><line x1="3" y1="18" x2="3.01" y2="18"/></svg>
+          </button>
+        </div>
+
+        <!-- TOOLBAR ROW 2: New button (left-aligned) -->
+        <div style="padding:6px 14px;border-bottom:1px solid var(--border);background:var(--bg-surface);display:flex;align-items:center;overflow:visible;position:relative;z-index:100;">
+          <div class="nbw">
+            <button class="nbtn" onclick="toggleNewDrop()">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              New
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <div class="ndrop" id="new-drop">
+              <div class="ndlbl">QRDI</div>
+              <div class="ndi" onclick="openNew();$('new-drop').classList.remove('open')">
+                <span class="ndi-ico">🔬</span>
+                <div>
+                  <div style="font-weight:500;color:var(--text-primary)">QRDI Vulnerability</div>
+                  <div style="font-size:10px;color:var(--text-muted)">Custom HTTP/TCP detection (QID 410001–430000)</div>
+                </div>
+              </div>
+              <div class="ndi" onclick="openLuaLib();$('new-drop').classList.remove('open')">
+                <span class="ndi-ico">📜</span>
+                <div>
+                  <div style="font-weight:500;color:var(--text-primary)">QRDI Lua Library</div>
+                  <div style="font-size:10px;color:var(--text-muted)">Shared Lua functions for all detections</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ACTIVE FILTERS -->
+        <div class="afc" id="active-filters"></div>
+
+        <!-- TABLE META -->
+        <div class="table-meta">
+          <span id="tcount">Total 1.63K</span>
+          <span>/ 33 pages</span>
+          <div class="pnav">
+            <button disabled>‹</button>
+            <span style="padding:0 4px;color:var(--text-primary)">1</span>
+            <button>›</button>
+          </div>
+          <button class="tbtn" title="Refresh" style="width:22px;height:22px;font-size:11px" onclick="renderAll()">⟳</button>
+          <button class="tbtn" title="Settings" style="width:22px;height:22px;font-size:11px">⚙</button>
+        </div>
+
+        <!-- TABLE -->
+        <div class="table-area">
+          <table>
+            <thead>
+              <tr>
+                <th>Title</th>
+                <th>QVSS Base</th>
+                <th>CVSS Base</th>
+                <th>Exploitability ⓘ</th>
+                <th>Risk Factors</th>
+                <th>Impact</th>
+                <th>Threat Actor</th>
+                <th>Qualys Patch</th>
+              </tr>
+            </thead>
+            <tbody id="kb-tbody"></tbody>
+          </table>
+        </div>
+
+      </div><!-- /kb-content -->
+    </div><!-- /kb-layout -->
+    </div><!-- /view-kb -->
+  </div><!-- /main-area -->
+</div><!-- /shell -->
+
+<!-- ══════════════════════════════════════════
+     MODAL: NEW / EDIT QRDI VULNERABILITY
+══════════════════════════════════════════ -->
+<div class="ov hide" id="ov-qrdi-vuln">
+  <div class="modal m-lg" style="width:860px">
+    <div class="mhdr">
+      <div class="mtitle">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--qrdi)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        <span id="vuln-modal-title">New QRDI Vulnerability</span>
+      </div>
+      <button class="mclose" onclick="closeModal('qrdi-vuln')">✕</button>
+    </div>
+
+    <div style="display:flex;flex:1;overflow:hidden;max-height:calc(90vh - 120px)">
+      <!-- Left nav -->
+      <div style="width:160px;background:var(--bg-panel);border-right:1px solid var(--border);padding:10px 0;flex-shrink:0;overflow-y:auto">
+        <div class="mtab on" data-tab="tab-general" onclick="switchModalTab('tab-general')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">General Info</div>
+        <div class="mtab" data-tab="tab-mappings" onclick="switchModalTab('tab-mappings')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">Additional Mappings</div>
+        <div class="mtab" data-tab="tab-threat" onclick="switchModalTab('tab-threat')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">Threat</div>
+        <div class="mtab" data-tab="tab-impact" onclick="switchModalTab('tab-impact')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">Impact</div>
+        <div class="mtab" data-tab="tab-solution" onclick="switchModalTab('tab-solution')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">Solution</div>
+        <div class="mtab" data-tab="tab-qrdi" onclick="switchModalTab('tab-qrdi')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">QRDI Definition</div>
+      </div>
+
+      <!-- Content -->
+      <div style="flex:1;overflow-y:auto;padding:18px">
+
+        <!-- General Info -->
+        <div class="tpane on" id="tab-general">
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">General Information</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Easily add custom vulnerabilities (QIDs) using Qualys Remote Detection Interface (QRDI).</div>
+
+          <div class="fr2">
+            <div class="fg">
+              <label>QID <span class="req">*</span><span class="hint">(410001–430000)</span></label>
+              <input class="fi" id="qid-field" type="number" min="410001" max="430000" placeholder="410006" />
+            </div>
+            <div class="fg">
+              <label>Category</label>
+              <input class="fi" value="QRDI" disabled />
+            </div>
+          </div>
+
+          <div class="fg">
+            <label>Title <span class="req">*</span></label>
+            <input class="fi" id="title-field" placeholder="Enter vulnerability title" />
+          </div>
+
+          <div class="fr2">
+            <div class="fg">
+              <label>Vulnerability Type</label>
+              <select class="fsel" id="type-field">
+                <option>Vulnerability</option>
+                <option>Information Gathered</option>
+              </select>
+            </div>
+            <div class="fg">
+              <label>Severity</label>
+              <select class="fsel" id="sev-field">
+                <option value="1">1 – Low</option>
+                <option value="2">2 – Medium</option>
+                <option value="3">3 – High</option>
+                <option value="4" selected>4 – Critical</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="sep"></div>
+          <div class="fg">
+            <label>Status</label>
+            <div class="tog-wrap">
+              <label class="tog">
+                <input type="checkbox" id="status-toggle" checked />
+                <span class="tslider"></span>
+              </label>
+              <span class="tog-lbl" id="status-lbl">Enabled</span>
+            </div>
+            <div class="hint-text">When disabled, the QID is included in scans but appears grayed out in results.</div>
+          </div>
+        </div>
+
+        <!-- Mappings -->
+        <div class="tpane" id="tab-mappings">
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Additional Mappings</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Map this vulnerability to industry standard identifiers for use in reports and asset views.</div>
+
+          <div class="fg">
+            <label>CVE IDs</label>
+            <input class="fi" id="cve-ids-field" placeholder="e.g. CVE-2023-1234, CVE-2023-5678" />
+            <div class="hint-text">Comma-separated CVE IDs associated with this vulnerability.</div>
+          </div>
+
+          <div class="fg">
+            <label>Bugtraq IDs</label>
+            <input class="fi" id="bugtraq-field" placeholder="e.g. 12345" />
+            <div class="hint-text">Bugtraq ID number assigned to the vulnerability.</div>
+          </div>
+
+          <div class="fg">
+            <label>Vendor References</label>
+            <div id="vendor-refs-list"></div>
+            <button class="add-row" onclick="addVendorRef()">+ Add Vendor Reference</button>
+            <div class="hint-text">Provide vendor reference ID and URL. Example: [{"reference":"Vendor1","url":"http://www.vendor.com"}]</div>
+          </div>
+        </div>
+
+        <!-- Threat -->
+        <div class="tpane" id="tab-threat">
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Threat</div>
+          <div class="fg">
+            <label>Threat Description</label>
+            <textarea class="fta" id="threat-field" rows="8" placeholder="Describe the threat posed by this vulnerability..."></textarea>
+          </div>
+        </div>
+
+        <!-- Impact -->
+        <div class="tpane" id="tab-impact">
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Impact</div>
+          <div class="fg">
+            <label>Impact Description</label>
+            <textarea class="fta" id="impact-field" rows="8" placeholder="Describe the impact if this vulnerability is exploited..."></textarea>
+          </div>
+        </div>
+
+        <!-- Solution -->
+        <div class="tpane" id="tab-solution">
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Solution</div>
+          <div class="fg">
+            <label>Solution / Remediation</label>
+            <textarea class="fta" id="solution-field" rows="8" placeholder="Describe how to remediate or mitigate this vulnerability..."></textarea>
+          </div>
+        </div>
+
+        <!-- QRDI Definition -->
+        <div class="tpane" id="tab-qrdi">
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">QRDI Definition</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Upload a JSON document that describes the logic of the detection — the conditions under which to run the detection, the sequence of data to be sent and received, any pattern matching rules and other data required to run the detection.</div>
+
+          <!-- Detection Type -->
+          <div class="fg">
+            <label>Detection Type <span class="req">*</span></label>
+            <div class="dt-pills">
+              <div class="dt-pill on" id="det-type-http" onclick="S.detType='http dialog';this.classList.add('on');document.getElementById('det-type-tcp').classList.remove('on')">HTTP Dialog</div>
+              <div class="dt-pill" id="det-type-tcp" onclick="S.detType='tcp dialog';this.classList.add('on');document.getElementById('det-type-http').classList.remove('on')">TCP Dialog</div>
+            </div>
+            <div class="hint-text">HTTP dialog supports GET/POST transactions. TCP dialog supports send/receive/reconnect transactions.</div>
+          </div>
+
+          <!-- Debug Level -->
+          <div class="fg">
+            <label>Debug Level <span class="hint">(recommended during development)</span></label>
+            <div class="dbg-opts">
+              <div class="dbg-opt on" data-val="0" onclick="S.debugSel=0;qsa('.dbg-opt').forEach(o=>o.classList.toggle('on',parseInt(o.dataset.val)===0))">
+                <span>⏹</span> 0 – Off
+              </div>
+              <div class="dbg-opt" data-val="100" onclick="S.debugSel=100;qsa('.dbg-opt').forEach(o=>o.classList.toggle('on',parseInt(o.dataset.val)===100))">
+                <span>🐛</span> 100 – Start/End only
+              </div>
+              <div class="dbg-opt" data-val="200" onclick="S.debugSel=200;qsa('.dbg-opt').forEach(o=>o.classList.toggle('on',parseInt(o.dataset.val)===200))">
+                <span>🔎</span> 200 – + Transactions
+              </div>
+              <div class="dbg-opt" data-val="300" onclick="S.debugSel=300;qsa('.dbg-opt').forEach(o=>o.classList.toggle('on',parseInt(o.dataset.val)===300))">
+                <span>📋</span> 300 – + Variables
+              </div>
+              <div class="dbg-opt" data-val="400" onclick="S.debugSel=400;qsa('.dbg-opt').forEach(o=>o.classList.toggle('on',parseInt(o.dataset.val)===400))">
+                <span>📡</span> 400 – Full Verbose
+              </div>
+            </div>
+            <div class="hint-text">When debug is enabled, scan results include RESULT_DEBUG and RESULT_ERRORS sections. Host-based scan data is NOT updated in debug mode.</div>
+          </div>
+
+          <!-- AI SIGNATURE ASSISTANT ENTRY BUTTON -->
+          <button class="ai-entry-btn" onclick="toggleAIPanel()">
+            <span class="pulse"></span>
+            ✦ AI Signature Assistant
+          </button>
+
+          <!-- AI SIGNATURE ASSISTANT PANEL -->
+          <div class="ai-panel" id="ai-panel" style="display:none">
+            <div class="ai-panel-hdr">
+              <div class="ai-panel-title">
+                <span>✦</span>
+                <span>AI Signature Assistant</span>
+                <span class="ai-badge">Powered by Claude</span>
+              </div>
+              <button class="ai-toggle-btn" onclick="toggleAIPanel()">✕ Close</button>
+            </div>
+            <div class="ai-body">
+
+              <!-- Mode tabs -->
+              <div class="ai-mode-tabs">
+                <div class="ai-mode-tab on" id="ai-mode-generate" onclick="setAIMode('generate')">✦ Generate New</div>
+                <div class="ai-mode-tab" id="ai-mode-improve" onclick="setAIMode('improve')">⟳ Improve Existing</div>
+              </div>
+
+              <!-- API Key row -->
+              <div class="ai-key-row">
+                <label>🔑 API Key:</label>
+                <input class="ai-key-inp" id="ai-api-key" type="password" placeholder="sk-ant-api03-..." />
+                <span class="ai-key-status unset" id="ai-key-status">● Not set</span>
+                <button class="ai-key-save" onclick="saveAIKey()">Save</button>
+              </div>
+
+              <!-- Prompt hints -->
+              <div style="margin-bottom:6px">
+                <div class="ai-prompt-label">
+                  <span id="ai-prompt-label-txt">Describe the vulnerability or behaviour you want to detect:</span>
+                </div>
+                <div class="ai-prompt-hints" id="ai-hint-chips">
+                  <span class="ai-hint-chip" onclick="setAIHint(this)">Detect XSS in login page</span>
+                  <span class="ai-hint-chip" onclick="setAIHint(this)">Check SMB version via TCP</span>
+                  <span class="ai-hint-chip" onclick="setAIHint(this)">Grab HTTP server banner</span>
+                  <span class="ai-hint-chip" onclick="setAIHint(this)">Test IMAP authentication</span>
+                  <span class="ai-hint-chip" onclick="setAIHint(this)">Detect SQL error in response</span>
+                  <span class="ai-hint-chip" onclick="setAIHint(this)">Check for open redirect</span>
+                </div>
+              </div>
+
+              <!-- Prompt textarea -->
+              <textarea class="ai-prompt-ta" id="ai-prompt" placeholder="e.g. Check if the HTTP server exposes its version in the Server response header, and report the version string if found..."></textarea>
+
+              <!-- Actions -->
+              <div class="ai-actions">
+                <button class="ai-gen-btn" id="ai-gen-btn" onclick="runAIGenerate()">
+                  <span class="ai-spinner"></span>
+                  <span class="ai-btn-txt">✦ Generate Signature</span>
+                </button>
+                <span id="ai-status-msg" style="font-size:11px;color:var(--text-muted)"></span>
+              </div>
+
+              <!-- Output panel -->
+              <div class="ai-output" id="ai-output">
+                <div class="ai-output-hdr">
+                  <div class="ai-output-title">
+                    <span>✓</span>
+                    <span>Generated QRDI Signature</span>
+                  </div>
+                  <div class="ai-output-actions">
+                    <button class="btn btn-s btn-sm" onclick="runAIGenerate()">⟳ Regenerate</button>
+                  </div>
+                </div>
+                <pre class="ai-out-json" id="ai-out-json"></pre>
+                <div class="ai-explanation" id="ai-explanation"></div>
+                <div class="ai-apply-bar">
+                  <div class="ai-confidence" id="ai-confidence">
+                    <span class="ai-conf-dot high" id="ai-conf-dot"></span>
+                    <span id="ai-conf-txt">High confidence — ready to deploy</span>
+                  </div>
+                  <button class="btn btn-p btn-sm" onclick="applyAISignature()">
+                    ↓ Apply to Editor
+                  </button>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- JSON Editor -->
+          <div class="fg">
+            <label>JSON Detection Definition <span class="req">*</span></label>
+            <div class="jtbar">
+              <button class="btn btn-s btn-sm" onclick="uploadJsonFile()">📂 Upload JSON</button>
+              <button class="btn btn-s btn-sm" onclick="validateJson()">✓ Validate</button>
+              <button class="btn btn-s btn-sm" id="json-preview-btn" onclick="toggleJsonPreview()">🎨 Highlight</button>
+              <button class="btn btn-s btn-sm" onclick="$('json-def').value='{\n  &quot;detection_type&quot;: &quot;http dialog&quot;,\n  &quot;api_version&quot;: 1,\n  &quot;trigger_type&quot;: &quot;service&quot;,\n  &quot;title&quot;: &quot;&quot;,\n  &quot;dialog&quot;: []\n}';validateJson();renderJsonHighlight()">⟳ Reset</button>
+              <span class="jstat" id="json-status"></span>
+            </div>
+            <div class="jed-wrap">
+            <textarea class="jed" id="json-def" spellcheck="false" oninput="S.jsonValid=null;$('json-status').textContent='';renderJsonHighlight()" rows="16">
+{
+  "detection_type": "http dialog",
+  "api_version": 1,
+  "trigger_type": "service",
+  "title": "",
+  "dialog": []
+}</textarea>
+            <div class="jed-preview" id="json-preview"></div>
+            </div><!-- /jed-wrap -->
+            <div class="hint-text">Supported transaction types — HTTP: http get, http post, process, report · TCP: send, receive, reconnect, process, report</div>
+          </div>
+
+          <!-- Template snippets -->
+          <div class="fg">
+            <label>Quick Templates</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-s btn-sm" onclick="loadTemplate('xss')">XSS Check</button>
+              <button class="btn btn-s btn-sm" onclick="loadTemplate('banner')">Banner Grab (TCP)</button>
+              <button class="btn btn-s btn-sm" onclick="loadTemplate('header')">HTTP Header Inject</button>
+              <button class="btn btn-s btn-sm" onclick="loadTemplate('imap')">IMAP Auth (TCP)</button>
+            </div>
+          </div>
+        </div>
+
+      </div><!-- /content -->
+    </div><!-- /flex -->
+
+    <div class="mftr">
+      <button class="btn btn-s" onclick="closeModal('qrdi-vuln')">Cancel</button>
+      <button class="btn btn-p" onclick="saveQrdiVuln()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Save QRDI Vulnerability
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: LUA LIBRARY
+══════════════════════════════════════════ -->
+<div class="ov hide" id="ov-lua-lib">
+  <div class="modal m-md">
+    <div class="mhdr">
+      <div class="mtitle" style="color:var(--qrdi)">
+        <span>📜</span> QRDI Lua Library
+      </div>
+      <button class="mclose" onclick="closeModal('lua-lib')">✕</button>
+    </div>
+    <div class="mbody">
+
+      <!-- Info View (when library exists) -->
+      <div id="lua-info-view" style="display:none">
+        <div class="licard">
+          <div class="lichdr">
+            <span>📜</span> LUA Library Information
+          </div>
+          <div style="padding:14px" id="lua-info-body"></div>
+        </div>
+        <div style="display:flex;gap:7px;margin-top:14px;justify-content:flex-end">
+          <button class="btn btn-s" onclick="closeModal('lua-lib')">Close</button>
+          <button class="btn btn-d btn-sm" onclick="deleteLuaLib()">🗑 Delete</button>
+          <button class="btn btn-s" onclick="downloadLuaLib()">⬇ Download</button>
+          <button class="btn btn-p" onclick="editLuaLib()">✏ Edit</button>
+        </div>
+      </div>
+
+      <!-- Upload View -->
+      <div id="lua-upload-view">
+        <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;line-height:1.7">
+          The Lua function library is shared by <b>all</b> QRDI detections. It allows you to write Lua functions that can be referenced by JSON documents to implement complex data generation or parsing rules.<br><br>
+          All function names must start with <span class="code-text">qrdiuser_</span>. Only function definitions are permitted — no global variables or code outside of functions.
+        </div>
+
+        <div class="upz" onclick="pickLuaFile()">
+          <div class="ui">📄</div>
+          <div class="ut">Click to browse and select a Lua library file</div>
+          <div class="uh">Accepted: .lua, .txt · Max size: 1 MB</div>
+        </div>
+        <div id="lua-chosen" style="margin-top:8px"></div>
+
+        <div class="fg" style="margin-top:14px">
+          <label style="display:none">File Name (manual)</label>
+          <input class="fi" id="lua-file-name" placeholder="e.g. my_lua_library.lua" />
+        </div>
+
+        <div class="fg">
+          <label>Library Status</label>
+          <select class="fsel" id="lua-status">
+            <option value="Published">Published – ready to use in detections</option>
+            <option value="Draft">Draft – work in progress, not used</option>
+            <option value="Inactive">Inactive – suspended</option>
+          </select>
+          <div class="hint-text">Only one Lua library file is allowed per subscription. Saving a new file replaces the existing one.</div>
+        </div>
+
+        <div style="background:var(--debug-bg);border:1px solid rgba(245,158,11,.2);border-radius:var(--r);padding:10px 12px;margin-top:4px;font-size:12px;color:var(--debug)">
+          <b>Resource Limits:</b> Max source size: 1 MB · Max memory per detection: 4 MB · Max Lua opcodes per detection: 100,000
+        </div>
+      </div>
+
+    </div>
+    <div class="mftr" id="lua-upload-ftr">
+      <button class="btn btn-s" onclick="closeModal('lua-lib')">Cancel</button>
+      <button class="btn btn-p" onclick="saveLuaLib()">
+        <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+        Save Library
+      </button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: VULN INFO
+══════════════════════════════════════════ -->
+<div class="ov hide" id="ov-vuln-info">
+  <div class="modal m-md">
+    <div class="mhdr">
+      <div class="mtitle">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        <span id="info-title">Vulnerability Information</span>
+      </div>
+      <button class="mclose" onclick="closeModal('vuln-info')">✕</button>
+    </div>
+    <div class="mbody" id="info-content"></div>
+    <div class="mftr">
+      <button class="btn btn-s" onclick="closeModal('vuln-info')">Close</button>
+      <button class="btn btn-q btn-sm" id="info-activate-btn" style="display:none" onclick="openActivateFromInfo()">⚡ Activate for Scan</button>
+      <button class="btn btn-p" id="info-edit-btn" style="display:none">✏ Edit</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: CONFIRM
+══════════════════════════════════════════ -->
+<div class="ov hide" id="ov-confirm">
+  <div class="modal m-sm">
+    <div class="mhdr">
+      <div class="mtitle" id="cfm-title">Confirm Action</div>
+      <button class="mclose" onclick="closeModal('confirm')">✕</button>
+    </div>
+    <div class="mbody" style="text-align:center;padding:24px 18px">
+      <div class="cfm-ico" id="cfm-ico">⚠</div>
+      <div class="cfm-t" id="cfm-title2"></div>
+      <div class="cfm-d" id="cfm-desc"></div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-s" onclick="closeModal('confirm')">Cancel</button>
+      <button class="btn btn-d" onclick="if(S.confirmCb)S.confirmCb()">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: ACTIVATION WIZARD
+══════════════════════════════════════════ -->
+<div class="ov hide" id="ov-activate">
+  <div class="modal m-md">
+    <div class="mhdr">
+      <div class="mtitle">⚡ Activate QRDI Check for Scan</div>
+      <button class="mclose" onclick="closeModal('activate')">✕</button>
+    </div>
+    <div class="mbody">
+      <!-- Steps -->
+      <div class="wiz-steps">
+        <div class="wiz-step" id="wiz-s1"><div class="wiz-dot" id="wiz-d1">1</div><div class="wiz-lbl">Validate</div></div>
+        <div class="wiz-step pending" id="wiz-s2"><div class="wiz-dot" id="wiz-d2">2</div><div class="wiz-lbl">Attach Profile</div></div>
+        <div class="wiz-step pending" id="wiz-s3"><div class="wiz-dot" id="wiz-d3">3</div><div class="wiz-lbl">Confirm</div></div>
+      </div>
+      <div class="wiz-content" id="wiz-content"></div>
+    </div>
+    <div class="mftr" id="wiz-ftr">
+      <button class="btn btn-s" onclick="closeModal('activate')">Cancel</button>
+      <button class="btn btn-p" id="wiz-next-btn" onclick="wizNext()">Next →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: FINDING DETAIL
+══════════════════════════════════════════ -->
+<div class="ov hide" id="ov-finding">
+  <div class="modal m-md">
+    <div class="mhdr">
+      <div class="mtitle" id="finding-title">Finding Detail</div>
+      <button class="mclose" onclick="closeModal('finding')">✕</button>
+    </div>
+    <div class="mbody" id="finding-body"></div>
+    <div class="mftr">
+      <button class="btn btn-s" onclick="closeModal('finding')">Close</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     MODAL: ATTACH QRDI TO PROFILE
+══════════════════════════════════════════ -->
+<div class="ov hide" id="ov-attach-selector">
+  <div class="modal m-sm">
+    <div class="mhdr">
+      <div class="mtitle">Attach QRDI Check to Profile</div>
+      <button class="mclose" onclick="closeModal('attach-selector')">✕</button>
+    </div>
+    <div class="mbody">
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Select a QRDI vulnerability to attach to <b id="attach-profile-name"></b>:</div>
+      <div class="attach-selector" id="attach-selector-list"></div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-s" onclick="closeModal('attach-selector')">Cancel</button>
+      <button class="btn btn-p" onclick="confirmAttach()">Attach Selected</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOASTS -->
+<div class="toast-c" id="toast-c"></div>
+
+<script src="app.js"></script>
+<script>
+// Template snippets
+const TEMPLATES = {
+  xss: `{
+  "detection_type": "http dialog",
+  "api_version": 1,
+  "trigger_type": "service",
+  "title": "Custom XSS detection",
+  "dialog": [
+    {
+      "transaction": "http get",
+      "object": "/cgi-bin/test.pl?\\"><script>alert(73541);<\\/script>"
+    },
+    {
+      "transaction": "process",
+      "mode": "regexp",
+      "match": "\\"><script>alert\\\\(73541\\\\);<\\/script>"
+    },
+    {
+      "transaction": "report",
+      "result": "XSS found"
+    }
+  ]
+}`,
+  banner: `{
+  "detection_type": "tcp dialog",
+  "api_version": 1,
+  "trigger_type": "service",
+  "services": ["ftp"],
+  "title": "FTP banner grab",
+  "dialog": [
+    {
+      "transaction": "receive",
+      "mode": "regexp",
+      "match": "220.*FTP"
+    },
+    {
+      "transaction": "report",
+      "result": {"system": "body"}
+    }
+  ]
+}`,
+  header: `{
+  "detection_type": "http dialog",
+  "api_version": 1,
+  "trigger_type": "service",
+  "title": "HTTP header injection test",
+  "dialog": [
+    {
+      "transaction": "http get",
+      "http_header": "HEADER_TEST: HeaderTest\\nCOMPANY: TestCo\\nUser-Agent: QualysScanner",
+      "object": "index.html"
+    },
+    {
+      "transaction": "process",
+      "mode": "substring",
+      "match": "HeaderTest"
+    },
+    {
+      "transaction": "report",
+      "result": "Header injection confirmed"
+    }
+  ]
+}`,
+  imap: `{
+  "detection_type": "tcp dialog",
+  "api_version": 1,
+  "trigger_type": "service",
+  "services": ["imap", "imaps"],
+  "debug_level": 100,
+  "title": "IMAP auth check",
+  "dialog": [
+    {
+      "transaction": "send",
+      "data": "a001 LOGIN testuser testpass\\n"
+    },
+    {
+      "transaction": "receive",
+      "mode": "luapattern",
+      "match": "\\na001 [^\\n]*\\n"
+    },
+    {
+      "transaction": "process",
+      "mode": "luapattern",
+      "match": "\\na001 OK[^\\n]*\\n"
+    },
+    {
+      "transaction": "report",
+      "result": "IMAP auth succeeded"
+    }
+  ]
+}`
+};
+
+function loadTemplate(key){
+  document.getElementById('json-def').value = TEMPLATES[key];
+  validateJson();
+  showToast('Template loaded: ' + key, 'tinf');
+}
+
+// Fix modal tab style for vertical nav
+document.querySelectorAll('.mtab[data-tab]').forEach(t=>{
+  t.addEventListener('click', function(){
+    document.querySelectorAll('.mtab[data-tab]').forEach(x=>{
+      x.style.color='var(--text-muted)';
+      x.style.borderRight='2px solid transparent';
+    });
+    this.style.color='var(--accent)';
+    this.style.borderRight='2px solid var(--accent)';
+    switchModalTab(this.dataset.tab);
+  });
+});
+// Set initial active style
+(function(){ const t=document.querySelector('.mtab[data-tab="tab-general"]'); if(t){ t.style.color='var(--accent)'; t.style.borderRight='2px solid var(--accent)'; } })();
+</script>
+</body>
+</html>
