@@ -1,235 +1,194 @@
 # TruConfirm QRDI — KnowledgeBase App
 
-A fully client-side web application that brings **Qualys Remote Detection Interface (QRDI)** custom vulnerability signature management into a TruConfirm-styled dark UI. No build step, no backend server — open `index.html` in any modern browser or serve the three files with any static file server.
+A browser-based application for authoring, managing, and activating **Qualys Remote Detection Interface (QRDI)** custom vulnerability detection signatures — with AI-assisted generation, a mock scan execution backend, and a full lifecycle management UI.
+
+---
+
+## Quick Start
+
+```
+1. Double-click  start.bat          (Windows)
+   ./start.sh                       (Mac / Linux)
+
+2. Open browser  http://localhost:8080
+```
+
+Both the frontend and the mock backend start automatically. The browser opens on its own.
 
 ---
 
 ## Table of Contents
 
 1. [What It Does](#what-it-does)
-2. [Getting Started](#getting-started)
-3. [App Structure](#app-structure)
-4. [Feature Guide](#feature-guide)
-   - [Overview Dashboard](#1-overview-dashboard)
-   - [KnowledgeBase](#2-knowledgebase)
-   - [QRDI Vulnerability Modal](#3-qrdi-vulnerability-modal)
-   - [AI-Assisted Signature Creation](#4-ai-assisted-signature-creation)
-   - [Lua Library](#5-lua-library)
-   - [Scan Tab](#6-scan-tab)
-5. [QRDI JSON Schema Quick Reference](#qrdi-json-schema-quick-reference)
-6. [File Reference](#file-reference)
+2. [Project Structure](#project-structure)
+3. [Getting Started](#getting-started)
+   - [Startup & Shutdown Scripts](#startup--shutdown-scripts)
+   - [Manual Start](#manual-start)
+   - [AI Feature Setup (optional)](#ai-feature-setup-optional)
+4. [Feature Overview](#feature-overview)
+5. [Mock Backend API](#mock-backend-api)
+6. [QRDI JSON Schema Quick Reference](#qrdi-json-schema-quick-reference)
+7. [Key Functions Reference](#key-functions-reference)
+8. [Documentation](#documentation)
 
 ---
 
 ## What It Does
 
-TruConfirm QRDI lets security engineers **author, manage, and activate** custom QRDI vulnerability detection signatures without leaving the browser. Key capabilities:
-
 | Capability | Detail |
 |---|---|
-| Author QRDI signatures | Raw JSON editor with syntax highlighting and inline validation |
-| AI-assisted authoring | Natural language → QRDI JSON via Claude API or built-in smart fallback |
-| Lua Library management | Upload, edit, publish, and download shared Lua function libraries |
-| Scan profile management | Attach QRDI checks to scan profiles with per-scan enable/disable |
-| Activation wizard | 3-step wizard to validate, attach, and activate a signature for scanning |
-| Finding detail view | Evidence, raw debug output, and error log per detection result |
-| Overview dashboard | KPI cards, lifecycle board, severity chart, and activity feed |
+| **QRDI Signature Authoring** | Raw JSON editor with syntax highlighting, inline schema validation, and one-click templates |
+| **AI-Assisted Generation** | Natural language → QRDI JSON via Claude API (`claude-opus-4-5`) or built-in 10-pattern smart fallback (no API key needed) |
+| **AI Signature Improvement** | Rule-based patcher adds `on_error`, `timeout`, `on_missing`, `debug_level`, and `title` fields to existing signatures |
+| **Lua Library Management** | Upload, edit, publish, download, and delete shared Lua function libraries (`qrdiuser_*` prefix enforced) |
+| **Scan Profile Management** | Attach QRDI checks to scan profiles with per-scan enable/disable granularity |
+| **Mock Scan Execution** | Backend simulates QRDI dialog execution per host, returns VULNERABLE / NOT VULNERABLE / ERROR findings |
+| **Activation Wizard** | 3-step wizard: Review signature → Select scan profile → Confirm activation |
+| **Finding Detail View** | Per-finding evidence, raw debug output (RESULT_DEBUG), and error log (RESULT_ERRORS) |
+| **Overview Dashboard** | Live KPI cards, lifecycle board, severity distribution chart, and activity feed (backed by `/api/stats`) |
+| **Telemetry** | Every key action (signature created, AI invoked, scan executed) is logged to `/api/telemetry` |
+
+---
+
+## Project Structure
+
+```
+TruCon_QRDI/
+├── index.html          # App shell — three tab views + all modals
+├── styles.css          # Dark-theme design system (CSS variables, all components)
+├── app.js              # All state, rendering, modal, AI, and API-layer logic
+│
+├── backend/
+│   ├── server.js       # Express + json-server with custom scan execution simulator
+│   ├── db.json         # Persistent mock database (signatures, findings, scans, telemetry)
+│   └── package.json    # Backend dependencies (json-server, cors, node-fetch)
+│
+├── start.bat           # Windows: start backend + frontend + open browser
+├── stop.bat            # Windows: stop both servers
+├── start.sh            # Mac/Linux: start backend + frontend + open browser
+├── stop.sh             # Mac/Linux: stop both servers
+│
+├── README.md           # This file
+└── Usage.md            # Step-by-step user guide
+```
 
 ---
 
 ## Getting Started
 
-### Option A — Open directly
+### Prerequisites
+- **Node.js 18+** — [nodejs.org](https://nodejs.org)
+- **Python 3.x** — [python.org](https://python.org)
 
+### Startup & Shutdown Scripts
+
+| Script | Platform | What it does |
+|---|---|---|
+| `start.bat` | Windows | Installs deps (first run), starts backend on :3001, frontend on :8080, opens browser |
+| `stop.bat` | Windows | Kills both servers by port |
+| `start.sh` | Mac/Linux | Same as start.bat, saves PIDs to `.backend.pid` / `.frontend.pid` |
+| `stop.sh` | Mac/Linux | Kills by PID file, falls back to `lsof` port kill |
+
+**Windows:**
 ```
-Double-click index.html
+Double-click start.bat
+Double-click stop.bat    ← to stop
 ```
 
-> Some browsers restrict `fetch()` on `file://` URLs. If the AI feature shows a CORS error, use Option B.
-
-### Option B — Local static server (recommended)
-
-**Python:**
+**Mac / Linux:**
 ```bash
-cd /path/to/TruCon_QRDI
-python -m http.server 8080
-# Open http://localhost:8080
+chmod +x start.sh stop.sh   # first time only
+./start.sh
+./stop.sh                    # to stop
 ```
 
-**Node (npx):**
+### Manual Start
+
+Open two terminal windows:
+
 ```bash
-npx serve .
-# Follow the URL printed in the terminal
+# Terminal 1 — Backend (mock database + scan executor)
+cd backend
+npm install        # first time only
+node server.js     # runs on http://localhost:3001
+
+# Terminal 2 — Frontend
+python -m http.server 8080   # runs on http://localhost:8080
 ```
 
-### AI feature (optional)
+Then open **http://localhost:8080** in your browser.
 
-The AI signature assistant works without any API key using the built-in smart fallback engine. To use the full Claude model:
+### AI Feature Setup (optional)
 
-1. Get an Anthropic API key from [console.anthropic.com](https://console.anthropic.com)
-2. Open any QRDI vulnerability → go to the **QRDI Definition** tab → click **✦ AI**
-3. Paste your key in the API Key row and click **Save**
+The AI signature assistant works without an API key using the built-in smart fallback (covers XSS, SQL injection, open redirect, HTTP headers, IMAP, SMTP, SMB, FTP, SSH, generic HTTP).
 
-The key is stored only in `sessionStorage` — it is cleared when the tab is closed.
+To use the full `claude-opus-4-5` model:
+1. Get an API key from [console.anthropic.com](https://console.anthropic.com)
+2. In the app: open any QRDI vulnerability → **QRDI Definition** tab → click **✦ AI**
+3. Paste the key and click **Save**
+
+> The key is stored only in `sessionStorage` — cleared when the tab is closed.
 
 ---
 
-## App Structure
+## Feature Overview
 
+### Overview Tab
+Home screen with live KPI cards (Total / Active / Lua Libraries / Pending), lifecycle board (Author → Validate → Attach → Execute → Monitor), severity bar chart, and recent activity feed. Cards update from `/api/stats` when the backend is running.
+
+### KnowledgeBase Tab
+Central table of all custom QRDI checks with filtering, search, and quick actions (Info / Edit / Disable).
+
+**Creating a new signature — 6 steps:**
+1. Click **New ▾ → New QRDI Vulnerability**
+2. Fill **General Info**: QID (410001–430000), title, detection type, severity, debug level
+3. *(Optional)* Add CVE / vendor reference mappings
+4. *(Optional)* Fill threat, impact, solution text
+5. In **QRDI Definition**: use a template, write JSON manually, or use the AI assistant
+6. Click **Validate** → **Save**
+
+### Scan Tab
+Manage scan profiles and their attached checks. When the backend is running, a **▶ Run Scan Now** button appears in each profile detail. Results populate the findings list in real-time.
+
+### AI Assistant (inside QRDI Definition tab)
+- **Generate New** — describe a detection in plain English → complete QRDI JSON
+- **Improve Existing** — paste/load a signature → get a hardened version with change log
+- **Confidence score** — 🟢 High / 🟡 Medium / 🔴 Low based on dialog completeness
+- **Apply to Editor** — explicit button; AI never auto-overwrites the editor
+
+### Activation Wizard
+Launched from the ℹ Info modal → ⚡ Activate for Scan. Three steps: Review → Select Profile → Confirm. Sets status to Active and links the signature to the chosen scan profile.
+
+---
+
+## Mock Backend API
+
+Backend runs on **http://localhost:3001**. All data is persisted to `backend/db.json`.
+
+| Method | Endpoint | Description |
+|---|---|---|
+| GET | `/api/signatures` | List all QRDI signatures |
+| POST | `/api/signatures` | Create a signature |
+| PUT | `/api/signatures/:id` | Update a signature |
+| DELETE | `/api/signatures/:id` | Delete a signature |
+| GET | `/api/profiles` | List scan profiles |
+| GET | `/api/findings` | All findings (supports `?profileId=` and `?qid=` filters) |
+| POST | `/api/scan/run` | Simulate a scan — body: `{ profileId, qids[] }` |
+| GET | `/api/scans` | Scan run history |
+| GET | `/api/stats` | Live KPI summary for the dashboard |
+| POST | `/api/telemetry` | Log a user event |
+
+**Example — run a scan:**
+```bash
+curl -X POST http://localhost:3001/api/scan/run \
+  -H "Content-Type: application/json" \
+  -d '{"profileId":"sp1","qids":[410001,410003]}'
 ```
-TruCon_QRDI/
-├── index.html      # Full app markup — three tab views + all modals
-├── styles.css      # Dark-theme design system (CSS variables, all component styles)
-└── app.js          # All state, data, rendering, and interaction logic
+
+**Example — get findings for a profile:**
+```bash
+curl "http://localhost:3001/api/findings?profileId=sp1"
 ```
-
-No dependencies. No npm. No bundler. Open and run.
-
----
-
-## Feature Guide
-
-### 1. Overview Dashboard
-
-The **Overview** tab (home screen) shows a live summary of the QRDI signature estate.
-
-| Widget | Description |
-|---|---|
-| KPI Cards | Total QRDI Checks · Active · Lua Libraries · Pending Activation |
-| Lifecycle Board | Steps from Author → Validate → Attach → Execute → Monitor with counts at each stage |
-| Severity Distribution | Horizontal bar chart — Critical / High / Medium / Low breakdown |
-| Recent Activity | Feed of the last 5 actions (signature created, AI generated, validated, activated) |
-
----
-
-### 2. KnowledgeBase
-
-The **KnowledgeBase** tab is the central list of all custom vulnerability checks.
-
-#### Filter panel (left)
-- **Category** — QRDI, Lua Library
-- **QVSS Base Score** — slider range
-- **RTI** — Real-Time Intelligence flags
-- **Exploitability** — Actively Exploited, Easy Exploit, POC Exploit
-
-#### Toolbar
-- **Search** — live filter across QID, title, CVE ID
-- **New ▾** — dropdown to create a new QRDI Vulnerability or open the Lua Library
-- **Columns / Export / Settings** — icon buttons (UI scaffold)
-
-#### Table columns
-`QID · Title · Severity · Category · Detection Type · Debug · Status · Actions`
-
-- **QRDI** badge — purple label on any custom check
-- **Debug** badge — amber label showing the configured debug level (100/200/300/400)
-- **Actions** — ℹ Info · ✎ Edit · ⊖ Disable/Enable
-
----
-
-### 3. QRDI Vulnerability Modal
-
-Opened via **New → New QRDI Vulnerability** or the ✎ Edit action. Six vertical tabs:
-
-| Tab | Fields |
-|---|---|
-| **General Info** | QID · Title · Detection Type · Severity · CVSS · Debug Level · Status |
-| **Additional Mappings** | CVE ID · Bugtraq ID · Vendor References (dynamic rows with URL) |
-| **Threat** | Threat description textarea |
-| **Impact** | Impact description textarea |
-| **Solution** | Solution / remediation textarea |
-| **QRDI Definition** | JSON editor · Syntax highlight toggle · AI Assistant panel · Templates |
-
-#### JSON Editor features
-- **Validate** button — checks required fields (`detection_type`, `api_version`, `dialog`) before saving
-- **🎨 Highlight** toggle — switches between raw textarea and colour-coded preview
-- **Templates** — four one-click starters: XSS Check · HTTP Header · IMAP Auth · SMB Version
-
-#### Lifecycle stepper (Info modal)
-When viewing an existing QRDI vulnerability, a 5-step lifecycle bar shows the current stage:
-`Author → Validate → Attach → Execute → Monitor`
-
-The **⚡ Activate for Scan** button launches the Activation Wizard directly from this view.
-
----
-
-### 4. AI-Assisted Signature Creation
-
-Located inside the QRDI Definition tab. Click **✦ AI** to open.
-
-#### Generate New mode
-Describe the vulnerability in plain English. Example prompts:
-- *"Detect XSS in login page"*
-- *"Check SMB protocol version via TCP"*
-- *"Grab the HTTP server banner and report the version"*
-- *"Test IMAP authentication and capture the response"*
-
-Six hint chips populate the textarea with one click.
-
-#### Improve Existing mode
-Switch to Improve mode when the editor already contains a signature. The assistant will:
-- Add `on_error: "stop"` to HTTP/TCP transactions missing it
-- Add `timeout: 30000` to HTTP transactions
-- Add `on_missing: "stop"` to process transactions
-- Add `debug_level: 100` when you ask for debug/logging
-- Add a `title` field if missing
-
-Five hint chips cover the most common improvement requests.
-
-#### Confidence indicator
-Every generated signature receives a score:
-- 🟢 **High** — has report + process/receive + correct type + api_version 1
-- 🟡 **Medium** — has report but missing structural elements
-- 🔴 **Low** — missing report transaction
-
-#### API key (optional)
-Without a key the built-in smart fallback covers 10 detection patterns (XSS, SQL injection, open redirect, HTTP headers, IMAP, SMTP, SMB, FTP, SSH, generic HTTP). With a key, any natural language description is supported via `claude-opus-4-5`.
-
----
-
-### 5. Lua Library
-
-Accessed via **New → Lua Library** or the Lua Library button. Manages shared Lua function files used by QRDI signatures.
-
-| Action | Description |
-|---|---|
-| Upload | Add a new `.lua` file — name, description, status (Published / Draft / Inactive) |
-| Edit | Modify the Lua source code and metadata inline |
-| Download | Save the `.lua` file locally |
-| Delete | Remove after confirmation |
-
-**Rules enforced:**
-- Function names must be prefixed `qrdiuser_`
-- File size limit: 1 MB
-- Status must be `Published` for a signature to reference the library at scan time
-
----
-
-### 6. Scan Tab
-
-The **Scan** tab manages scan profiles and their attached QRDI checks.
-
-#### Profile list (left panel)
-Shows all scan profiles with asset group and schedule. Click a profile to open its detail view.
-
-#### Profile detail (right panel)
-- **Attached QRDI Checks** — list of all custom checks attached to this profile, each with a per-scan enable/disable toggle
-- **Attach QRDI Check** — opens the Attach Selector to browse all available QRDI checks and link one to this profile
-- **Detach** — removes a check from the profile (does not delete the vulnerability)
-- **Results** — scan result rows showing detection status (VULNERABLE / NOT VULNERABLE / ERROR), timestamp, and host count
-- **View Finding** — opens the Finding Detail modal for any vulnerable result
-
-#### Finding Detail modal
-- QID · Title · User-Defined badge
-- Result message and raw evidence from the QRDI dialog response
-- Debug output section (RESULT_DEBUG)
-- Error log section (RESULT_ERRORS)
-
-#### Activation Wizard
-Launched from ⚡ Activate for Scan in the info modal or directly from a check row.
-
-**Step 1 — Review** · Confirms detection type, QID, trigger type, debug level, and JSON validity
-**Step 2 — Select Profile** · Pick from available scan profiles (asset group + schedule shown)
-**Step 3 — Confirm** · Sets the signature to Active and associates it with the chosen profile
 
 ---
 
@@ -240,24 +199,12 @@ Launched from ⚡ Activate for Scan in the info modal or directly from a check r
   "detection_type": "http dialog",
   "api_version": 1,
   "trigger_type": "service",
-  "title": "Example HTTP Detection",
+  "title": "Example Detection",
   "debug_level": 0,
   "dialog": [
-    {
-      "transaction": "http get",
-      "object": "/endpoint",
-      "on_error": "stop"
-    },
-    {
-      "transaction": "process",
-      "mode": "regexp",
-      "match": "vulnerable-pattern",
-      "on_missing": "stop"
-    },
-    {
-      "transaction": "report",
-      "result": "Vulnerability confirmed"
-    }
+    { "transaction": "http get",  "object": "/path", "on_error": "stop", "timeout": 30000 },
+    { "transaction": "process",   "mode": "regexp",  "match": "pattern", "on_missing": "stop" },
+    { "transaction": "report",    "result": "Vulnerability confirmed" }
   ]
 }
 ```
@@ -267,42 +214,46 @@ Launched from ⚡ Activate for Scan in the info modal or directly from a check r
 | `detection_type` | `"http dialog"` · `"tcp dialog"` |
 | `api_version` | Always `1` |
 | `trigger_type` | `"service"` · `"virtual host"` (HTTP) · `"port"` (TCP) |
-| `debug_level` | `0` (off) · `100` (start/end) · `200` (transactions) · `300` (variables) · `400` (full) |
+| `debug_level` | `0` off · `100` start/end · `200` transactions · `300` variables · `400` full |
 | `on_error` / `on_missing` | `"continue"` · `"stop"` · `"report"` · `{"action":"goto","label":"..."}` |
 | QID range | 410001 – 430000 |
 
 ---
 
-## File Reference
-
-| File | Purpose |
-|---|---|
-| `index.html` | App shell, all tab views (`view-overview`, `view-scan`, `view-kb`), all modals |
-| `styles.css` | CSS custom properties, dark theme, badge classes, modal layouts, AI panel styles, scan tab styles |
-| `app.js` | `CVE_DATA`, `QRDI_DEFAULTS`, `SCAN_PROFILES` mock data · state object `S` · all render/modal/AI functions |
-
-### Key functions in app.js
+## Key Functions Reference
 
 | Function | What it does |
 |---|---|
 | `renderAll()` | Re-renders table, filter panel, stats, and active tab |
 | `switchTab(tab)` | Switches between overview / scan / kb tabs |
 | `openNew()` | Opens the New QRDI Vulnerability modal |
-| `openEdit(id)` | Opens the edit modal pre-populated with an existing entry |
-| `saveQrdiVuln()` | Validates and saves a QRDI entry to state |
-| `validateJson()` | Parses the JSON editor content and updates the validity indicator |
-| `toggleJsonPreview()` | Swaps between raw textarea and syntax-highlighted preview |
-| `runAIGenerate()` | Entry point for AI generation (API or fallback) |
+| `saveQrdiVuln()` | Validates, saves to state, and syncs to backend API |
+| `validateJson()` | Parses editor JSON and updates validity indicator |
+| `toggleJsonPreview()` | Swaps raw textarea ↔ syntax-highlighted preview |
+| `runAIGenerate()` | Entry point for AI generation (Claude API or fallback) |
 | `callClaudeAPI(prompt)` | Calls `claude-opus-4-5` via Anthropic Messages API |
-| `smartGenerateQRDI(prompt)` | Built-in fallback — 10 detection patterns, no API key needed |
-| `improveExisting(json)` | Rule-based patcher for existing QRDI signatures |
-| `applyAISignature()` | Copies AI output to the JSON editor and re-validates |
-| `scoreConfidence(parsed)` | Returns `"high"` / `"med"` / `"low"` confidence rating |
+| `smartGenerateQRDI(prompt)` | Built-in fallback — 10 patterns, no API key needed |
+| `improveExisting(json)` | Rule-based patcher for existing signatures |
+| `applyAISignature()` | Copies AI output to editor and re-validates |
+| `scoreConfidence(parsed)` | Returns `"high"` / `"med"` / `"low"` |
 | `openActivate(id)` | Launches the 3-step activation wizard |
 | `renderScanTab()` | Renders the scan profile list |
-| `openFindingDetail(finding)` | Opens the finding detail modal with evidence + debug |
-| `renderDashboard()` | Populates the Overview tab KPI cards, lifecycle board, chart, activity feed |
-| `openLuaLib()` | Opens the Lua Library management modal |
+| `runScanAPI(profileId)` | Calls `POST /api/scan/run`, updates UI with results |
+| `openFindingDetail(finding)` | Opens finding modal with evidence + debug |
+| `renderDashboard()` | Populates Overview tab from live `/api/stats` |
+| `logTelemetry(payload)` | POSTs an event to `/api/telemetry` |
+| `probeBackend()` | Checks if backend is online on app load |
+
+---
+
+## Documentation
+
+| File | Description |
+|---|---|
+| `README.md` | Project overview, setup, API reference |
+| `Usage.md` | Step-by-step user guide for all features |
+| `QRDI_AI_Feature_Documentation.docx` | Detailed AI feature technical documentation |
+| `QRDI_Final_Validation_Report.docx` | Requirements coverage report (QRDI_Req.docx source of truth) |
 
 ---
 
