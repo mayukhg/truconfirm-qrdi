@@ -1690,6 +1690,7 @@ async function loadSignaturesFromAPI(){
       enabled:     s.enabled !== false,
       cve:         s.cve || '',
       definition:  s.definition ? JSON.stringify(s.definition, null, 2) : '',
+      jsonDef:     s.definition ? JSON.stringify(s.definition, null, 2) : '',  // ← same value, ensures wizard + info modal work on both old and new code paths
       expl:        s.expl || '',
       apiId:       s.id     // keep the DB id for PUT/DELETE
     }));
