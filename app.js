@@ -664,18 +664,42 @@ function toggleJsonPreview(){
 //  SCAN PROFILES DATA
 // ─────────────────────────────────────────────
 const SCAN_PROFILES = [
-  { id:'sp1', name:'Production Full Scan', desc:'All hosts, complete detection', checks:[
-    {qid:410001,enabled:true}, {qid:410003,enabled:true}
-  ], results:[
-    {qid:410001,title:'Custom XSS Detection',sev:'Critical',found:true,result:'XSS found in /login?q=param',evidence:'<script>alert(73541);</script> reflected in response body',debug:'+0:00:00 Executing custom detection for QID 410001\n+0:00:01 HTTP GET /login returned 200\n+0:00:01 Match found: XSS pattern',ts:'2026-04-01 14:32'},
-    {qid:410003,title:'SMB Protocol Version Detection',sev:'Critical',found:true,result:'Negotiated SMBv2.1',evidence:'SMB negotiate response: dialect 0x0210 (SMBv2.1)',debug:'+0:00:00 TCP connect to microsoft-ds\n+0:00:01 SMB negotiate sent\n+0:00:01 Response: SMBv2.1',ts:'2026-04-01 14:34'},
-  ]},
-  { id:'sp2', name:'Dev Environment Scan', desc:'Internal assets only', checks:[
-    {qid:410002,enabled:true},{qid:410004,enabled:false}
-  ], results:[
-    {qid:410002,title:'IMAP Authentication Check',sev:'High',found:false,result:'IMAP a001 NO Login failed',evidence:'Server response: a001 NO [AUTHENTICATIONFAILED] Invalid credentials',debug:'',ts:'2026-04-01 09:10'},
-  ]},
-  { id:'sp3', name:'Web Application Scan', desc:'HTTP endpoints only', checks:[], results:[] },
+  { id:'sp1', name:'Production Web Servers', assetGroup:'DMZ-PROD-01', schedule:'Daily 02:00',
+    desc:'Public-facing web servers — DMZ production zone', checks:[
+      {qid:410001,enabled:true}, {qid:410003,enabled:true}
+    ], results:[
+      {qid:410001,title:'Apache HTTP Server Version Disclosure',sev:'High',found:true,
+       result:'Apache version: 2.4.51',
+       evidence:'HTTP/1.1 200 OK\nServer: Apache/2.4.51 (Ubuntu)\nContent-Type: text/html',
+       debug:'[100] Detection started: Apache HTTP Server Version Disclosure\n[200] TX1 http get / -> HTTP 200\n[200] TX2 process regexp match: Apache/2.4.51\n[300] VAR apache_ver = \'2.4.51\'\n[100] Detection ended: VULNERABLE',
+       ts:'2026-04-02 03:12'},
+      {qid:410003,title:'Cross-Site Scripting (XSS) Detection',sev:'Critical',found:true,
+       result:'XSS reflection confirmed in search parameter',
+       evidence:'GET /search?q="><script>alert(73541);</script> HTTP/1.1\nHost: 10.0.1.47\n\nHTTP/1.1 200 OK\n...<body>Results for: "><script>alert(73541);</script></body>',
+       debug:'[100] Detection started: XSS Detection\n[200] TX1 http get /search?q=... -> HTTP 200\n[200] TX2 process regexp MATCH FOUND\n[100] Detection ended: VULNERABLE',
+       ts:'2026-04-02 03:14'},
+    ]},
+  { id:'sp2', name:'Internal Mail Servers', assetGroup:'CORP-MAIL', schedule:'Weekly Mon',
+    desc:'Internal IMAP / SMTP mail infrastructure', checks:[
+      {qid:410002,enabled:true}
+    ], results:[
+      {qid:410002,title:'IMAP Authentication Check',sev:'High',found:true,
+       result:'a001 NO [AUTHENTICATIONFAILED] Invalid credentials',
+       evidence:'SENT: a001 LOGIN testuser testpass\nRECV: * OK Dovecot ready.\na001 NO [AUTHENTICATIONFAILED] Invalid credentials',
+       debug:'[100] Detection started: IMAP Auth Check\n[200] TX1 send LOGIN -> ok\n[200] TX2 receive luapattern match found\n[100] Detection ended: VULNERABLE',
+       ts:'2026-04-01 09:10'},
+    ]},
+  { id:'sp3', name:'Windows File Servers', assetGroup:'WIN-FS-POOL', schedule:'Daily 04:00',
+    desc:'Windows SMB file server pool', checks:[
+      {qid:410004,enabled:true}
+    ], results:[
+      {qid:410004,title:'SMB Protocol Version Detection',sev:'Critical',found:false,
+       result:'',
+       evidence:'',
+       debug:'[100] Detection started: SMB Detection\n[200] TX1 send SMBv1 negotiate\n[200] TX2 receive -> TIMEOUT after 10000ms',
+       errors:'RESULT_ERRORS: Connection timed out after 10000ms on 10.0.3.21:445',
+       ts:'2026-04-01 11:45'},
+    ]},
 ];
 
 const WIZ = { step:1, entryId:null, profileId:null };
@@ -707,7 +731,11 @@ function renderProfileDetail(id){
   $('scan-right-hdr').innerHTML=`
     <div>
       <div style="font-size:14px;font-weight:600">${escHtml(profile.name)}</div>
-      <div style="font-size:11px;color:var(--text-muted);margin-top:2px">${escHtml(profile.desc)}</div>
+      <div style="font-size:11px;color:var(--text-muted);margin-top:2px">
+        Asset Group: <b style="color:var(--text-primary)">${escHtml(profile.assetGroup||'—')}</b>
+        &nbsp;·&nbsp; Schedule: ${escHtml(profile.schedule||'—')}
+        &nbsp;·&nbsp; ${escHtml(profile.desc||'')}
+      </div>
     </div>
     <div style="display:flex;gap:7px">
       <button class="btn btn-q btn-sm" onclick="openAttachSelector('${id}')">+ Attach QRDI Check</button>
@@ -887,12 +915,13 @@ function updateWizardUI(){
 
   if(WIZ.step===1){
     let jsonOk=false, hasReport=false, hasDetType=false;
-    if(entry&&entry.jsonDef){
+    const rawDef = entry && (entry.jsonDef || entry.definition || '');
+    if(rawDef){
       try{
-        const p=JSON.parse(entry.jsonDef);
+        const parsed = typeof rawDef==='string' ? JSON.parse(rawDef) : rawDef;
         jsonOk=true;
-        hasDetType=!!(p.detection_type&&p.api_version);
-        hasReport=!!(p.dialog&&p.dialog.some(t=>t.transaction==='report'));
+        hasDetType=!!(parsed.detection_type&&parsed.api_version);
+        hasReport=!!(parsed.dialog&&parsed.dialog.some(t=>t.transaction==='report'));
       }catch(e){}
     }
     const rows=[
@@ -920,7 +949,10 @@ function updateWizardUI(){
         ${SCAN_PROFILES.map(p=>`
           <div class="pp-item ${WIZ.profileId===p.id?'on':''}" onclick="WIZ.profileId='${p.id}';updateWizardUI()">
             <input type="radio" ${WIZ.profileId===p.id?'checked':''} style="accent-color:var(--accent)">
-            <div><div class="pp-name">${escHtml(p.name)}</div><div class="pp-meta">${p.checks.length} checks · ${escHtml(p.desc)}</div></div>
+            <div>
+              <div class="pp-name">${escHtml(p.name)}</div>
+              <div class="pp-meta">Asset Group: <b>${escHtml(p.assetGroup||'—')}</b> &nbsp;·&nbsp; ${escHtml(p.schedule||'No schedule')} &nbsp;·&nbsp; ${p.checks.length} check${p.checks.length!==1?'s':''} attached</div>
+            </div>
           </div>`).join('')}
       </div>`;
     ftr.innerHTML=`<button class="btn btn-s" onclick="WIZ.step=1;updateWizardUI()">← Back</button><button class="btn btn-s" onclick="closeModal('activate')">Cancel</button><button class="btn btn-p" onclick="wizNext()" ${WIZ.profileId?'':'disabled'}>Next →</button>`;
@@ -932,7 +964,7 @@ function updateWizardUI(){
       <table class="it" style="margin-bottom:14px">
         <tr><td>QRDI Check</td><td><b>${entry?escHtml(entry.title):''}</b> (QID ${entry?entry.qid:''})</td></tr>
         <tr><td>Scan Profile</td><td><b>${prof?escHtml(prof.name):''}</b></td></tr>
-        <tr><td>Detection Type</td><td><span class="code-text">${entry?entry.detectionType:''}</span></td></tr>
+        <tr><td>Detection Type</td><td><span class="code-text">${entry?(entry.detType||entry.detectionType||'http dialog'):''}</span></td></tr>
         <tr><td>Debug Level</td><td>${entry&&entry.debugLevel>0?`<span class="badge b-debug">Level ${entry.debugLevel}</span>`:'Off (0)'}</td></tr>
         <tr><td>Status after attach</td><td><span class="badge b-ok">Enabled</span></td></tr>
       </table>
@@ -980,7 +1012,7 @@ function renderDashboard(){
   // Lifecycle board
   const stages=[
     {lbl:'Author',icon:'✍',count:qrdi.length,state:'done'},
-    {lbl:'Validate',icon:'✓',count:qrdi.filter(e=>{try{JSON.parse(e.jsonDef);return true;}catch(e){return false;}}).length,state:'done'},
+    {lbl:'Validate',icon:'✓',count:qrdi.filter(e=>{try{const d=e.jsonDef||e.definition;JSON.parse(typeof d==='string'?d:JSON.stringify(d));return true;}catch(x){return false;}}).length,state:'done'},
     {lbl:'Attach',icon:'🔗',count:attached.length,state:attached.length>0?'done':'active'},
     {lbl:'Execute',icon:'▶',count:totalFindings,state:'active'},
     {lbl:'Report',icon:'📊',count:totalFindings,state:totalFindings>0?'done':'pending'},
@@ -1005,12 +1037,12 @@ function renderDashboard(){
 
   // Activity feed
   const activities=[
-    {dot:'var(--success)',title:'QID 410001 – Custom XSS Detection activated on Production Full Scan',time:'2 hours ago'},
-    {dot:'var(--qrdi)',title:'AI-generated signature for "SMB version check" applied to editor',time:'4 hours ago'},
-    {dot:'var(--accent)',title:'QID 410003 – SMB Protocol Version Detection: finding reported (Critical)',time:'6 hours ago'},
-    {dot:'var(--debug)',title:'QID 410002 – IMAP Authentication Check: debug level set to 100',time:'Yesterday'},
-    {dot:'var(--medium)',title:'QID 410004 – HTTP Header Injection: attached to Dev Environment Scan',time:'2 days ago'},
-    {dot:'var(--critical)',title:'QID 410005 – TCP Service Banner Check disabled globally',time:'3 days ago'},
+    {dot:'var(--success)',title:'QID 410001 – Apache Version Disclosure activated on Production Web Servers (DMZ-PROD-01)',time:'2 hours ago'},
+    {dot:'var(--qrdi)',title:'AI-generated signature for "XSS detection in login page" applied to editor',time:'4 hours ago'},
+    {dot:'var(--accent)',title:'QID 410003 – XSS Detection: VULNERABLE finding on 10.0.1.47 (DMZ-PROD-01)',time:'6 hours ago'},
+    {dot:'var(--debug)',title:'QID 410002 – IMAP Auth Check activated on Internal Mail Servers (CORP-MAIL)',time:'Yesterday'},
+    {dot:'var(--medium)',title:'QID 410004 – SMB Version Detection attached to Windows File Servers (WIN-FS-POOL)',time:'2 days ago'},
+    {dot:'var(--critical)',title:'QID 410005 – SQL Error Disclosure disabled globally',time:'3 days ago'},
   ];
   $('activity-feed').innerHTML=activities.map(a=>`
     <div class="af-row">
