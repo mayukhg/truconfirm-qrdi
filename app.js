@@ -1072,7 +1072,7 @@ openInfo = function(id, e){
           <div style="font-size:10px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Lifecycle Status</div>
           <div style="display:flex;align-items:center;gap:0">
             ${['Author','Validate','Attach','Execute','Report','Iterate'].map((lbl,i)=>{
-              const done = i===0||(i===1&&entry.jsonDef)||(i===2&&stage==='attached');
+              const done = i===0||(i===1&&(entry.jsonDef||entry.definition))||(i===2&&stage==='attached');
               const active = i===2&&stage!=='attached';
               return `<div style="flex:1;text-align:center;position:relative">
                 ${i<5?`<div style="position:absolute;top:14px;left:50%;width:100%;height:2px;background:${done?'var(--accent)':'var(--border)'}"></div>`:''}
