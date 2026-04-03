@@ -621,13 +621,14 @@ function pickLuaFile(){
 //  TAB SWITCHING
 // ─────────────────────────────────────────────
 function switchTab(tab){
-  ['overview','scan','kb'].forEach(t=>{
+  ['overview','scan','kb','findings'].forEach(t=>{
     const v=$('view-'+t), b=$('tab-btn-'+t);
     if(v) v.classList.toggle('on', t===tab);
     if(b) b.classList.toggle('on', t===tab);
   });
   if(tab==='overview') renderDashboard();
   if(tab==='scan')     renderScanTab();
+  if(tab==='findings') renderFindingsTab();
 }
 
 // ─────────────────────────────────────────────
@@ -704,6 +705,50 @@ const SCAN_PROFILES = [
 
 const WIZ = { step:1, entryId:null, profileId:null };
 const ATTACH = { profileId:null, selectedQid:null };
+
+// ─────────────────────────────────────────────
+//  NATIVE FINDINGS MOCK DATA
+//  Simulates results from a standard QVM scan
+//  These are shown alongside QRDI custom findings
+//  in the unified Findings tab.
+// ─────────────────────────────────────────────
+const NATIVE_FINDINGS = [
+  { id:'nf1', source:'native', type:'native',
+    title:'Apache HTTP Server Remote Code Execution',
+    cve:'CVE-2026-1281', qid:'105234', sev:'Critical',
+    host:'10.0.1.15', profile:'Production Web Servers',
+    ts:'2026-04-02 02:14:33',
+    result:'Service version Apache/2.4.51 detected. Vulnerable to RCE via mod_cgi buffer overflow.',
+    evidence:'HTTP/1.1 200 OK\nServer: Apache/2.4.51 (Unix)\nContent-Type: text/html\n\n[truncated 4,218 bytes]' },
+  { id:'nf2', source:'native', type:'native',
+    title:'OpenSSL TLS Certificate Validation Bypass',
+    cve:'CVE-2026-2374', qid:'105891', sev:'Critical',
+    host:'10.0.1.22', profile:'Production Web Servers',
+    ts:'2026-04-02 02:15:41',
+    result:'OpenSSL 3.0.7 detected. Certificate chain validation can be bypassed under specific conditions.',
+    evidence:'TLS handshake captured. Server certificate chain depth: 3. Validation flags: 0x00 (VERIFY_NONE)' },
+  { id:'nf3', source:'native', type:'native',
+    title:'Microsoft Exchange ProxyLogon SSRF',
+    cve:'CVE-2025-0891', qid:'91842', sev:'High',
+    host:'10.0.2.10', profile:'Internal Mail Servers',
+    ts:'2026-04-02 08:32:17',
+    result:'Exchange Server 2019 CU11 detected. Vulnerable to server-side request forgery via /autodiscover endpoint.',
+    evidence:'GET /autodiscover/autodiscover.json?@test.com/owa/ HTTP/1.1\nResponse: HTTP/1.1 302 Found\nLocation: https://internal-ews.corp/owa/' },
+  { id:'nf4', source:'native', type:'native',
+    title:'SMBv1 Protocol Enabled (EternalBlue Risk)',
+    cve:'CVE-2025-1546', qid:'70003', sev:'Medium',
+    host:'10.0.3.14', profile:'Windows File Servers',
+    ts:'2026-04-01 04:11:05',
+    result:'SMBv1 protocol negotiation accepted. Host may be vulnerable to EternalBlue-class exploits.',
+    evidence:'SMB negotiate response accepted dialect: PC NETWORK PROGRAM 1.0 (SMBv1)' },
+  { id:'nf5', source:'native', type:'native',
+    title:'Outdated PHP Version Information Disclosure',
+    cve:'CVE-2024-9912', qid:'38150', sev:'Low',
+    host:'10.0.1.18', profile:'Production Web Servers',
+    ts:'2026-04-02 02:16:09',
+    result:'PHP/7.4.3 version string disclosed in X-Powered-By header.',
+    evidence:'HTTP/1.1 200 OK\nX-Powered-By: PHP/7.4.3\nContent-Type: text/html' },
+];
 
 // ─────────────────────────────────────────────
 //  SCAN TAB RENDER
@@ -884,6 +929,158 @@ function openFindingDetail(finding){
     <div class="isect" style="margin-top:14px">Evidence</div>
     <div class="fd-evidence">${escHtml(finding.evidence||'No evidence captured.')}</div>
     ${finding.debug?`<div class="isect" style="margin-top:10px">Debug Output</div><div class="fd-debug">${escHtml(finding.debug)}</div>`:''}`;
+  openModal('finding');
+}
+
+// ─────────────────────────────────────────────
+//  UNIFIED FINDINGS TAB
+// ─────────────────────────────────────────────
+// Merges NATIVE_FINDINGS (standard QVM results) with
+// QRDI custom detection results from all scan profiles.
+// Custom detections are clearly marked as User-Defined.
+
+let _findingsFilter = 'all'; // 'all' | 'native' | 'qrdi'
+
+function setFindingsFilter(f){
+  _findingsFilter = f;
+  ['all','native','qrdi'].forEach(k=>{
+    const b=$('filt-btn-'+k);
+    if(b) b.classList.toggle('on', k===f);
+  });
+  renderFindingsTable();
+}
+
+function renderFindingsTab(){
+  // Ensure filter buttons reflect current state
+  ['all','native','qrdi'].forEach(k=>{
+    const b=$('filt-btn-'+k);
+    if(b) b.classList.toggle('on', k===_findingsFilter);
+  });
+  renderFindingsTable();
+}
+
+function _collectQrdiFindingsRows(){
+  const rows = [];
+  SCAN_PROFILES.forEach(p=>{
+    (p.results||[]).forEach(r=>{
+      rows.push({
+        id:       r.qid + '-' + r.host + '-' + r.ts,
+        source:   'qrdi',
+        type:     'qrdi',
+        title:    r.title,
+        cve:      '',
+        qid:      'QID ' + r.qid,
+        sev:      r.sev,
+        host:     r.host || '—',
+        profile:  p.name,
+        ts:       r.ts,
+        result:   r.result   || '',
+        evidence: r.evidence || '',
+        debug:    r.debug    || '',
+        errors:   r.errors   || '',
+        _raw:     r,
+      });
+    });
+  });
+  return rows;
+}
+
+function renderFindingsTable(){
+  const tbody = $('findings-tbody');
+  const empty = $('findings-empty');
+  const chips = $('findings-chips');
+  if(!tbody) return;
+
+  const nativeRows = NATIVE_FINDINGS;
+  const qrdiRows   = _collectQrdiFindingsRows();
+  const allRows    = [...nativeRows, ...qrdiRows]
+    .sort((a,b)=> a.ts < b.ts ? 1 : -1);  // newest first
+
+  let filtered = allRows;
+  if(_findingsFilter === 'native') filtered = nativeRows.sort((a,b)=>a.ts<b.ts?1:-1);
+  if(_findingsFilter === 'qrdi')   filtered = qrdiRows.sort((a,b)=>a.ts<b.ts?1:-1);
+
+  // Summary chips
+  const sevCount = arr => {
+    const m={Critical:0,High:0,Medium:0,Low:0};
+    arr.forEach(r=>{ if(m[r.sev]!==undefined) m[r.sev]++; });
+    return m;
+  };
+  const sc = sevCount(filtered);
+  chips.innerHTML = `
+    <span class="fchip">Total <b>${filtered.length}</b></span>
+    <span class="fchip fchip-native">Native <b>${nativeRows.length}</b></span>
+    <span class="fchip fchip-qrdi">Custom QRDI <b>${qrdiRows.length}</b></span>
+    <span class="sep"></span>
+    ${sc.Critical?`<span class="fchip fchip-crit">Critical <b>${sc.Critical}</b></span>`:''}
+    ${sc.High?`<span class="fchip fchip-high">High <b>${sc.High}</b></span>`:''}
+    ${sc.Medium?`<span class="fchip fchip-med">Medium <b>${sc.Medium}</b></span>`:''}
+    ${sc.Low?`<span class="fchip fchip-low">Low <b>${sc.Low}</b></span>`:''}`;
+
+  if(!filtered.length){
+    tbody.innerHTML = '';
+    if(empty) empty.style.display = '';
+    return;
+  }
+  if(empty) empty.style.display = 'none';
+
+  tbody.innerHTML = filtered.map(r=>{
+    const isQrdi   = r.source === 'qrdi';
+    const sevCls   = sevClass(r.sev);
+    const ico      = r.sev==='Critical'?'🔴':r.sev==='High'?'🟠':r.sev==='Medium'?'🟡':'🟢';
+    const srcBadge = isQrdi
+      ? `<span class="src-badge qrdi">🔬 Custom Detection</span><span class="udl" style="margin-left:4px">User-Defined</span>`
+      : `<span class="src-badge native">⚡ Native</span>`;
+    const idRef = isQrdi ? (r.qid||'—') : (r.cve||r.qid||'—');
+    const safeR = JSON.stringify(r).replace(/"/g,'&quot;');
+    return `<tr class="ftr" onclick="openUnifiedFindingDetail(${safeR})">
+      <td class="ftr-ico">${ico}</td>
+      <td class="ftr-title">
+        <div class="ftr-name">${escHtml(r.title)}</div>
+        <div class="ftr-sub">${escHtml(r.result.substring(0,80))}${r.result.length>80?'…':''}</div>
+      </td>
+      <td>${srcBadge}</td>
+      <td class="ftr-ref">${escHtml(idRef)}</td>
+      <td><span class="badge ${sevCls}">${r.sev}</span></td>
+      <td class="ftr-host">${escHtml(r.host||'—')}</td>
+      <td class="ftr-profile">${escHtml(r.profile||'—')}</td>
+      <td class="ftr-ts">${escHtml(r.ts||'—')}</td>
+    </tr>`;
+  }).join('');
+}
+
+function openUnifiedFindingDetail(finding){
+  if(typeof finding==='string') finding=JSON.parse(finding.replace(/&quot;/g,'"'));
+  const isQrdi = finding.source === 'qrdi';
+
+  if(isQrdi){
+    // Reuse the QRDI finding detail modal
+    const raw = finding._raw || finding;
+    openFindingDetail(raw);
+    return;
+  }
+
+  // Native finding detail
+  $('finding-title').innerHTML = `⚡ ${escHtml(finding.title)} <span class="native-badge" style="margin-left:6px">Native</span>`;
+  $('finding-body').innerHTML = `
+    <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
+      <span class="badge ${sevClass(finding.sev)}">${finding.sev}</span>
+      <span class="src-badge native" style="font-size:11px">⚡ Native QVM Finding</span>
+      <span style="font-size:11px;color:var(--text-muted)">${escHtml(finding.cve||'')} · ${escHtml(finding.ts)}</span>
+    </div>
+    <table class="it">
+      <tr><td>Detection Title</td><td><b>${escHtml(finding.title)}</b></td></tr>
+      <tr><td>CVE</td><td>${escHtml(finding.cve||'—')}</td></tr>
+      <tr><td>QID</td><td>${escHtml(finding.qid||'—')}</td></tr>
+      <tr><td>Result</td><td>${escHtml(finding.result)}</td></tr>
+      <tr><td>Severity</td><td><span class="badge ${sevClass(finding.sev)}">${finding.sev}</span></td></tr>
+      <tr><td>Host</td><td>${escHtml(finding.host||'—')}</td></tr>
+      <tr><td>Scan Profile</td><td>${escHtml(finding.profile||'—')}</td></tr>
+      <tr><td>Detection Type</td><td>Native QVM Scan (Standard)</td></tr>
+      <tr><td>Scan Time</td><td>${escHtml(finding.ts)}</td></tr>
+    </table>
+    <div class="isect" style="margin-top:14px">Evidence</div>
+    <div class="fd-evidence">${escHtml(finding.evidence||'No evidence captured.')}</div>`;
   openModal('finding');
 }
 

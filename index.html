@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>TruConfirm – KnowledgeBase</title>
-<link rel="stylesheet" href="styles.css?v=5" />
+<link rel="stylesheet" href="styles.css?v=6" />
 </head>
 <body>
 
@@ -63,6 +63,7 @@
         <button class="ntab" id="tab-btn-overview" onclick="switchTab('overview')">Overview</button>
         <button class="ntab" id="tab-btn-scan" onclick="switchTab('scan')">Scan</button>
         <button class="ntab on" id="tab-btn-kb" onclick="switchTab('kb')">KnowledgeBase</button>
+        <button class="ntab" id="tab-btn-findings" onclick="switchTab('findings')">Findings</button>
       </div>
     </div>
 
@@ -115,6 +116,52 @@
           </div>
           <div class="scan-right-body" id="scan-right-body">
             <div class="attach-empty"><div class="ei">📋</div><p>Select a scan profile from the left to manage QRDI checks and view results.</p></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- ══ FINDINGS TAB ══ -->
+    <div class="tab-view" id="view-findings">
+      <div class="findings-layout">
+        <!-- header bar -->
+        <div class="findings-hdr">
+          <div>
+            <div class="findings-hdr-title">Unified Findings</div>
+            <div class="findings-hdr-sub">QRDI custom detections alongside native vulnerability findings — single pane of glass</div>
+          </div>
+          <div class="findings-filter-bar">
+            <button class="filt-btn on" id="filt-btn-all"    onclick="setFindingsFilter('all')">All</button>
+            <button class="filt-btn"    id="filt-btn-native" onclick="setFindingsFilter('native')">
+              <span class="src-dot native"></span>Native
+            </button>
+            <button class="filt-btn"    id="filt-btn-qrdi"   onclick="setFindingsFilter('qrdi')">
+              <span class="src-dot qrdi"></span>Custom (QRDI)
+            </button>
+          </div>
+        </div>
+        <!-- summary chips -->
+        <div id="findings-chips" class="findings-chips"></div>
+        <!-- table -->
+        <div class="findings-tbl-wrap">
+          <table class="findings-tbl">
+            <thead>
+              <tr>
+                <th style="width:36px"></th>
+                <th>Finding</th>
+                <th>Source</th>
+                <th>QID / CVE</th>
+                <th>Severity</th>
+                <th>Host</th>
+                <th>Profile / Scan</th>
+                <th>Detected</th>
+              </tr>
+            </thead>
+            <tbody id="findings-tbody"></tbody>
+          </table>
+          <div id="findings-empty" class="findings-empty" style="display:none">
+            <div style="font-size:28px;opacity:.3">🔍</div>
+            <p>No findings match the current filter.</p>
           </div>
         </div>
       </div>
@@ -803,7 +850,7 @@
 <!-- TOASTS -->
 <div class="toast-c" id="toast-c"></div>
 
-<script src="app.js?v=5"></script>
+<script src="app.js?v=6"></script>
 <script>
 // Template snippets
 const TEMPLATES = {
