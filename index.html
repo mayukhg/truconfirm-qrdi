@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>TruConfirm – KnowledgeBase</title>
-<link rel="stylesheet" href="styles.css?v=7" />
+<link rel="stylesheet" href="styles.css?v=8" />
 </head>
 <body>
 
@@ -130,24 +130,42 @@
             <div class="findings-hdr-title">Unified Findings</div>
             <div class="findings-hdr-sub">QRDI custom detections alongside native vulnerability findings — single pane of glass</div>
           </div>
-          <div class="findings-filter-bar">
-            <button class="filt-btn on" id="filt-btn-all"    onclick="setFindingsFilter('all')">All</button>
-            <button class="filt-btn"    id="filt-btn-native" onclick="setFindingsFilter('native')">
-              <span class="src-dot native"></span>Native
-            </button>
-            <button class="filt-btn"    id="filt-btn-qrdi"   onclick="setFindingsFilter('qrdi')">
-              <span class="src-dot qrdi"></span>Custom (QRDI)
+          <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
+            <div class="findings-filter-bar">
+              <button class="filt-btn on" id="filt-btn-all"    onclick="setFindingsFilter('all')">All</button>
+              <button class="filt-btn"    id="filt-btn-native" onclick="setFindingsFilter('native')">
+                <span class="src-dot native"></span>Native
+              </button>
+              <button class="filt-btn"    id="filt-btn-qrdi"   onclick="setFindingsFilter('qrdi')">
+                <span class="src-dot qrdi"></span>Custom (QRDI)
+              </button>
+            </div>
+            <button class="btn btn-s btn-sm" onclick="exportFindingsReport()" title="Export findings as XML report with result_debug and result_errors fields">
+              ↓ Export XML Report
             </button>
           </div>
         </div>
         <!-- summary chips -->
         <div id="findings-chips" class="findings-chips"></div>
+
+        <!-- remediation queue -->
+        <div class="rq-wrap" id="remediation-queue-wrap">
+          <div class="rq-hdr" onclick="toggleRemediationQueue()">
+            <span>🎫 Remediation Queue</span>
+            <span class="rq-count" id="remediation-queue-count">0</span>
+            <span class="rq-toggle" id="rq-toggle-icon">▼</span>
+          </div>
+          <div class="rq-body" id="remediation-queue-body" style="display:none">
+            <div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">No findings in the remediation queue.</div>
+          </div>
+        </div>
+
         <!-- table -->
         <div class="findings-tbl-wrap">
           <table class="findings-tbl">
             <thead>
               <tr>
-                <th style="width:36px"></th>
+                <th style="width:28px"></th>
                 <th>Finding</th>
                 <th>Source</th>
                 <th>QID / CVE</th>
@@ -155,6 +173,8 @@
                 <th>Host</th>
                 <th>Profile / Scan</th>
                 <th>Detected</th>
+                <th>Status</th>
+                <th style="width:130px">Actions</th>
               </tr>
             </thead>
             <tbody id="findings-tbody"></tbody>
@@ -803,6 +823,54 @@
 </div>
 
 <!-- ══════════════════════════════════════════
+     MODAL: TICKET / REMEDIATION
+══════════════════════════════════════════ -->
+<div class="ov hide" id="ov-ticket">
+  <div class="modal m-md" style="width:520px">
+    <div class="mhdr">
+      <div class="mtitle">🎫 Raise Remediation Ticket</div>
+      <button class="mclose" onclick="closeModal('ticket')">✕</button>
+    </div>
+    <div class="mbody" style="padding:18px;display:flex;flex-direction:column;gap:14px">
+      <!-- Finding summary -->
+      <div class="tk-finding-row">
+        <span class="badge" id="ticket-sev-badge">Critical</span>
+        <span id="ticket-finding-title" style="font-size:13px;font-weight:500;color:var(--text-primary);flex:1"></span>
+      </div>
+      <!-- Escalation rule (SOP-driven) -->
+      <div class="tk-esc-box" id="ticket-escalation-box"></div>
+      <!-- Ticket details -->
+      <div class="tk-row">
+        <div class="tk-field">
+          <label>Ticket ID</label>
+          <div class="tk-val" id="ticket-id-preview" style="font-family:monospace;color:var(--accent)"></div>
+          <input type="hidden" id="ticket-id-store" />
+        </div>
+        <div class="tk-field">
+          <label>Priority / SLA</label>
+          <div class="tk-val" id="ticket-priority"></div>
+        </div>
+      </div>
+      <div class="tk-field" style="width:100%">
+        <label>Assignee</label>
+        <input class="si" id="ticket-assignee" type="text" style="width:100%;margin-top:4px" />
+      </div>
+      <div class="tk-field" style="width:100%">
+        <label>Notes</label>
+        <textarea id="ticket-notes" class="jed" rows="3" style="width:100%;min-height:60px;margin-top:4px" placeholder="Optional context, steps to reproduce, or remediation notes..."></textarea>
+      </div>
+      <div class="isect" style="margin-top:0;font-size:10px">
+        Ticket will be raised against the configured ITSM pipeline. Severity-based automation rules apply per the QRDI SOP.
+      </div>
+    </div>
+    <div class="mftr">
+      <button class="btn btn-s" onclick="closeModal('ticket')">Cancel</button>
+      <button class="btn btn-p" onclick="confirmTicket()">🎫 Raise Ticket</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
      MODAL: FINDING DETAIL
 ══════════════════════════════════════════ -->
 <div class="ov hide" id="ov-finding">
@@ -812,6 +880,7 @@
       <button class="mclose" onclick="closeModal('finding')">✕</button>
     </div>
     <div class="mbody" id="finding-body"></div>
+    <div class="finding-remediation-bar" id="finding-remediation-bar"></div>
     <div class="mftr">
       <button class="btn btn-s" onclick="closeModal('finding')">Close</button>
     </div>
@@ -841,7 +910,7 @@
 <!-- TOASTS -->
 <div class="toast-c" id="toast-c"></div>
 
-<script src="app.js?v=7"></script>
+<script src="app.js?v=8"></script>
 <script>
 // Template snippets
 const TEMPLATES = {

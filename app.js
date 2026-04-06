@@ -909,6 +909,8 @@ function confirmAttach(){
 // ─────────────────────────────────────────────
 function openFindingDetail(finding){
   if(typeof finding==='string') finding=JSON.parse(finding.replace(/&quot;/g,'"'));
+  // Ensure finding has an id for status tracking
+  if(!finding.id) finding.id = 'qrdi-' + finding.qid + '-' + finding.host + '-' + finding.ts;
   $('finding-title').innerHTML=`🔬 ${escHtml(finding.title)} <span class="udl" style="margin-left:6px">User-Defined</span>`;
   $('finding-body').innerHTML=`
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
@@ -929,6 +931,7 @@ function openFindingDetail(finding){
     <div class="isect" style="margin-top:14px">Evidence</div>
     <div class="fd-evidence">${escHtml(finding.evidence||'No evidence captured.')}</div>
     ${finding.debug?`<div class="isect" style="margin-top:10px">Debug Output</div><div class="fd-debug">${escHtml(finding.debug)}</div>`:''}`;
+  _renderFindingRemediationBar(finding);
   openModal('finding');
 }
 
@@ -1031,8 +1034,10 @@ function renderFindingsTable(){
     const srcBadge = isQrdi
       ? `<span class="src-badge qrdi">🔬 Custom Detection</span><span class="udl" style="margin-left:4px">User-Defined</span>`
       : `<span class="src-badge native">⚡ Native</span>`;
-    const idRef = isQrdi ? (r.qid||'—') : (r.cve||r.qid||'—');
-    const safeR = JSON.stringify(r).replace(/"/g,'&quot;');
+    const idRef  = isQrdi ? (r.qid||'—') : (r.cve||r.qid||'—');
+    const safeR  = JSON.stringify(r).replace(/"/g,'&quot;');
+    const st     = FINDING_STATUS[r.id]||{status:'open'};
+    const safeId = escHtml(r.id);
     return `<tr class="ftr" onclick="openUnifiedFindingDetail(${safeR})">
       <td class="ftr-ico">${ico}</td>
       <td class="ftr-title">
@@ -1045,6 +1050,16 @@ function renderFindingsTable(){
       <td class="ftr-host">${escHtml(r.host||'—')}</td>
       <td class="ftr-profile">${escHtml(r.profile||'—')}</td>
       <td class="ftr-ts">${escHtml(r.ts||'—')}</td>
+      <td onclick="event.stopPropagation()">
+        <span class="rq-stat ${_statusCls(st.status)}">${_statusLabel(st.status)}</span>
+        ${st.ticketId?`<div class="rq-ticket" style="margin-top:2px">${st.ticketId}</div>`:''}
+      </td>
+      <td class="ftr-actions" onclick="event.stopPropagation()">
+        ${st.status!=='ticketed'?`<button class="ftr-act-btn act-ticket" onclick="setFindingStatus('${safeId}','ticketed',event)" title="Raise ticket">🎫</button>`:''}
+        ${st.status!=='fixed'?`<button class="ftr-act-btn act-fix" onclick="setFindingStatus('${safeId}','fixed',event)" title="Mark fixed">✓</button>`:''}
+        ${st.status!=='suppressed'?`<button class="ftr-act-btn act-sup" onclick="setFindingStatus('${safeId}','suppressed',event)" title="Suppress">⊘</button>`:''}
+        ${st.status!=='open'?`<button class="ftr-act-btn act-open" onclick="setFindingStatus('${safeId}','open',event)" title="Reopen">↩</button>`:''}
+      </td>
     </tr>`;
   }).join('');
 }
@@ -1081,7 +1096,233 @@ function openUnifiedFindingDetail(finding){
     </table>
     <div class="isect" style="margin-top:14px">Evidence</div>
     <div class="fd-evidence">${escHtml(finding.evidence||'No evidence captured.')}</div>`;
+  _renderFindingRemediationBar(finding);
   openModal('finding');
+}
+
+// ─────────────────────────────────────────────
+//  REMEDIATION PIPELINE
+//  Per SOP: custom vulnerabilities drive automated
+//  dashboards, scan reports, and remediation pipelines
+//  according to the severity levels established.
+// ─────────────────────────────────────────────
+
+// Per-finding status store: id -> { status, ticketId, ticketTs, assignee, note }
+const FINDING_STATUS = {};
+
+// Severity-based escalation rules per QRDI SOP:
+// "A severity 5 can tell the automated ticketing system to actively shut down
+//  ports and page IT directors at 2am, whereas a severity 1 might just log
+//  to a monthly compliance report."
+const SEV_ESCALATION = {
+  'Critical': {
+    action: 'Automated escalation: IT Director paged + port shutdown initiated',
+    assignee: 'IT Director / CISO',
+    priority: 'P1 \u2014 4-hour SLA',
+    icon: '\uD83D\uDEA8',
+    color: '#ef4444',
+  },
+  'High': {
+    action: 'Automated escalation: Security Engineering Lead notified via PagerDuty',
+    assignee: 'Security Engineering Lead',
+    priority: 'P2 \u2014 24-hour SLA',
+    icon: '\uD83D\uDD34',
+    color: '#f97316',
+  },
+  'Medium': {
+    action: 'Standard ticket raised in ServiceNow remediation queue',
+    assignee: 'Security Operations Team',
+    priority: 'P3 \u2014 5-day SLA',
+    icon: '\uD83D\uDFE0',
+    color: '#eab308',
+  },
+  'Low': {
+    action: 'Logged to weekly compliance digest — no automated escalation',
+    assignee: 'Compliance Team',
+    priority: 'P4 \u2014 30-day SLA',
+    icon: '\uD83D\uDFE1',
+    color: 'var(--text-muted)',
+  },
+};
+
+function _statusLabel(s){ return ({open:'Open',ticketed:'Ticketed',fixed:'Fixed',suppressed:'Suppressed'})[s]||'Open'; }
+function _statusCls(s){   return ({open:'stat-open',ticketed:'stat-tick',fixed:'stat-fix',suppressed:'stat-sup'})[s]||'stat-open'; }
+
+// ── Ticket modal ──────────────────────────────────────────────────────────────
+let _ticketFinding  = null;
+let _ticketCounter  = 10047;
+
+function openTicketModal(finding, e){
+  if(e) e.stopPropagation();
+  if(typeof finding==='string') finding=JSON.parse(finding.replace(/&quot;/g,'"'));
+  _ticketFinding = finding;
+  const esc    = SEV_ESCALATION[finding.sev] || SEV_ESCALATION['Low'];
+  const nextId = 'TC-' + String(++_ticketCounter).padStart(5,'0');
+
+  $('ticket-finding-title').textContent = finding.title;
+  $('ticket-sev-badge').className       = 'badge ' + sevClass(finding.sev);
+  $('ticket-sev-badge').textContent     = finding.sev;
+  $('ticket-id-preview').textContent    = nextId;
+  $('ticket-assignee').value            = esc.assignee;
+  $('ticket-priority').textContent      = esc.priority;
+  $('ticket-escalation-box').innerHTML  = `<span style="font-size:15px">${esc.icon}</span> <span>${esc.action}</span>`;
+  $('ticket-escalation-box').style.borderColor = esc.color;
+  $('ticket-notes').value               = '';
+  $('ticket-id-store').value            = nextId;
+  openModal('ticket');
+}
+
+function confirmTicket(){
+  if(!_ticketFinding) return;
+  const ticketId = $('ticket-id-store').value;
+  const note     = $('ticket-notes').value.trim();
+  const ts       = new Date().toISOString().slice(0,16).replace('T',' ');
+  FINDING_STATUS[_ticketFinding.id] = { status:'ticketed', ticketId, ticketTs:ts, note };
+  closeModal('ticket');
+  showToast(`Ticket ${ticketId} raised successfully`, 'tok');
+  renderFindingsTable();
+  renderRemediationQueue();
+}
+
+function setFindingStatus(id, status, e){
+  if(e) e.stopPropagation();
+  if(status === 'ticketed'){
+    const allRows = [...NATIVE_FINDINGS, ..._collectQrdiFindingsRows()];
+    const f = allRows.find(r=>r.id===id);
+    if(f){ openTicketModal(f); return; }
+  }
+  const existing = FINDING_STATUS[id] || {};
+  FINDING_STATUS[id] = { ...existing, status };
+  const labels = { fixed:'Marked as Fixed', suppressed:'Finding suppressed', open:'Reopened' };
+  showToast(labels[status]||'Status updated','tok');
+  renderFindingsTable();
+  renderRemediationQueue();
+}
+
+// ── Remediation Queue ─────────────────────────────────────────────────────────
+function toggleRemediationQueue(){
+  const body   = $('remediation-queue-body');
+  const icon   = $('rq-toggle-icon');
+  const hidden = body.style.display === 'none';
+  body.style.display = hidden ? 'block' : 'none';
+  if(icon) icon.textContent = hidden ? '\u25B2' : '\u25BC';
+}
+
+function renderRemediationQueue(){
+  const el    = $('remediation-queue-body');
+  const count = $('remediation-queue-count');
+  if(!el) return;
+
+  const allRows  = [...NATIVE_FINDINGS, ..._collectQrdiFindingsRows()];
+  const active   = allRows.filter(r=> FINDING_STATUS[r.id] && FINDING_STATUS[r.id].status !== 'open');
+  if(count) count.textContent = active.length;
+
+  if(!active.length){
+    el.innerHTML = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">No findings in the remediation queue. Use the Ticket / Fix / Suppress actions on any finding row.</div>`;
+    return;
+  }
+
+  el.innerHTML = active.map(r=>{
+    const st  = FINDING_STATUS[r.id];
+    const esc = SEV_ESCALATION[r.sev]||SEV_ESCALATION['Low'];
+    const ico = r.sev==='Critical'?'\uD83D\uDD34':r.sev==='High'?'\uD83D\uDFE0':r.sev==='Medium'?'\uD83D\uDFE1':'\uD83D\uDFE2';
+    return `<div class="rq-row">
+      <div class="rq-sev">${ico}</div>
+      <div class="rq-body">
+        <div class="rq-title">${escHtml(r.title)}</div>
+        <div class="rq-meta">
+          <span class="rq-stat ${_statusCls(st.status)}">${_statusLabel(st.status)}</span>
+          ${st.ticketId?`<span class="rq-ticket">${st.ticketId}</span>`:''}
+          <span>${escHtml(r.host||'\u2014')}</span>
+          <span style="color:var(--text-muted)">${st.ticketTs||''}</span>
+        </div>
+        <div class="rq-esc">${esc.icon} ${esc.priority}</div>
+      </div>
+      <div class="rq-actions">
+        ${st.status!=='fixed'?`<button class="btn btn-s btn-sm" style="color:var(--success)" onclick="setFindingStatus('${r.id}','fixed',event)">✓ Fix</button>`:'<span class="rq-stat stat-fix" style="font-size:10px">Fixed</span>'}
+        ${st.status!=='suppressed'?`<button class="btn btn-s btn-sm" style="color:var(--text-muted)" onclick="setFindingStatus('${r.id}','suppressed',event)">⊘ Suppress</button>`:''}
+        <button class="btn btn-s btn-sm" onclick="setFindingStatus('${r.id}','open',event)">↩ Reopen</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ── Export XML report ─────────────────────────────────────────────────────────
+// Generates report with result, result_debug, result_errors per QRDI SOP spec.
+function exportFindingsReport(){
+  const allRows = [...NATIVE_FINDINGS, ..._collectQrdiFindingsRows()];
+  const ts      = new Date().toISOString().slice(0,19).replace('T',' ');
+
+  const xmlLines = [
+    '<?xml version="1.0" encoding="UTF-8"?>',
+    `<ScanReport generated="${ts}" tool="TruConfirm QRDI" version="1.0">`,
+    '  <findings>',
+    ...allRows.map(r=>{
+      const st = FINDING_STATUS[r.id]||{status:'open'};
+      return [
+        '    <finding>',
+        `      <id>${escHtml(r.id)}</id>`,
+        `      <title>${escHtml(r.title)}</title>`,
+        `      <source>${escHtml(r.source)}</source>`,
+        `      <severity>${escHtml(r.sev)}</severity>`,
+        `      <host>${escHtml(r.host||'')}</host>`,
+        `      <profile>${escHtml(r.profile||'')}</profile>`,
+        `      <cve>${escHtml(r.cve||'')}</cve>`,
+        `      <qid>${escHtml(String(r.qid||''))}</qid>`,
+        `      <scan_time>${escHtml(r.ts||'')}</scan_time>`,
+        `      <result>${escHtml(r.result||'')}</result>`,
+        `      <result_debug>${escHtml(r.debug||r.evidence||'')}</result_debug>`,
+        `      <result_errors>${escHtml(r.errors||'')}</result_errors>`,
+        `      <status>${escHtml(st.status)}</status>`,
+        `      <ticket_id>${escHtml(st.ticketId||'')}</ticket_id>`,
+        `      <ticket_ts>${escHtml(st.ticketTs||'')}</ticket_ts>`,
+        `      <note>${escHtml(st.note||'')}</note>`,
+        '    </finding>',
+      ].join('\n');
+    }),
+    '  </findings>',
+    '</ScanReport>',
+  ].join('\n');
+
+  const blob = new Blob([xmlLines], {type:'application/xml'});
+  const url  = URL.createObjectURL(blob);
+  const a    = document.createElement('a');
+  a.href     = url;
+  a.download = `TruConfirm_ScanReport_${new Date().toISOString().slice(0,10)}.xml`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast('Report exported \u2014 result_debug and result_errors included','tok');
+}
+
+// ── Remediation bar in finding detail modal ───────────────────────────────────
+function _renderFindingRemediationBar(finding){
+  const bar = $('finding-remediation-bar');
+  if(!bar || !finding || !finding.id) return;
+  const st  = FINDING_STATUS[finding.id]||{status:'open'};
+  const esc = SEV_ESCALATION[finding.sev]||SEV_ESCALATION['Low'];
+  bar.innerHTML = `
+    <div class="frb-inner">
+      <div class="frb-left">
+        <div class="frb-status">
+          <span class="rq-stat ${_statusCls(st.status)}">${_statusLabel(st.status)}</span>
+          ${st.ticketId?`<span class="rq-ticket">${st.ticketId}</span>`:''}
+        </div>
+        <div class="frb-esc">${esc.icon} ${esc.action}</div>
+        <div class="frb-priority" style="font-size:10px;color:var(--text-muted);margin-top:2px">${esc.priority}</div>
+      </div>
+      <div class="frb-actions">
+        ${st.status!=='ticketed'?`<button class="btn btn-q btn-sm" onclick="openTicketModal(${JSON.stringify(finding).replace(/"/g,'&quot;')})">🎫 Raise Ticket</button>`:''}
+        ${st.status!=='fixed'?`<button class="btn btn-s btn-sm" onclick="setFindingStatus('${finding.id}','fixed',event);renderFindingRemediationBarById('${finding.id}')">✓ Mark Fixed</button>`:''}
+        ${st.status!=='suppressed'?`<button class="btn btn-s btn-sm" onclick="setFindingStatus('${finding.id}','suppressed',event);renderFindingRemediationBarById('${finding.id}')">⊘ Suppress</button>`:''}
+        ${st.status!=='open'?`<button class="btn btn-s btn-sm" onclick="setFindingStatus('${finding.id}','open',event);renderFindingRemediationBarById('${finding.id}')">↩ Reopen</button>`:''}
+      </div>
+    </div>`;
+}
+
+function renderFindingRemediationBarById(id){
+  const allRows = [...NATIVE_FINDINGS, ..._collectQrdiFindingsRows()];
+  const f = allRows.find(r=>r.id===id);
+  if(f) _renderFindingRemediationBar(f);
 }
 
 // ─────────────────────────────────────────────
