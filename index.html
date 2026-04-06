@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>TruConfirm – KnowledgeBase</title>
-<link rel="stylesheet" href="styles.css?v=6" />
+<link rel="stylesheet" href="styles.css?v=7" />
 </head>
 <body>
 
@@ -535,6 +535,41 @@
             <div class="hint-text">When debug is enabled, scan results include RESULT_DEBUG and RESULT_ERRORS sections. Host-based scan data is NOT updated in debug mode.</div>
           </div>
 
+          <!-- JSON Editor -->
+          <div class="fg">
+            <label>JSON Detection Definition <span class="req">*</span></label>
+            <div class="jtbar">
+              <button class="btn btn-s btn-sm" onclick="uploadJsonFile()">📂 Upload JSON</button>
+              <button class="btn btn-s btn-sm" onclick="validateJson()">✓ Validate</button>
+              <button class="btn btn-s btn-sm" id="json-preview-btn" onclick="toggleJsonPreview()">🎨 Highlight</button>
+              <button class="btn btn-s btn-sm" onclick="$('json-def').value='{\n  &quot;detection_type&quot;: &quot;http dialog&quot;,\n  &quot;api_version&quot;: 1,\n  &quot;trigger_type&quot;: &quot;service&quot;,\n  &quot;title&quot;: &quot;&quot;,\n  &quot;dialog&quot;: []\n}';validateJson();renderJsonHighlight()">⟳ Reset</button>
+              <span class="jstat" id="json-status"></span>
+            </div>
+            <div class="jed-wrap">
+            <textarea class="jed" id="json-def" spellcheck="false" oninput="S.jsonValid=null;$('json-status').textContent='';renderJsonHighlight()" rows="16">
+{
+  "detection_type": "http dialog",
+  "api_version": 1,
+  "trigger_type": "service",
+  "title": "",
+  "dialog": []
+}</textarea>
+            <div class="jed-preview" id="json-preview"></div>
+            </div><!-- /jed-wrap -->
+            <div class="hint-text">Supported transaction types — HTTP: http get, http post, process, report · TCP: send, receive, reconnect, process, report</div>
+          </div>
+
+          <!-- Template snippets -->
+          <div class="fg">
+            <label>Quick Templates</label>
+            <div style="display:flex;gap:6px;flex-wrap:wrap">
+              <button class="btn btn-s btn-sm" onclick="loadTemplate('xss')">XSS Check</button>
+              <button class="btn btn-s btn-sm" onclick="loadTemplate('banner')">Banner Grab (TCP)</button>
+              <button class="btn btn-s btn-sm" onclick="loadTemplate('header')">HTTP Header Inject</button>
+              <button class="btn btn-s btn-sm" onclick="loadTemplate('imap')">IMAP Auth (TCP)</button>
+            </div>
+          </div>
+
           <!-- AI SIGNATURE ASSISTANT ENTRY BUTTON -->
           <button class="ai-entry-btn" onclick="toggleAIPanel()">
             <span class="pulse"></span>
@@ -547,7 +582,6 @@
               <div class="ai-panel-title">
                 <span>✦</span>
                 <span>AI Signature Assistant</span>
-                <span class="ai-badge">Powered by Claude</span>
               </div>
               <button class="ai-toggle-btn" onclick="toggleAIPanel()">✕ Close</button>
             </div>
@@ -557,14 +591,6 @@
               <div class="ai-mode-tabs">
                 <div class="ai-mode-tab on" id="ai-mode-generate" onclick="setAIMode('generate')">✦ Generate New</div>
                 <div class="ai-mode-tab" id="ai-mode-improve" onclick="setAIMode('improve')">⟳ Improve Existing</div>
-              </div>
-
-              <!-- API Key row -->
-              <div class="ai-key-row">
-                <label>🔑 API Key:</label>
-                <input class="ai-key-inp" id="ai-api-key" type="password" placeholder="sk-ant-api03-..." />
-                <span class="ai-key-status unset" id="ai-key-status">● Not set</span>
-                <button class="ai-key-save" onclick="saveAIKey()">Save</button>
               </div>
 
               <!-- Prompt hints -->
@@ -618,41 +644,6 @@
                 </div>
               </div>
 
-            </div>
-          </div>
-
-          <!-- JSON Editor -->
-          <div class="fg">
-            <label>JSON Detection Definition <span class="req">*</span></label>
-            <div class="jtbar">
-              <button class="btn btn-s btn-sm" onclick="uploadJsonFile()">📂 Upload JSON</button>
-              <button class="btn btn-s btn-sm" onclick="validateJson()">✓ Validate</button>
-              <button class="btn btn-s btn-sm" id="json-preview-btn" onclick="toggleJsonPreview()">🎨 Highlight</button>
-              <button class="btn btn-s btn-sm" onclick="$('json-def').value='{\n  &quot;detection_type&quot;: &quot;http dialog&quot;,\n  &quot;api_version&quot;: 1,\n  &quot;trigger_type&quot;: &quot;service&quot;,\n  &quot;title&quot;: &quot;&quot;,\n  &quot;dialog&quot;: []\n}';validateJson();renderJsonHighlight()">⟳ Reset</button>
-              <span class="jstat" id="json-status"></span>
-            </div>
-            <div class="jed-wrap">
-            <textarea class="jed" id="json-def" spellcheck="false" oninput="S.jsonValid=null;$('json-status').textContent='';renderJsonHighlight()" rows="16">
-{
-  "detection_type": "http dialog",
-  "api_version": 1,
-  "trigger_type": "service",
-  "title": "",
-  "dialog": []
-}</textarea>
-            <div class="jed-preview" id="json-preview"></div>
-            </div><!-- /jed-wrap -->
-            <div class="hint-text">Supported transaction types — HTTP: http get, http post, process, report · TCP: send, receive, reconnect, process, report</div>
-          </div>
-
-          <!-- Template snippets -->
-          <div class="fg">
-            <label>Quick Templates</label>
-            <div style="display:flex;gap:6px;flex-wrap:wrap">
-              <button class="btn btn-s btn-sm" onclick="loadTemplate('xss')">XSS Check</button>
-              <button class="btn btn-s btn-sm" onclick="loadTemplate('banner')">Banner Grab (TCP)</button>
-              <button class="btn btn-s btn-sm" onclick="loadTemplate('header')">HTTP Header Inject</button>
-              <button class="btn btn-s btn-sm" onclick="loadTemplate('imap')">IMAP Auth (TCP)</button>
             </div>
           </div>
         </div>
@@ -850,7 +841,7 @@
 <!-- TOASTS -->
 <div class="toast-c" id="toast-c"></div>
 
-<script src="app.js?v=6"></script>
+<script src="app.js?v=7"></script>
 <script>
 // Template snippets
 const TEMPLATES = {

@@ -1437,24 +1437,11 @@ function setAIHint(el){
 }
 
 function saveAIKey(){
-  const key = $('ai-api-key').value.trim();
-  if(!key){ showToast('Please enter an API key','terr'); return; }
-  AI.apiKey = key;
-  sessionStorage.setItem('qrdi_ai_key', key);
-  checkAIKeyStatus();
-  showToast('API key saved for this session','tok');
+  // API key UI removed; key is read from AI.apiKey only
 }
 
 function checkAIKeyStatus(){
-  const el = $('ai-key-status');
-  if(AI.apiKey && AI.apiKey.startsWith('sk-ant')){
-    el.className='ai-key-status set'; el.textContent='● Key set';
-    $('ai-api-key').value = AI.apiKey.slice(0,14)+'...';
-  } else if(AI.apiKey){
-    el.className='ai-key-status set'; el.textContent='● Key set';
-  } else {
-    el.className='ai-key-status unset'; el.textContent='● Not set';
-  }
+  // API key UI removed; nothing to update
 }
 
 async function runAIGenerate(){
@@ -1511,7 +1498,7 @@ async function runAIGenerate(){
 }
 
 async function callClaudeAPI(userPrompt){
-  const apiKey = $('ai-api-key').value.includes('...') ? AI.apiKey : $('ai-api-key').value.trim() || AI.apiKey;
+  const apiKey = AI.apiKey;
   const systemPrompt = AI.mode==='improve'
     ? QRDI_SYSTEM_PROMPT + AI_IMPROVE_SUFFIX
     : QRDI_SYSTEM_PROMPT;
@@ -1825,7 +1812,7 @@ function applyAISignature(){
 function init(){
   renderAll();
   // Restore saved API key status
-  if(AI.apiKey){ $('ai-api-key').value = AI.apiKey.slice(0,14)+'...'; checkAIKeyStatus(); }
+  if(AI.apiKey){ checkAIKeyStatus(); }
 
   // search
   $('search-input').addEventListener('input', e=>{
