@@ -38,9 +38,9 @@ echo  [1/2] Starting backend server on port 3001...
 start "TruConfirm QRDI Backend" /min cmd /c "cd /d "%~dp0backend" && node server.js"
 timeout /t 2 /nobreak >nul
 
-REM ── Start frontend on port 8080 ─────────────────
-echo  [2/2] Starting frontend server on port 8080...
-start "TruConfirm QRDI Frontend" /min cmd /c "cd /d "%~dp0" && python -m http.server 8080"
+REM ── Start frontend on port 5000 ─────────────────
+echo  [2/2] Starting frontend server on port 5000...
+start "TruConfirm QRDI Frontend" /min cmd /c "cd /d "%~dp0" && python -m http.server 5000"
 timeout /t 2 /nobreak >nul
 
 REM ── Open browser ────────────────────────────────
@@ -48,14 +48,14 @@ echo.
 echo  ===============================================
 echo   Both servers are running!
 echo.
-echo   App     →  http://localhost:8080
+echo   App     →  http://localhost:5000
 echo   API     →  http://localhost:3001/api
 echo.
 echo   Close this window or run stop.bat to stop.
 echo  ===============================================
 echo.
 
-start "" "http://localhost:8080"
+start "" "http://localhost:5000"
 
 REM Keep window open so user can see status
 pause

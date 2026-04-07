@@ -21,13 +21,13 @@ else
 fi
 
 # ── Stop frontend ───────────────────────────────
-echo "[2/2] Stopping frontend (port 8080)..."
+echo "[2/2] Stopping frontend (port 3000)..."
 if [ -f "$SCRIPT_DIR/.frontend.pid" ]; then
   kill "$(cat "$SCRIPT_DIR/.frontend.pid")" 2>/dev/null && echo "[OK] Frontend stopped (PID file)"
   rm -f "$SCRIPT_DIR/.frontend.pid"
 else
-  PID=$(lsof -ti tcp:8080 2>/dev/null)
-  if [ -n "$PID" ]; then kill $PID && echo "[OK] Frontend stopped (port 8080)"; fi
+  PID=$(lsof -ti tcp:3000 2>/dev/null)
+  if [ -n "$PID" ]; then kill $PID && echo "[OK] Frontend stopped (port 3000)"; fi
 fi
 
 echo ""

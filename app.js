@@ -71,6 +71,7 @@ const S = {
   vendorRefs: [],
   jsonValid: null,
   detType: 'http dialog',
+  trigType: 'service',
   debugSel: 0,
   statusEnabled: true,
   confirmCb: null,
@@ -399,7 +400,7 @@ function saveQrdiVuln(){
   if(!S.editEntry && S.entries.find(e=>e.type==='qrdi'&&e.qid===qid)){
     showToast(`QID ${qid} is already in use`,'terr'); return;
   }
-  const jsonTxt = $('json-def').value.trim();
+  const jsonTxt = stripJsonComments($('json-def').value).trim();
   try{ JSON.parse(jsonTxt); }catch(err){ showToast('Invalid JSON in QRDI Definition','terr'); return; }
   const sevNum = parseInt($('sev-field').value);
   const sevLbl = sevFromNum(sevNum);
@@ -487,8 +488,22 @@ function switchModalTab(tabId){
 // ─────────────────────────────────────────────
 //  JSON VALIDATION
 // ─────────────────────────────────────────────
+function stripJsonComments(raw){
+  // Remove // line comments, but preserve // inside strings
+  return raw.split('\n').map(line=>{
+    let inStr=false, out='';
+    for(let i=0;i<line.length;i++){
+      const c=line[i];
+      if(c==='"' && (i===0||line[i-1]!=='\\')) inStr=!inStr;
+      if(!inStr && c==='/' && line[i+1]==='/') break;
+      out+=c;
+    }
+    return out;
+  }).join('\n');
+}
+
 function validateJson(){
-  const txt=$('json-def').value.trim();
+  const txt=stripJsonComments($('json-def').value).trim();
   const el=$('json-status');
   try{
     const o=JSON.parse(txt);
@@ -943,13 +958,20 @@ function openFindingDetail(finding){
 // Custom detections are clearly marked as User-Defined.
 
 let _findingsFilter = 'all'; // 'all' | 'native' | 'qrdi'
+let _severityFilter = null;  // null | 'Critical' | 'High' | 'Medium' | 'Low'
 
 function setFindingsFilter(f){
   _findingsFilter = f;
+  _severityFilter = null; // clear severity when source changes
   ['all','native','qrdi'].forEach(k=>{
     const b=$('filt-btn-'+k);
     if(b) b.classList.toggle('on', k===f);
   });
+  renderFindingsTable();
+}
+
+function setSeverityFilter(sev){
+  _severityFilter = (_severityFilter === sev) ? null : sev; // toggle off if same
   renderFindingsTable();
 }
 
@@ -1003,7 +1025,7 @@ function renderFindingsTable(){
   if(_findingsFilter === 'native') filtered = nativeRows.sort((a,b)=>a.ts<b.ts?1:-1);
   if(_findingsFilter === 'qrdi')   filtered = qrdiRows.sort((a,b)=>a.ts<b.ts?1:-1);
 
-  // Summary chips
+  // Summary chips — counts always based on source-filtered rows, before severity filter
   const sevCount = arr => {
     const m={Critical:0,High:0,Medium:0,Low:0};
     arr.forEach(r=>{ if(m[r.sev]!==undefined) m[r.sev]++; });
@@ -1011,14 +1033,17 @@ function renderFindingsTable(){
   };
   const sc = sevCount(filtered);
   chips.innerHTML = `
-    <span class="fchip">Total <b>${filtered.length}</b></span>
-    <span class="fchip fchip-native">Native <b>${nativeRows.length}</b></span>
-    <span class="fchip fchip-qrdi">Custom QRDI <b>${qrdiRows.length}</b></span>
+    <span class="fchip${_findingsFilter==='all'&&!_severityFilter?' fchip-on':''}" onclick="setFindingsFilter('all')" style="cursor:pointer">Total <b>${allRows.length}</b></span>
+    <span class="fchip fchip-native${_findingsFilter==='native'?' fchip-on':''}" onclick="setFindingsFilter('native')" style="cursor:pointer">Native <b>${nativeRows.length}</b></span>
+    <span class="fchip fchip-qrdi${_findingsFilter==='qrdi'?' fchip-on':''}" onclick="setFindingsFilter('qrdi')" style="cursor:pointer">Custom QRDI <b>${qrdiRows.length}</b></span>
     <span class="sep"></span>
-    ${sc.Critical?`<span class="fchip fchip-crit">Critical <b>${sc.Critical}</b></span>`:''}
-    ${sc.High?`<span class="fchip fchip-high">High <b>${sc.High}</b></span>`:''}
-    ${sc.Medium?`<span class="fchip fchip-med">Medium <b>${sc.Medium}</b></span>`:''}
-    ${sc.Low?`<span class="fchip fchip-low">Low <b>${sc.Low}</b></span>`:''}`;
+    ${sc.Critical?`<span class="fchip fchip-crit${_severityFilter==='Critical'?' fchip-on':''}" onclick="setSeverityFilter('Critical')" style="cursor:pointer">Critical <b>${sc.Critical}</b></span>`:''}
+    ${sc.High?`<span class="fchip fchip-high${_severityFilter==='High'?' fchip-on':''}" onclick="setSeverityFilter('High')" style="cursor:pointer">High <b>${sc.High}</b></span>`:''}
+    ${sc.Medium?`<span class="fchip fchip-med${_severityFilter==='Medium'?' fchip-on':''}" onclick="setSeverityFilter('Medium')" style="cursor:pointer">Medium <b>${sc.Medium}</b></span>`:''}
+    ${sc.Low?`<span class="fchip fchip-low${_severityFilter==='Low'?' fchip-on':''}" onclick="setSeverityFilter('Low')" style="cursor:pointer">Low <b>${sc.Low}</b></span>`:''}`;
+
+  // Apply severity filter after chips are drawn
+  if(_severityFilter) filtered = filtered.filter(r=>r.sev===_severityFilter);
 
   if(!filtered.length){
     tbody.innerHTML = '';
@@ -2040,6 +2065,16 @@ function applyAISignature(){
     S.detType = dt;
     $('det-type-http').classList.toggle('on', dt==='http dialog');
     $('det-type-tcp').classList.toggle('on', dt==='tcp dialog');
+    if(parsed.trigger_type){
+      S.trigType = parsed.trigger_type;
+      const svcEl = document.getElementById('trig-service');
+      const vhEl  = document.getElementById('trig-vhost');
+      if(svcEl && vhEl){
+        svcEl.classList.toggle('on', parsed.trigger_type === 'service');
+        vhEl.classList.toggle('on',  parsed.trigger_type === 'virtual_host');
+      }
+    }
+    if(typeof updateTlsVisibility === 'function') updateTlsVisibility();
     if(parsed.debug_level){
       S.debugSel = parsed.debug_level;
       qsa('.dbg-opt').forEach(o=>o.classList.toggle('on', parseInt(o.dataset.val)===S.debugSel));

@@ -18,9 +18,9 @@ REM Also close the named terminal window
 taskkill /FI "WINDOWTITLE eq TruConfirm QRDI Backend" /F >nul 2>&1
 echo  [OK] Backend stopped
 
-REM ── Kill frontend (python http.server on port 8080) ──
-echo  [2/2] Stopping frontend server (port 8080)...
-for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":8080 " ^| findstr "LISTENING"') do (
+REM ── Kill frontend (python http.server on port 5000) ──
+echo  [2/2] Stopping frontend server (port 5000)...
+for /f "tokens=5" %%a in ('netstat -aon ^| findstr ":5000 " ^| findstr "LISTENING"') do (
     taskkill /PID %%a /F >nul 2>&1
 )
 

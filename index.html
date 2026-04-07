@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>TruConfirm – KnowledgeBase</title>
-<link rel="stylesheet" href="styles.css?v=8" />
+<link rel="stylesheet" href="styles.css?v=13" />
 </head>
 <body>
 
@@ -442,12 +442,13 @@
             </div>
             <div class="fg">
               <label>Severity</label>
-              <select class="fsel" id="sev-field">
+              <select class="fsel" id="sev-field" onchange="updateSevWarn()">
                 <option value="1">1 – Low</option>
                 <option value="2">2 – Medium</option>
                 <option value="3">3 – High</option>
                 <option value="4" selected>4 – Critical</option>
               </select>
+              <div id="sev-warn" class="sev-warn sev-warn-4">Pages IT Director immediately (P1, 4-hour SLA). Automated port quarantine may be activated.</div>
             </div>
           </div>
 
@@ -532,27 +533,53 @@
             <div class="hint-text">HTTP dialog supports GET/POST transactions. TCP dialog supports send/receive/reconnect transactions.</div>
           </div>
 
+          <!-- Trigger Type -->
+          <div class="fg" id="fg-trigger-type">
+            <label>Trigger Type</label>
+            <div class="dt-pills">
+              <div class="dt-pill on" id="trig-service"    onclick="S.trigType='service';this.classList.add('on');document.getElementById('trig-vhost').classList.remove('on');updateTlsVisibility()">service</div>
+              <div class="dt-pill"    id="trig-vhost"      onclick="S.trigType='virtual_host';this.classList.add('on');document.getElementById('trig-service').classList.remove('on');updateTlsVisibility()">virtual_host</div>
+            </div>
+            <div class="hint-text" id="trig-hint">
+              <b>service</b> — targets an IP address directly. <b>virtual_host</b> — sends requests with a specific <code>Host:</code> header, required when the target sits behind a load balancer or reverse proxy.
+            </div>
+          </div>
+
+          <!-- TLS Mode (HTTP only) -->
+          <div class="fg" id="fg-tls-mode" style="display:none">
+            <label>TLS Mode <span class="hint">(HTTP dialog only)</span></label>
+            <select class="fsel" id="tls-mode-sel">
+              <option value="">None (plain HTTP)</option>
+              <option value="ssl">ssl — standard TLS/SSL</option>
+              <option value="starttls.plain">starttls.plain — force unencrypted handshake inspection</option>
+              <option value="starttls.ftp">starttls.ftp — STARTTLS over FTP</option>
+              <option value="starttls.smtp">starttls.smtp — STARTTLS over SMTP</option>
+              <option value="starttls.imap">starttls.imap — STARTTLS over IMAP</option>
+            </select>
+            <div class="hint-text">Use <b>starttls.plain</b> to deliberately inspect the unencrypted handshake — useful when a vulnerability leaks in a clear-text banner before TLS negotiation.</div>
+          </div>
+
           <!-- Debug Level -->
           <div class="fg">
             <label>Debug Level <span class="hint">(recommended during development)</span></label>
             <div class="dbg-opts">
-              <div class="dbg-opt on" data-val="0" onclick="S.debugSel=0;qsa('.dbg-opt').forEach(o=>o.classList.toggle('on',parseInt(o.dataset.val)===0))">
+              <div class="dbg-opt on" data-val="0" onclick="selectDebugLevel(0)">
                 <span>⏹</span> 0 – Off
               </div>
-              <div class="dbg-opt" data-val="100" onclick="S.debugSel=100;qsa('.dbg-opt').forEach(o=>o.classList.toggle('on',parseInt(o.dataset.val)===100))">
+              <div class="dbg-opt" data-val="100" onclick="selectDebugLevel(100)">
                 <span>🐛</span> 100 – Start/End only
               </div>
-              <div class="dbg-opt" data-val="200" onclick="S.debugSel=200;qsa('.dbg-opt').forEach(o=>o.classList.toggle('on',parseInt(o.dataset.val)===200))">
+              <div class="dbg-opt" data-val="200" onclick="selectDebugLevel(200)">
                 <span>🔎</span> 200 – + Transactions
               </div>
-              <div class="dbg-opt" data-val="300" onclick="S.debugSel=300;qsa('.dbg-opt').forEach(o=>o.classList.toggle('on',parseInt(o.dataset.val)===300))">
+              <div class="dbg-opt" data-val="300" onclick="selectDebugLevel(300)">
                 <span>📋</span> 300 – + Variables
               </div>
-              <div class="dbg-opt" data-val="400" onclick="S.debugSel=400;qsa('.dbg-opt').forEach(o=>o.classList.toggle('on',parseInt(o.dataset.val)===400))">
+              <div class="dbg-opt" data-val="400" onclick="selectDebugLevel(400)" title="Dumps up to 8 KB of raw binary wire data — use for protocol-level forensics">
                 <span>📡</span> 400 – Full Verbose
               </div>
             </div>
-            <div class="hint-text">When debug is enabled, scan results include RESULT_DEBUG and RESULT_ERRORS sections. Host-based scan data is NOT updated in debug mode.</div>
+            <div class="hint-text">While debug is active: results are written to <code>RESULT_DEBUG</code> / <code>RESULT_ERRORS</code> only — <b>host history, risk scores, and remediation pipelines are NOT updated</b>. Use debug mode throughout development and testing; set to <b>0 – Off</b> only when the detection is production-ready.</div>
           </div>
 
           <!-- JSON Editor -->
@@ -587,6 +614,12 @@
               <button class="btn btn-s btn-sm" onclick="loadTemplate('banner')">Banner Grab (TCP)</button>
               <button class="btn btn-s btn-sm" onclick="loadTemplate('header')">HTTP Header Inject</button>
               <button class="btn btn-s btn-sm" onclick="loadTemplate('imap')">IMAP Auth (TCP)</button>
+              <button class="btn btn-s btn-sm" onclick="loadTemplate('statusmap')" title="HTTP status map decision tree — stop on 404, retry on 403">Status Map</button>
+              <button class="btn btn-s btn-sm" onclick="loadTemplate('starttls')" title="Force unencrypted handshake inspection via starttls.plain">TLS Inspect</button>
+            </div>
+            <div class="hint-text" style="margin-top:6px">
+              <b>Status Map</b>: decision tree using <code>http_status_map</code> — e.g. stop on 404, try default password on 403. &nbsp;
+              <b>TLS Inspect</b>: uses <code>starttls.plain</code> to capture clear-text banner before TLS negotiation.
             </div>
           </div>
 
@@ -739,8 +772,40 @@
           <div class="hint-text">Only one Lua library file is allowed per subscription. Saving a new file replaces the existing one.</div>
         </div>
 
-        <div style="background:var(--debug-bg);border:1px solid rgba(245,158,11,.2);border-radius:var(--r);padding:10px 12px;margin-top:4px;font-size:12px;color:var(--debug)">
-          <b>Resource Limits:</b> Max source size: 1 MB · Max memory per detection: 4 MB · Max Lua opcodes per detection: 100,000
+        <div class="lua-constraints-box">
+          <div class="lua-constraints-title">⚡ Lua Runtime Constraints (Qualys QRDI)</div>
+          <div class="lua-constraints-grid">
+            <div class="lc-item">
+              <span class="lc-val">1 MB</span>
+              <span class="lc-lbl">Max source file size</span>
+            </div>
+            <div class="lc-item">
+              <span class="lc-val">4 MB</span>
+              <span class="lc-lbl">Max RAM per detection</span>
+            </div>
+            <div class="lc-item">
+              <span class="lc-val">100,000</span>
+              <span class="lc-lbl">Max Lua opcodes per detection</span>
+            </div>
+            <div class="lc-item">
+              <span class="lc-val">5.3</span>
+              <span class="lc-lbl">Lua version</span>
+            </div>
+          </div>
+          <div class="lua-constraints-warn">
+            ⚠ The opcode limit can burn out in milliseconds for heavy operations like cryptography. Keep functions lean.
+          </div>
+          <div class="lua-api-title">Key QRDI System Functions</div>
+          <div class="lua-api-list">
+            <div class="lua-api-row">
+              <span class="code-text lc-fn">qrdisystem_unget(data)</span>
+              <span class="lc-desc">Throws unread bytes back into the memory buffer — safe for parsing continuous data streams without destroying the next message boundary.</span>
+            </div>
+            <div class="lua-api-row">
+              <span class="code-text lc-fn">qrdiuser_*</span>
+              <span class="lc-desc">All your function names must start with this prefix. Global variables and code outside functions are not permitted.</span>
+            </div>
+          </div>
         </div>
       </div>
 
@@ -910,7 +975,7 @@
 <!-- TOASTS -->
 <div class="toast-c" id="toast-c"></div>
 
-<script src="app.js?v=8"></script>
+<script src="app.js?v=13"></script>
 <script>
 // Template snippets
 const TEMPLATES = {
@@ -1002,6 +1067,72 @@ const TEMPLATES = {
       "result": "IMAP auth succeeded"
     }
   ]
+}`,
+  statusmap: `{
+  "detection_type": "http dialog",
+  "api_version": 1,
+  "trigger_type": "service",
+  "title": "HTTP status map decision tree",
+  "dialog": [
+    {
+      "transaction": "http get",
+      "object": "/admin/config",
+      "http_status_map": {
+        "200": "continue",
+        "301": "continue",
+        "302": "continue",
+        "403": "stop",
+        "404": "stop",
+        "500": "stop"
+      }
+    },
+    {
+      "transaction": "process",
+      "mode": "substring",
+      "match": "admin"
+    },
+    {
+      "transaction": "report",
+      "result": "Admin endpoint accessible"
+    }
+  ]
+}`,
+  starttls: `{
+  "detection_type": "tcp dialog",
+  "api_version": 1,
+  "trigger_type": "service",
+  "tls_mode": "starttls.plain",
+  "services": ["smtp", "ftp", "imap"],
+  "title": "STARTTLS / TLS inspect",
+  "dialog": [
+    {
+      "transaction": "receive",
+      "mode": "regexp",
+      "match": "220.*ESMTP"
+    },
+    {
+      "transaction": "send",
+      "data": "EHLO scanner.qualys.com\\r\\n"
+    },
+    {
+      "transaction": "receive",
+      "mode": "substring",
+      "match": "STARTTLS"
+    },
+    {
+      "transaction": "send",
+      "data": "STARTTLS\\r\\n"
+    },
+    {
+      "transaction": "receive",
+      "mode": "regexp",
+      "match": "220 .*TLS"
+    },
+    {
+      "transaction": "report",
+      "result": "STARTTLS supported and negotiated"
+    }
+  ]
 }`
 };
 
@@ -1009,6 +1140,56 @@ function loadTemplate(key){
   document.getElementById('json-def').value = TEMPLATES[key];
   validateJson();
   showToast('Template loaded: ' + key, 'tinf');
+}
+
+// ── Severity impact warning ──
+const SEV_WARN_TEXT = {
+  '1': 'Logged for compliance review only. No ticket or on-call notification is generated.',
+  '2': 'Added to weekly digest. No immediate alert.',
+  '3': 'Creates a ServiceNow ticket (P3, 5-day SLA) and notifies the security team.',
+  '4': 'Pages IT Director immediately (P1, 4-hour SLA). Automated port quarantine may be activated.'
+};
+function updateSevWarn(){
+  const sel = document.getElementById('sev-field');
+  const el  = document.getElementById('sev-warn');
+  if(!sel || !el) return;
+  const v = sel.value;
+  el.textContent = SEV_WARN_TEXT[v] || '';
+  el.className = 'sev-warn sev-warn-' + v;
+}
+
+// ── TLS visibility (show TLS mode select only for http dialog + virtual_host) ──
+function updateTlsVisibility(){
+  const isHttp = (S.detType === 'http dialog');
+  const isVhost = (S.trigType === 'virtual_host');
+  document.getElementById('fg-tls-mode').style.display = (isHttp && isVhost) ? '' : 'none';
+}
+
+// ── Debug level selector with "Promote to Production" gate ──
+function selectDebugLevel(n){
+  const wasDebug = S.debugSel > 0;
+  const isAttached = S.editEntry && SCAN_PROFILES.some(function(p){
+    return p.checks && p.checks.find(function(c){ return c.qid === S.editEntry.qid; });
+  });
+  if(n === 0 && wasDebug && isAttached){
+    S.confirmCb = function(){
+      S.debugSel = 0;
+      document.querySelectorAll('.dbg-opt').forEach(function(o){
+        o.classList.toggle('on', parseInt(o.dataset.val) === 0);
+      });
+      closeModal('confirm');
+      showToast('Debug disabled — check promoted to production', 'tok');
+    };
+    document.getElementById('cfm-title').textContent = 'Promote to Production?';
+    document.getElementById('cfm-desc').textContent = 'Disabling debug mode will allow this check to write results to host history, trigger risk score updates, and activate the automated remediation pipeline. Only proceed when testing is complete and results have been reviewed.';
+    document.getElementById('cfm-ico').textContent = '🚀';
+    openModal('confirm');
+    return;
+  }
+  S.debugSel = n;
+  document.querySelectorAll('.dbg-opt').forEach(function(o){
+    o.classList.toggle('on', parseInt(o.dataset.val) === n);
+  });
 }
 
 // Fix modal tab style for vertical nav
