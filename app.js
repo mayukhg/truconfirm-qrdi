@@ -10,46 +10,51 @@ const CVE_DATA = [
 ];
 
 const QRDI_DEFAULTS = [
-  { id:'QID-410001', type:'qrdi', qid:410001, title:'Custom XSS Detection', sub:'HTTP dialog – QRDI',
+  { id:'QID-410001', type:'qrdi', qid:410001, title:'Custom XSS Detection', sub:'HTTP dialog – Custom Exploit',
     sev:'Critical', score:9.0, cvss:7.5, expl:'POC Exploit', tc:true,
     hosts:14, jobs:2, actors:0, patch:0,
     vulnType:'Vulnerability', severity:4, debugLevel:0, enabled:true, detectionType:'http dialog',
+    cvePrimary:'CVE-2023-1234', scanType:'web_app_scan',
     threat:'Cross-site scripting vulnerability detected via custom HTTP dialog detection.',
     impact:'Attacker can execute arbitrary scripts in the browser of a victim user.',
     solution:'Apply input validation and output encoding. Upgrade to patched version.',
     cveIds:'CVE-2023-1234', bugtraqIds:'', vendorRefs:[{ref:'Vendor1',url:'http://vendor.com'}],
     jsonDef:`{\n  "detection_type": "http dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "title": "custom XSS detection",\n  "dialog": [\n    {\n      "transaction": "http get",\n      "object": "/cgi-bin/no5_such3_file7.pl?\\"><script>alert(73541);</script>"\n    },\n    {\n      "transaction": "process",\n      "mode": "regexp",\n      "match": "\\"><script>alert\\\\(73541\\\\);</script>"\n    },\n    {\n      "transaction": "report",\n      "result": "XSS found"\n    }\n  ]\n}` },
-  { id:'QID-410002', type:'qrdi', qid:410002, title:'IMAP Authentication Check', sub:'TCP dialog – QRDI',
+  { id:'QID-410002', type:'qrdi', qid:410002, title:'IMAP Authentication Check', sub:'TCP dialog – Custom Exploit',
     sev:'High', score:6.8, cvss:6.5, expl:'', tc:false,
     hosts:0, jobs:0, actors:0, patch:0,
     vulnType:'Information Gathered', severity:3, debugLevel:100, enabled:true, detectionType:'tcp dialog',
+    cvePrimary:'', scanType:'service_scan',
     threat:'IMAP service exposes account information through authentication checks.',
     impact:'Potential disclosure of mailbox counts and message metadata.',
     solution:'Disable unauthenticated IMAP enumeration or enforce strict authentication.',
     cveIds:'', bugtraqIds:'12345', vendorRefs:[],
     jsonDef:`{\n  "detection_type": "tcp dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "services": ["imap", "imaps"],\n  "debug_level": 100,\n  "title": "IMAP auth check",\n  "dialog": [\n    { "transaction": "send", "data": "a001 LOGIN myuser mypassword\\n" },\n    { "transaction": "receive", "mode": "luapattern", "match": "\\na001 [^\\n]*\\n" },\n    { "transaction": "report", "result": {"user": "result"} }\n  ]\n}` },
-  { id:'QID-410003', type:'qrdi', qid:410003, title:'SMB Protocol Version Detection', sub:'TCP dialog – QRDI',
+  { id:'QID-410003', type:'qrdi', qid:410003, title:'SMB Protocol Version Detection', sub:'TCP dialog – Custom Exploit',
     sev:'Critical', score:9.1, cvss:9.0, expl:'Actively Exploited', tc:true,
     hosts:31, jobs:5, actors:2, patch:0,
     vulnType:'Vulnerability', severity:4, debugLevel:0, enabled:true, detectionType:'tcp dialog',
+    cvePrimary:'CVE-2024-5678', scanType:'service_scan',
     threat:'SMB service exposes supported protocol versions, revealing potential downgrade attack vectors.',
     impact:'Attacker may negotiate legacy SMB versions to exploit known protocol weaknesses.',
     solution:'Disable legacy SMB versions (SMBv1, SMBv2.0.2). Enforce SMBv3.1.1 minimum.',
     cveIds:'CVE-2024-5678', bugtraqIds:'', vendorRefs:[{ref:'MS-ADV2024-001',url:'https://microsoft.com/security'}],
     jsonDef:`{\n  "detection_type": "tcp dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "services": ["microsoft-ds"],\n  "title": "SMB version detection",\n  "dialog": [\n    { "transaction": "send", "data": {"call": {"name": "qrdiuser_smb_create_v1_negotiate"}} },\n    { "transaction": "receive", "mode": "call", "name": "qrdiuser_smb_check" },\n    { "transaction": "process", "mode": "call", "name": "qrdiuser_smb_process_packet" },\n    { "transaction": "report", "result": {"user": "result"} }\n  ]\n}` },
-  { id:'QID-410004', type:'qrdi', qid:410004, title:'HTTP Header Injection Test', sub:'HTTP dialog – QRDI',
+  { id:'QID-410004', type:'qrdi', qid:410004, title:'HTTP Header Injection Test', sub:'HTTP dialog – Custom Exploit',
     sev:'Critical', score:8.5, cvss:8.2, expl:'Easy Exploit', tc:true,
     hosts:7, jobs:1, actors:1, patch:0,
     vulnType:'Vulnerability', severity:4, debugLevel:200, enabled:true, detectionType:'http dialog',
+    cvePrimary:'', scanType:'web_app_scan',
     threat:'Custom HTTP header injection check targeting misconfigurations in reverse proxies.',
     impact:'May allow request smuggling or header manipulation leading to security bypass.',
     solution:'Validate and sanitize all incoming HTTP headers. Update proxy configuration.',
     cveIds:'', bugtraqIds:'', vendorRefs:[],
     jsonDef:`{\n  "detection_type": "http dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "debug_level": 200,\n  "title": "HTTP header injection test",\n  "dialog": [\n    {\n      "transaction": "http get",\n      "http_header": "HEADER_TEST: HeaderTest\\nCOMPANY: TestCo",\n      "object": "index.html"\n    },\n    { "transaction": "process", "mode": "substring", "match": "HeaderTest" },\n    { "transaction": "report", "result": "Header injection confirmed" }\n  ]\n}` },
-  { id:'QID-410005', type:'qrdi', qid:410005, title:'TCP Service Banner Check', sub:'TCP dialog – QRDI',
+  { id:'QID-410005', type:'qrdi', qid:410005, title:'TCP Service Banner Check', sub:'TCP dialog – Custom Exploit',
     sev:'Low', score:2.4, cvss:3.1, expl:'', tc:false,
     hosts:0, jobs:0, actors:0, patch:0,
     vulnType:'Information Gathered', severity:1, debugLevel:0, enabled:false, detectionType:'tcp dialog',
+    cvePrimary:'', scanType:'service_scan',
     threat:'Service banner reveals version information useful in reconnaissance.',
     impact:'Version disclosure aids targeted exploitation.',
     solution:'Suppress or modify service banners to remove version information.',
@@ -72,6 +77,7 @@ const S = {
   jsonValid: null,
   detType: 'http dialog',
   trigType: 'service',
+  scanType: 'service_scan',
   debugSel: 0,
   statusEnabled: true,
   confirmCb: null,
@@ -160,7 +166,8 @@ function renderTable(){
     const tcBadge = e.tc ? `<div class="tcbadge" style="margin-top:3px">🛡 TruConfirm Validation Available</div>` : '';
     const debugBadge = isQrdi && e.debugLevel>0 ? `<span class="badge b-debug" style="margin-left:4px">Debug ${e.debugLevel}</span>` : '';
     const disabledBadge = disabled ? `<span class="badge b-dis" style="margin-left:4px">Disabled</span>` : '';
-    const qrdiBadge = isQrdi ? `<span class="badge b-qrdi">QRDI</span>` : '';
+    const scanTypeBadge = isQrdi ? `<span class="badge b-scan-${e.scanType||'service_scan'}">${e.scanType==='web_app_scan'?'🌐 Web App':'🔌 Service'}</span>` : '';
+    const qrdiBadge = isQrdi ? `<span class="badge b-qrdi">Custom Exploit</span>` : '';
     const impact = `<div class="imp">
       <span class="impi">🖥 ${e.hosts}</span>
       <span class="impi">💼 ${e.jobs}</span>
@@ -174,7 +181,7 @@ function renderTable(){
     ` : `<button class="qab" onclick="openInfo('${e.id}',event)">Info</button>`;
     return `<tr class="${disabled?'row-disabled':''}" onclick="openInfo('${e.id}')">
       <td><div class="rt">${escHtml(e.title)}${debugBadge}${disabledBadge}</div><div class="rs">${escHtml(e.sub||e.id)}</div>${tcBadge}</td>
-      <td>${qrdiBadge} <span class="badge ${sevCls}">${e.sev} · ${e.score}</span></td>
+      <td>${qrdiBadge}${scanTypeBadge} <span class="badge ${sevCls}">${e.sev} · ${e.score}</span></td>
       <td><span style="font-size:13px;font-weight:600">${e.cvss}</span></td>
       <td>${expl}</td>
       <td>${riskIcons(e)}</td>
@@ -206,9 +213,9 @@ function renderStats(){
     <div class="sc" onclick="setStatFilter('malware')"><span class="sico2">🦠</span><div><div class="sn2">125</div><div class="sl2">Malware</div></div></div>
     <div class="sc" onclick="setStatFilter('exploited')"><span class="sico2">🔥</span><div><div class="sn2">${aktExpl}</div><div class="sl2">Actively Exploited</div></div></div>
     <div class="sc" onclick="setStatFilter('patch')"><span class="sico2">🩹</span><div><div class="sn2">${withPatch}</div><div class="sl2">Patch Available</div></div></div>
-    <div class="sc" style="border-color:rgba(139,92,246,.3)" onclick="setCatFilter('qrdi')" title="Filter QRDI"><span class="sico2">🔬</span><div><div class="sn2" style="color:var(--qrdi)">${qrdi.length}</div><div class="sl2">Total QRDI</div></div></div>
+    <div class="sc" style="border-color:rgba(139,92,246,.3)" onclick="setCatFilter('qrdi')" title="Filter Custom Exploit"><span class="sico2">🔬</span><div><div class="sn2" style="color:var(--qrdi)">${qrdi.length}</div><div class="sl2">Custom Exploits</div></div></div>
     <div class="sc" style="border-color:rgba(245,158,11,.25)" onclick="setRtiFilter('debug')"><span class="sico2">🐛</span><div><div class="sn2" style="color:var(--debug)">${debug}</div><div class="sl2">Debug Mode</div></div></div>
-    <div class="sc" onclick="setRtiFilter('disabled')"><span class="sico2">⏸</span><div><div class="sn2">${qrdi.filter(e=>!e.enabled).length}</div><div class="sl2">Disabled QRDI</div></div></div>
+    <div class="sc" onclick="setRtiFilter('disabled')"><span class="sico2">⏸</span><div><div class="sn2">${qrdi.filter(e=>!e.enabled).length}</div><div class="sl2">Disabled Exploits</div></div></div>
   `;
 }
 
@@ -272,7 +279,7 @@ function openInfo(id, e){
   el.innerHTML = `
     <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;flex-wrap:wrap">
       <span class="badge ${sevCls}">${entry.sev} · ${entry.score}</span>
-      ${isQ?`<span class="badge b-qrdi">QRDI</span>`:''}
+      ${isQ?`<span class="badge b-qrdi">Custom Exploit</span>`:''}
       ${isQ&&entry.debugLevel>0?`<span class="badge b-debug">Debug Level: ${entry.debugLevel}</span>`:''}
       ${isQ&&!entry.enabled?`<span class="badge b-dis">Disabled</span>`:''}
       ${entry.tc?`<span class="tcbadge">🛡 TruConfirm Validation Available</span>`:''}
@@ -280,7 +287,9 @@ function openInfo(id, e){
     <table class="it">
       <tr><td>ID / QID</td><td><b>${isQ?entry.qid:entry.id}</b></td></tr>
       <tr><td>Title</td><td>${escHtml(entry.title)}</td></tr>
-      ${isQ?`<tr><td>Category</td><td><span class="badge b-qrdi">QRDI</span></td></tr>`:''}
+      ${isQ?`<tr><td>CVE ID</td><td><b>${escHtml(entry.cvePrimary||'—')}</b></td></tr>`:''}
+      ${isQ?`<tr><td>Scan Type</td><td><span class="badge b-scan-${entry.scanType||'service_scan'}">${entry.scanType==='web_app_scan'?'🌐 Web App Scan':'🔌 Service Scan'}</span></td></tr>`:''}
+      ${isQ?`<tr><td>Category</td><td><span class="badge b-qrdi">Custom Exploit</span></td></tr>`:''}
       ${isQ?`<tr><td>Type</td><td>${escHtml(entry.vulnType||'Vulnerability')}</td></tr>`:''}
       <tr><td>Severity</td><td><span class="badge ${sevCls}">${entry.sev}</span></td></tr>
       <tr><td>CVSS Base</td><td><b>${entry.cvss}</b></td></tr>
@@ -300,7 +309,7 @@ function openInfo(id, e){
       <tr><td>Bugtraq IDs</td><td>${entry.bugtraqIds||'—'}</td></tr>
       <tr><td>Vendor References</td><td>${(entry.vendorRefs||[]).length?entry.vendorRefs.map(v=>`<a href="${v.url}" style="color:var(--accent)">${v.ref}</a>`).join(', '):'—'}</td></tr>
     </table>
-    <div class="isect">QRDI Definition</div>
+    <div class="isect">CEV Definition</div>
     <table class="it">
       <tr><td>Detection Type</td><td><span class="code-text">${entry.detectionType||'http dialog'}</span></td></tr>
       <tr><td>Debug Level</td><td>${entry.debugLevel===0?'<span style="color:var(--text-muted)">0 (Off)</span>':`<span class="badge b-debug">${entry.debugLevel}</span>`}</td></tr>
@@ -326,13 +335,12 @@ function openNew(){
   S.nextQid = Math.max(...S.entries.filter(e=>e.type==='qrdi').map(e=>e.qid), 410005) + 1;
   S.vendorRefs = [];
   S.detType = 'http dialog';
+  S.scanType = 'service_scan';
   S.debugSel = 0;
   S.statusEnabled = true;
   S.jsonValid = null;
   resetVulnForm();
-  $('vuln-modal-title').textContent = 'New QRDI Vulnerability';
-  $('qid-field').value = S.nextQid;
-  $('qid-field').readOnly = false;
+  $('vuln-modal-title').textContent = 'New Custom Exploit Vulnerability';
   $('det-type-http').classList.add('on');
   $('det-type-tcp').classList.remove('on');
   switchModalTab('tab-general');
@@ -346,14 +354,14 @@ function openEdit(id, e){
   S.editEntry = entry;
   S.vendorRefs = [...(entry.vendorRefs||[])];
   S.detType = entry.detectionType||'http dialog';
+  S.scanType = entry.scanType||'service_scan';
   S.debugSel = entry.debugLevel||0;
   S.statusEnabled = entry.enabled!==false;
   S.jsonValid = null;
   resetVulnForm();
-  $('vuln-modal-title').textContent = 'Edit QRDI Vulnerability';
-  $('qid-field').value = entry.qid;
-  $('qid-field').readOnly = true;
+  $('vuln-modal-title').textContent = 'Edit Custom Exploit Vulnerability';
   $('title-field').value = entry.title;
+  $('cve-primary-field').value = entry.cvePrimary||'';
   $('type-field').value = entry.vulnType||'Vulnerability';
   $('sev-field').value = entry.severity||4;
   $('threat-field').value = entry.threat||'';
@@ -364,6 +372,9 @@ function openEdit(id, e){
   $('json-def').value = entry.jsonDef||'{}';
   $('status-toggle').checked = S.statusEnabled;
   $('status-lbl').textContent = S.statusEnabled?'Enabled':'Disabled';
+  // scan type
+  $('scan-type-svc').classList.toggle('on', S.scanType==='service_scan');
+  $('scan-type-web').classList.toggle('on', S.scanType==='web_app_scan');
   // detection type
   $('det-type-http').classList.toggle('on', S.detType==='http dialog');
   $('det-type-tcp').classList.toggle('on', S.detType==='tcp dialog');
@@ -378,9 +389,11 @@ function openEdit(id, e){
 }
 
 function resetVulnForm(){
-  ['qid-field','title-field','cve-ids-field','bugtraq-field','threat-field','impact-field','solution-field'].forEach(id=>{ if($(id)) $(id).value=''; });
+  ['title-field','cve-primary-field','cve-ids-field','bugtraq-field','threat-field','impact-field','solution-field'].forEach(id=>{ if($(id)) $(id).value=''; });
   $('type-field').value='Vulnerability';
   $('sev-field').value='4';
+  $('scan-type-svc').classList.add('on');
+  $('scan-type-web').classList.remove('on');
   $('json-def').value='{\n  "detection_type": "http dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "title": "",\n  "dialog": []\n}';
   $('status-toggle').checked=true;
   $('status-lbl').textContent='Enabled';
@@ -393,21 +406,22 @@ function resetVulnForm(){
 }
 
 function saveQrdiVuln(){
-  const qid = parseInt($('qid-field').value);
+  const qid = S.editEntry ? S.editEntry.qid : S.nextQid;
   const title = $('title-field').value.trim();
   if(!title){ showToast('Title is required','terr'); return; }
-  if(!qid||qid<410001||qid>430000){ showToast('QID must be between 410001–430000','terr'); return; }
-  if(!S.editEntry && S.entries.find(e=>e.type==='qrdi'&&e.qid===qid)){
-    showToast(`QID ${qid} is already in use`,'terr'); return;
-  }
+  const cvePrimary = $('cve-primary-field').value.trim();
+  if(!cvePrimary){ showToast('CVE ID is required','terr'); $('cve-primary-field').focus(); return; }
+  if(!/^CVE-\d{4}-\d{4,}$/i.test(cvePrimary)){ showToast('CVE ID must be in format CVE-YYYY-NNNNN','terr'); return; }
   const jsonTxt = stripJsonComments($('json-def').value).trim();
-  try{ JSON.parse(jsonTxt); }catch(err){ showToast('Invalid JSON in QRDI Definition','terr'); return; }
+  try{ JSON.parse(jsonTxt); }catch(err){ showToast('Invalid JSON in CEV Definition','terr'); return; }
   const sevNum = parseInt($('sev-field').value);
   const sevLbl = sevFromNum(sevNum);
   const entry = {
     id: S.editEntry ? S.editEntry.id : `QID-${qid}`,
     type:'qrdi', qid, title,
-    sub:`${S.detType} – QRDI`,
+    sub:`${S.detType} – Custom Exploit`,
+    cvePrimary,
+    scanType: S.scanType,
     sev:sevLbl, score:parseFloat(((sevNum/5)*10).toFixed(1)),
     cvss:parseFloat(((sevNum/5)*10).toFixed(1)),
     expl: S.debugSel>0 ? 'POC Exploit' : '',
@@ -452,7 +466,7 @@ function toggleEnable(id, e){
     closeModal('confirm');
     renderAll();
   };
-  $('cfm-title').textContent = `${action==='disable'?'Disable':'Enable'} QRDI Vulnerability`;
+  $('cfm-title').textContent = `${action==='disable'?'Disable':'Enable'} Custom Exploit Vulnerability`;
   $('cfm-desc').textContent = `Are you sure you want to ${action} QID ${entry.qid}: "${entry.title}"?`;
   $('cfm-ico').textContent = action==='disable' ? '⏸' : '▶';
   openModal('confirm');
@@ -545,7 +559,7 @@ function renderLuaModal(){
     $('lua-info-body').innerHTML=`
       <table class="it">
         <tr><td>ID</td><td>${lib.id}</td></tr>
-        <tr><td>Purpose</td><td>QRDI</td></tr>
+        <tr><td>Purpose</td><td>Custom Exploit Validation</td></tr>
         <tr><td>LUA File Name</td><td><span class="code-text">${lib.name}</span></td></tr>
         <tr><td>LUA File Size</td><td>${lib.size}</td></tr>
         <tr><td>Library Status</td><td><span class="badge ${lib.status==='Published'?'b-ok':lib.status==='Draft'?'b-debug':'b-dis'}">${lib.status}</span></td></tr>
@@ -773,7 +787,7 @@ function renderScanTab(){
   list.innerHTML=SCAN_PROFILES.map(p=>`
     <div class="profile-item ${S._activeProfile===p.id?'on':''}" onclick="selectProfile('${p.id}')">
       <div class="pi-name">${escHtml(p.name)}</div>
-      <div class="pi-meta">${p.checks.length} QRDI check${p.checks.length!==1?'s':''} attached</div>
+      <div class="pi-meta">${p.checks.length} Custom Exploit check${p.checks.length!==1?'s':''} attached</div>
     </div>`).join('');
   if(S._activeProfile) renderProfileDetail(S._activeProfile);
 }
@@ -798,12 +812,12 @@ function renderProfileDetail(id){
       </div>
     </div>
     <div style="display:flex;gap:7px">
-      <button class="btn btn-q btn-sm" onclick="openAttachSelector('${id}')">+ Attach QRDI Check</button>
+      <button class="btn btn-q btn-sm" onclick="openAttachSelector('${id}')">+ Attach Custom Exploit Check</button>
     </div>`;
 
   const checks=profile.checks;
   const checksHtml = checks.length===0
-    ? `<div class="attach-empty"><div class="ei">🔬</div><p>No QRDI checks attached yet.<br>Click <b>+ Attach QRDI Check</b> to add one.</p></div>`
+    ? `<div class="attach-empty"><div class="ei">🔬</div><p>No Custom Exploit checks attached yet.<br>Click <b>+ Attach Custom Exploit Check</b> to add one.</p></div>`
     : checks.map(c=>{
         const entry=S.entries.find(e=>e.type==='qrdi'&&e.qid===c.qid);
         if(!entry) return '';
@@ -811,7 +825,7 @@ function renderProfileDetail(id){
         return `<div class="qrdi-attach-row">
           <div class="qar-info">
             <div class="qar-title">QID ${entry.qid} — ${escHtml(entry.title)}</div>
-            <div class="qar-meta"><span class="badge ${sevCls}">${entry.sev}</span> <span class="badge b-qrdi">QRDI</span> <span class="code-text">${entry.detectionType}</span></div>
+            <div class="qar-meta"><span class="badge ${sevCls}">${entry.sev}</span> <span class="badge b-qrdi">Custom Exploit</span> <span class="badge b-scan-${entry.scanType||'service_scan'}">${entry.scanType==='web_app_scan'?'🌐 Web App':'🔌 Service'}</span> <span class="code-text">${entry.detectionType}</span></div>
           </div>
           <div class="qar-actions">
             <div class="tog-wrap">
@@ -831,7 +845,7 @@ function renderProfileDetail(id){
         <div class="res-body">
           <div class="res-title">${escHtml(r.title)}</div>
           <div class="res-meta">
-            <span class="res-badge">🔬 Custom Detection</span>
+            <span class="res-badge">🔬 Custom Exploit</span>
             <span class="udl">User-Defined</span>
             <span>QID ${r.qid}</span>
             <span>${r.ts}</span>
@@ -841,10 +855,10 @@ function renderProfileDetail(id){
       </div>`).join('');
 
   $('scan-right-body').innerHTML=`
-    <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Attached QRDI Checks <span style="color:var(--text-primary);font-size:13px;text-transform:none;font-weight:700;margin-left:6px">${checks.length}</span></div>
+    <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px">Attached Custom Exploit Checks <span style="color:var(--text-primary);font-size:13px;text-transform:none;font-weight:700;margin-left:6px">${checks.length}</span></div>
     ${checksHtml}
     <div class="results-section">
-      <h3>Latest Scan Results — Custom Findings</h3>
+      <h3>Latest Scan Results — Custom Exploit Findings</h3>
       ${resultsHtml}
     </div>`;
 }
@@ -886,7 +900,7 @@ function openAttachSelector(profileId){
   const attachedQids=(p?p.checks:[]).map(c=>c.qid);
   const available=S.entries.filter(e=>e.type==='qrdi'&&e.enabled!==false&&!attachedQids.includes(e.qid));
   if(!available.length){
-    $('attach-selector-list').innerHTML=`<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:16px">All active QRDI checks are already attached to this profile.</div>`;
+    $('attach-selector-list').innerHTML=`<div style="color:var(--text-muted);font-size:12px;text-align:center;padding:16px">All active Custom Exploit checks are already attached to this profile.</div>`;
   } else {
     $('attach-selector-list').innerHTML=available.map(e=>`
       <div class="as-row" id="as-${e.qid}" onclick="selectAttach(${e.qid})">
@@ -908,7 +922,7 @@ function selectAttach(qid){
 }
 
 function confirmAttach(){
-  if(!ATTACH.selectedQid){ showToast('Select a QRDI check first','terr'); return; }
+  if(!ATTACH.selectedQid){ showToast('Select a Custom Exploit check first','terr'); return; }
   const p=SCAN_PROFILES.find(x=>x.id===ATTACH.profileId);
   if(!p) return;
   if(p.checks.find(c=>c.qid===ATTACH.selectedQid)){ showToast('Already attached','terr'); return; }
@@ -930,9 +944,9 @@ function openFindingDetail(finding){
   $('finding-body').innerHTML=`
     <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap;margin-bottom:14px">
       <span class="badge ${sevClass(finding.sev)}">${finding.sev}</span>
-      <span class="res-badge">🔬 Custom Detection</span>
+      <span class="res-badge">🔬 Custom Exploit</span>
       <span class="udl">User-Defined</span>
-      <span class="badge b-qrdi">QRDI</span>
+      <span class="badge b-qrdi">Custom Exploit</span>
       <span style="font-size:11px;color:var(--text-muted)">QID ${finding.qid} · ${finding.ts}</span>
     </div>
     <table class="it">
@@ -941,7 +955,7 @@ function openFindingDetail(finding){
       <tr><td>Result</td><td>${escHtml(finding.result)}</td></tr>
       <tr><td>Severity</td><td><span class="badge ${sevClass(finding.sev)}">${finding.sev}</span></td></tr>
       <tr><td>Scan Time</td><td>${finding.ts}</td></tr>
-      <tr><td>Detection Type</td><td>Custom User-Defined (QRDI)</td></tr>
+      <tr><td>Detection Type</td><td>Custom Exploit Validation (CEV)</td></tr>
     </table>
     <div class="isect" style="margin-top:14px">Evidence</div>
     <div class="fd-evidence">${escHtml(finding.evidence||'No evidence captured.')}</div>
@@ -1035,7 +1049,7 @@ function renderFindingsTable(){
   chips.innerHTML = `
     <span class="fchip${_findingsFilter==='all'&&!_severityFilter?' fchip-on':''}" onclick="setFindingsFilter('all')" style="cursor:pointer">Total <b>${allRows.length}</b></span>
     <span class="fchip fchip-native${_findingsFilter==='native'?' fchip-on':''}" onclick="setFindingsFilter('native')" style="cursor:pointer">Native <b>${nativeRows.length}</b></span>
-    <span class="fchip fchip-qrdi${_findingsFilter==='qrdi'?' fchip-on':''}" onclick="setFindingsFilter('qrdi')" style="cursor:pointer">Custom QRDI <b>${qrdiRows.length}</b></span>
+    <span class="fchip fchip-qrdi${_findingsFilter==='qrdi'?' fchip-on':''}" onclick="setFindingsFilter('qrdi')" style="cursor:pointer">Custom Exploit <b>${qrdiRows.length}</b></span>
     <span class="sep"></span>
     ${sc.Critical?`<span class="fchip fchip-crit${_severityFilter==='Critical'?' fchip-on':''}" onclick="setSeverityFilter('Critical')" style="cursor:pointer">Critical <b>${sc.Critical}</b></span>`:''}
     ${sc.High?`<span class="fchip fchip-high${_severityFilter==='High'?' fchip-on':''}" onclick="setSeverityFilter('High')" style="cursor:pointer">High <b>${sc.High}</b></span>`:''}
@@ -1057,7 +1071,7 @@ function renderFindingsTable(){
     const sevCls   = sevClass(r.sev);
     const ico      = r.sev==='Critical'?'🔴':r.sev==='High'?'🟠':r.sev==='Medium'?'🟡':'🟢';
     const srcBadge = isQrdi
-      ? `<span class="src-badge qrdi">🔬 Custom Detection</span><span class="udl" style="margin-left:4px">User-Defined</span>`
+      ? `<span class="src-badge qrdi">🔬 Custom Exploit</span><span class="udl" style="margin-left:4px">User-Defined</span>`
       : `<span class="src-badge native">⚡ Native</span>`;
     const idRef  = isQrdi ? (r.qid||'—') : (r.cve||r.qid||'—');
     const safeR  = JSON.stringify(r).replace(/"/g,'&quot;');
@@ -1280,7 +1294,7 @@ function exportFindingsReport(){
 
   const xmlLines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    `<ScanReport generated="${ts}" tool="TruConfirm QRDI" version="1.0">`,
+    `<ScanReport generated="${ts}" tool="TruConfirm Custom Exploit Validation" version="1.0">`,
     '  <findings>',
     ...allRows.map(r=>{
       const st = FINDING_STATUS[r.id]||{status:'open'};
@@ -1388,7 +1402,7 @@ function updateWizardUI(){
       }catch(e){}
     }
     const rows=[
-      {ok:true, lbl:'QRDI vulnerability exists (QID '+( entry?entry.qid:'—')+')'},
+      {ok:true, lbl:'Custom Exploit vulnerability exists (QID '+( entry?entry.qid:'—')+')'},
       {ok:jsonOk, lbl:'JSON definition is valid and parseable'},
       {ok:hasDetType, lbl:'detection_type and api_version fields present'},
       {ok:hasReport, lbl:'dialog array contains a report transaction'},
@@ -1425,13 +1439,13 @@ function updateWizardUI(){
     const prof=SCAN_PROFILES.find(p=>p.id===WIZ.profileId);
     content.innerHTML=`
       <table class="it" style="margin-bottom:14px">
-        <tr><td>QRDI Check</td><td><b>${entry?escHtml(entry.title):''}</b> (QID ${entry?entry.qid:''})</td></tr>
+        <tr><td>Custom Exploit Check</td><td><b>${entry?escHtml(entry.title):''}</b> (QID ${entry?entry.qid:''})</td></tr>
         <tr><td>Scan Profile</td><td><b>${prof?escHtml(prof.name):''}</b></td></tr>
         <tr><td>Detection Type</td><td><span class="code-text">${entry?(entry.detType||entry.detectionType||'http dialog'):''}</span></td></tr>
         <tr><td>Debug Level</td><td>${entry&&entry.debugLevel>0?`<span class="badge b-debug">Level ${entry.debugLevel}</span>`:'Off (0)'}</td></tr>
         <tr><td>Status after attach</td><td><span class="badge b-ok">Enabled</span></td></tr>
       </table>
-      <div style="font-size:12px;color:var(--text-muted)">Confirming will attach this QRDI check to the selected scan profile. It will execute alongside native checks on the next scan run.</div>`;
+      <div style="font-size:12px;color:var(--text-muted)">Confirming will attach this Custom Exploit check to the selected scan profile. It will execute alongside native checks on the next scan run.</div>`;
     ftr.innerHTML=`<button class="btn btn-s" onclick="WIZ.step=2;updateWizardUI()">← Back</button><button class="btn btn-s" onclick="closeModal('activate')">Cancel</button><button class="btn btn-p" onclick="confirmActivation()">⚡ Confirm Activation</button>`;
   }
 }
@@ -1467,7 +1481,7 @@ function renderDashboard(){
   const totalFindings=SCAN_PROFILES.reduce((s,p)=>s+p.results.length,0);
 
   $('metric-grid').innerHTML=`
-    <div class="metric-card mc-purple"><div class="mc-val" style="color:var(--qrdi)">${qrdi.length}</div><div class="mc-lbl">Total QRDI Checks</div><div class="mc-sub">↑ Active custom detections</div></div>
+    <div class="metric-card mc-purple"><div class="mc-val" style="color:var(--qrdi)">${qrdi.length}</div><div class="mc-lbl">Custom Exploit Checks</div><div class="mc-sub">↑ Active custom exploit validations</div></div>
     <div class="metric-card mc-green"><div class="mc-val" style="color:var(--success)">${attached.length}</div><div class="mc-lbl">Attached to Profiles</div><div class="mc-sub">↑ ${qrdi.length>0?Math.round(attached.length/qrdi.length*100):0}% activation rate</div></div>
     <div class="metric-card mc-blue"><div class="mc-val" style="color:var(--accent)">${totalFindings}</div><div class="mc-lbl">Custom Findings Reported</div><div class="mc-sub">↑ From last scan run</div></div>
     <div class="metric-card mc-amber"><div class="mc-val" style="color:var(--debug)">${debugOn.length}</div><div class="mc-lbl">In Debug Mode</div><div class="mc-sub ${debugOn.length>0?'neg':''}">⚠ Review before production</div></div>`;
@@ -2015,7 +2029,7 @@ function improveExisting(existingJson, prompt){
     }
 
     // Add title if missing
-    if(!sig.title){ sig.title = 'QRDI Detection'; changes.push('Added missing <code>title</code> field'); }
+    if(!sig.title){ sig.title = 'Custom Exploit Detection'; changes.push('Added missing <code>title</code> field'); }
 
     // Add on_missing to process if missing
     dialog.forEach(tx => {

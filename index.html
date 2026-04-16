@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>TruConfirm – KnowledgeBase</title>
-<link rel="stylesheet" href="styles.css?v=13" />
+<link rel="stylesheet" href="styles.css?v=15" />
 </head>
 <body>
 
@@ -72,8 +72,8 @@
       <div class="ov-layout">
         <div style="display:flex;align-items:center;justify-content:space-between">
           <div>
-            <div style="font-size:15px;font-weight:600">QRDI Metrics Dashboard</div>
-            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Custom detection adoption, lifecycle health and AI usage</div>
+            <div style="font-size:15px;font-weight:600">Custom Exploit Validation Metrics Dashboard</div>
+            <div style="font-size:11px;color:var(--text-muted);margin-top:2px">Custom exploit adoption, lifecycle health and AI usage</div>
           </div>
           <span style="font-size:11px;color:var(--text-muted)">As of April 2, 2026</span>
         </div>
@@ -82,7 +82,7 @@
         <!-- Lifecycle board + bar chart -->
         <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px">
           <div class="lifecycle-board">
-            <h3>QRDI Lifecycle Stage Distribution</h3>
+            <h3>Custom Exploit Lifecycle Stage Distribution</h3>
             <div class="lc-steps" id="lc-steps"></div>
           </div>
           <div class="bar-chart">
@@ -115,7 +115,7 @@
             <span style="color:var(--text-muted);font-size:13px">Select a scan profile</span>
           </div>
           <div class="scan-right-body" id="scan-right-body">
-            <div class="attach-empty"><div class="ei">📋</div><p>Select a scan profile from the left to manage QRDI checks and view results.</p></div>
+            <div class="attach-empty"><div class="ei">📋</div><p>Select a scan profile from the left to manage Custom Exploit checks and view results.</p></div>
           </div>
         </div>
       </div>
@@ -128,7 +128,7 @@
         <div class="findings-hdr">
           <div>
             <div class="findings-hdr-title">Unified Findings</div>
-            <div class="findings-hdr-sub">QRDI custom detections alongside native vulnerability findings — single pane of glass</div>
+            <div class="findings-hdr-sub">Custom Exploit detections alongside native vulnerability findings — single pane of glass</div>
           </div>
           <div style="display:flex;gap:8px;align-items:center;flex-wrap:wrap">
             <div class="findings-filter-bar">
@@ -137,7 +137,7 @@
                 <span class="src-dot native"></span>Native
               </button>
               <button class="filt-btn"    id="filt-btn-qrdi"   onclick="setFindingsFilter('qrdi')">
-                <span class="src-dot qrdi"></span>Custom (QRDI)
+                <span class="src-dot qrdi"></span>Custom Exploit
               </button>
             </div>
             <button class="btn btn-s btn-sm" onclick="exportFindingsReport()" title="Export findings as XML report with result_debug and result_errors fields">
@@ -202,14 +202,14 @@
 
         <div class="fp-div"></div>
 
-        <!-- QRDI Section -->
+        <!-- Custom Exploit Section -->
         <div class="fp-sec">
           <div class="fp-sechdr" onclick="setCatFilter('qrdi')">
-            <span class="fp-sectitle">QRDI</span>
+            <span class="fp-sectitle">Custom Exploit</span>
             <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
           </div>
           <div class="fp-item" onclick="setCatFilter('qrdi')">
-            <span class="lbl">All QRDI</span>
+            <span class="lbl">All Custom Exploit</span>
             <span class="cnt" id="fp-qrdi-count">5</span>
           </div>
           <div class="fp-item" onclick="setRtiFilter('debug')">
@@ -324,18 +324,18 @@
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
             </button>
             <div class="ndrop" id="new-drop">
-              <div class="ndlbl">QRDI</div>
+              <div class="ndlbl">Custom Exploit</div>
               <div class="ndi" onclick="openNew();$('new-drop').classList.remove('open')">
                 <span class="ndi-ico">🔬</span>
                 <div>
-                  <div style="font-weight:500;color:var(--text-primary)">QRDI Vulnerability</div>
+                  <div style="font-weight:500;color:var(--text-primary)">Custom Exploit Vulnerability</div>
                   <div style="font-size:10px;color:var(--text-muted)">Custom HTTP/TCP detection (QID 410001–430000)</div>
                 </div>
               </div>
               <div class="ndi" onclick="openLuaLib();$('new-drop').classList.remove('open')">
                 <span class="ndi-ico">📜</span>
                 <div>
-                  <div style="font-weight:500;color:var(--text-primary)">QRDI Lua Library</div>
+                  <div style="font-weight:500;color:var(--text-primary)">Custom Exploit Lua Library</div>
                   <div style="font-size:10px;color:var(--text-muted)">Shared Lua functions for all detections</div>
                 </div>
               </div>
@@ -392,7 +392,7 @@
     <div class="mhdr">
       <div class="mtitle">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--qrdi)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span id="vuln-modal-title">New QRDI Vulnerability</span>
+        <span id="vuln-modal-title">New Custom Exploit Vulnerability</span>
       </div>
       <button class="mclose" onclick="closeModal('qrdi-vuln')">✕</button>
     </div>
@@ -402,10 +402,7 @@
       <div style="width:160px;background:var(--bg-panel);border-right:1px solid var(--border);padding:10px 0;flex-shrink:0;overflow-y:auto">
         <div class="mtab on" data-tab="tab-general" onclick="switchModalTab('tab-general')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">General Info</div>
         <div class="mtab" data-tab="tab-mappings" onclick="switchModalTab('tab-mappings')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">Additional Mappings</div>
-        <div class="mtab" data-tab="tab-threat" onclick="switchModalTab('tab-threat')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">Threat</div>
-        <div class="mtab" data-tab="tab-impact" onclick="switchModalTab('tab-impact')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">Impact</div>
-        <div class="mtab" data-tab="tab-solution" onclick="switchModalTab('tab-solution')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">Solution</div>
-        <div class="mtab" data-tab="tab-qrdi" onclick="switchModalTab('tab-qrdi')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">QRDI Definition</div>
+        <div class="mtab" data-tab="tab-qrdi" onclick="switchModalTab('tab-qrdi')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">CEV Definition</div>
       </div>
 
       <!-- Content -->
@@ -414,22 +411,17 @@
         <!-- General Info -->
         <div class="tpane on" id="tab-general">
           <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">General Information</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Easily add custom vulnerabilities (QIDs) using Qualys Remote Detection Interface (QRDI).</div>
-
-          <div class="fr2">
-            <div class="fg">
-              <label>QID <span class="req">*</span><span class="hint">(410001–430000)</span></label>
-              <input class="fi" id="qid-field" type="number" min="410001" max="430000" placeholder="410006" />
-            </div>
-            <div class="fg">
-              <label>Category</label>
-              <input class="fi" value="QRDI" disabled />
-            </div>
-          </div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Define a Custom Exploit Validation (CEV) check. QID is auto-assigned from the reserved block (410001–430000).</div>
 
           <div class="fg">
             <label>Title <span class="req">*</span></label>
             <input class="fi" id="title-field" placeholder="Enter vulnerability title" />
+          </div>
+
+          <div class="fg">
+            <label>CVE ID <span class="req">*</span></label>
+            <input class="fi" id="cve-primary-field" placeholder="e.g. CVE-2024-1234" />
+            <div class="hint-text">Primary CVE this custom exploit targets. Used for conflict detection against native scan results.</div>
           </div>
 
           <div class="fr2">
@@ -452,6 +444,19 @@
             </div>
           </div>
 
+          <div class="fg">
+            <label>Scan Type</label>
+            <div class="dt-pills">
+              <div class="dt-pill scan-type-svc on" id="scan-type-svc" onclick="selectScanType('service_scan')">
+                🔌 Service Scan
+              </div>
+              <div class="dt-pill scan-type-web" id="scan-type-web" onclick="selectScanType('web_app_scan')">
+                🌐 Web Application Scan
+              </div>
+            </div>
+            <div class="hint-text">Service Scan targets network-layer services (TCP/UDP). Web Application Scan targets HTTP application endpoints and web logic.</div>
+          </div>
+
           <div class="sep"></div>
           <div class="fg">
             <label>Status</label>
@@ -463,6 +468,22 @@
               <span class="tog-lbl" id="status-lbl">Enabled</span>
             </div>
             <div class="hint-text">When disabled, the QID is included in scans but appears grayed out in results.</div>
+          </div>
+
+          <div class="sep"></div>
+          <div class="fg">
+            <label>Threat Description</label>
+            <textarea class="fta" id="threat-field" rows="4" placeholder="Describe the threat posed by this vulnerability..."></textarea>
+          </div>
+
+          <div class="fg">
+            <label>Impact</label>
+            <textarea class="fta" id="impact-field" rows="4" placeholder="Describe the impact if this vulnerability is exploited..."></textarea>
+          </div>
+
+          <div class="fg">
+            <label>Solution / Remediation</label>
+            <textarea class="fta" id="solution-field" rows="4" placeholder="Describe how to remediate or mitigate this vulnerability..."></textarea>
           </div>
         </div>
 
@@ -491,37 +512,10 @@
           </div>
         </div>
 
-        <!-- Threat -->
-        <div class="tpane" id="tab-threat">
-          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Threat</div>
-          <div class="fg">
-            <label>Threat Description</label>
-            <textarea class="fta" id="threat-field" rows="8" placeholder="Describe the threat posed by this vulnerability..."></textarea>
-          </div>
-        </div>
-
-        <!-- Impact -->
-        <div class="tpane" id="tab-impact">
-          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Impact</div>
-          <div class="fg">
-            <label>Impact Description</label>
-            <textarea class="fta" id="impact-field" rows="8" placeholder="Describe the impact if this vulnerability is exploited..."></textarea>
-          </div>
-        </div>
-
-        <!-- Solution -->
-        <div class="tpane" id="tab-solution">
-          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Solution</div>
-          <div class="fg">
-            <label>Solution / Remediation</label>
-            <textarea class="fta" id="solution-field" rows="8" placeholder="Describe how to remediate or mitigate this vulnerability..."></textarea>
-          </div>
-        </div>
-
         <!-- QRDI Definition -->
         <div class="tpane" id="tab-qrdi">
-          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">QRDI Definition</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Upload a JSON document that describes the logic of the detection — the conditions under which to run the detection, the sequence of data to be sent and received, any pattern matching rules and other data required to run the detection.</div>
+          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">CEV Definition</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Upload a JSON document that describes the logic of the Custom Exploit Validation — the conditions under which to run the detection, the sequence of data to be sent and received, any pattern matching rules and other data required to run the detection.</div>
 
           <!-- Detection Type -->
           <div class="fg">
@@ -678,7 +672,7 @@
                 <div class="ai-output-hdr">
                   <div class="ai-output-title">
                     <span>✓</span>
-                    <span>Generated QRDI Signature</span>
+                    <span>Generated Custom Exploit Signature</span>
                   </div>
                   <div class="ai-output-actions">
                     <button class="btn btn-s btn-sm" onclick="runAIGenerate()">⟳ Regenerate</button>
@@ -708,7 +702,7 @@
       <button class="btn btn-s" onclick="closeModal('qrdi-vuln')">Cancel</button>
       <button class="btn btn-p" onclick="saveQrdiVuln()">
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        Save QRDI Vulnerability
+        Save Custom Exploit Vulnerability
       </button>
     </div>
   </div>
@@ -721,7 +715,7 @@
   <div class="modal m-md">
     <div class="mhdr">
       <div class="mtitle" style="color:var(--qrdi)">
-        <span>📜</span> QRDI Lua Library
+        <span>📜</span> Custom Exploit Lua Library
       </div>
       <button class="mclose" onclick="closeModal('lua-lib')">✕</button>
     </div>
@@ -746,7 +740,7 @@
       <!-- Upload View -->
       <div id="lua-upload-view">
         <div style="font-size:12px;color:var(--text-secondary);margin-bottom:16px;line-height:1.7">
-          The Lua function library is shared by <b>all</b> QRDI detections. It allows you to write Lua functions that can be referenced by JSON documents to implement complex data generation or parsing rules.<br><br>
+          The Lua function library is shared by <b>all</b> Custom Exploit detections. It allows you to write Lua functions that can be referenced by JSON documents to implement complex data generation or parsing rules.<br><br>
           All function names must start with <span class="code-text">qrdiuser_</span>. Only function definitions are permitted — no global variables or code outside of functions.
         </div>
 
@@ -773,7 +767,7 @@
         </div>
 
         <div class="lua-constraints-box">
-          <div class="lua-constraints-title">⚡ Lua Runtime Constraints (Qualys QRDI)</div>
+          <div class="lua-constraints-title">⚡ Lua Runtime Constraints (Custom Exploit Validation)</div>
           <div class="lua-constraints-grid">
             <div class="lc-item">
               <span class="lc-val">1 MB</span>
@@ -795,7 +789,7 @@
           <div class="lua-constraints-warn">
             ⚠ The opcode limit can burn out in milliseconds for heavy operations like cryptography. Keep functions lean.
           </div>
-          <div class="lua-api-title">Key QRDI System Functions</div>
+          <div class="lua-api-title">Key CEV System Functions</div>
           <div class="lua-api-list">
             <div class="lua-api-row">
               <span class="code-text lc-fn">qrdisystem_unget(data)</span>
@@ -868,7 +862,7 @@
 <div class="ov hide" id="ov-activate">
   <div class="modal m-md">
     <div class="mhdr">
-      <div class="mtitle">⚡ Activate QRDI Check for Scan</div>
+      <div class="mtitle">⚡ Activate Custom Exploit Check for Scan</div>
       <button class="mclose" onclick="closeModal('activate')">✕</button>
     </div>
     <div class="mbody">
@@ -925,7 +919,7 @@
         <textarea id="ticket-notes" class="jed" rows="3" style="width:100%;min-height:60px;margin-top:4px" placeholder="Optional context, steps to reproduce, or remediation notes..."></textarea>
       </div>
       <div class="isect" style="margin-top:0;font-size:10px">
-        Ticket will be raised against the configured ITSM pipeline. Severity-based automation rules apply per the QRDI SOP.
+        Ticket will be raised against the configured ITSM pipeline. Severity-based automation rules apply per the CEV SOP.
       </div>
     </div>
     <div class="mftr">
@@ -958,11 +952,11 @@
 <div class="ov hide" id="ov-attach-selector">
   <div class="modal m-sm">
     <div class="mhdr">
-      <div class="mtitle">Attach QRDI Check to Profile</div>
+      <div class="mtitle">Attach Custom Exploit Check to Profile</div>
       <button class="mclose" onclick="closeModal('attach-selector')">✕</button>
     </div>
     <div class="mbody">
-      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Select a QRDI vulnerability to attach to <b id="attach-profile-name"></b>:</div>
+      <div style="font-size:12px;color:var(--text-secondary);margin-bottom:12px">Select a Custom Exploit check to attach to <b id="attach-profile-name"></b>:</div>
       <div class="attach-selector" id="attach-selector-list"></div>
     </div>
     <div class="mftr">
@@ -975,7 +969,7 @@
 <!-- TOASTS -->
 <div class="toast-c" id="toast-c"></div>
 
-<script src="app.js?v=13"></script>
+<script src="app.js?v=15"></script>
 <script>
 // Template snippets
 const TEMPLATES = {
@@ -1156,6 +1150,13 @@ function updateSevWarn(){
   const v = sel.value;
   el.textContent = SEV_WARN_TEXT[v] || '';
   el.className = 'sev-warn sev-warn-' + v;
+}
+
+// ── Scan type selector ──
+function selectScanType(t){
+  S.scanType = t;
+  document.getElementById('scan-type-svc').classList.toggle('on', t==='service_scan');
+  document.getElementById('scan-type-web').classList.toggle('on', t==='web_app_scan');
 }
 
 // ── TLS visibility (show TLS mode select only for http dialog + virtual_host) ──
