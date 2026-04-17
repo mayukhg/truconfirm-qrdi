@@ -1166,7 +1166,7 @@ function checkCveConflict(){
     <div class="cve-conflict-wrap">
       <div class="ccw-hdr">⚠ Native Scan Conflict Detected</div>
       <div class="ccw-detail">
-        <b>${cve}</b> is already covered by a native QVM scan:<br>
+        <b>${cve}</b> is already covered by a TruConfirm scan:<br>
         <span style="color:var(--text-primary);font-weight:500">${escHtml(match.title)}</span><br>
         <span style="color:var(--text-muted);font-size:11px">${escHtml(match.host)} · ${escHtml(match.profile)} · <span class="badge ${sc}" style="font-size:10px">${match.sev}</span></span>
       </div>
@@ -1175,17 +1175,17 @@ function checkCveConflict(){
         <div class="cco-opt" id="cco-custom" onclick="selectCveConflict('custom_only')">
           <div class="cco-ico">🔬</div>
           <div class="cco-title">Keep Custom Only</div>
-          <div class="cco-desc">Suppress native result. This Custom Exploit becomes the authoritative detection.</div>
+          <div class="cco-desc">Suppress native TruConfirm scan result. The scan result of this Custom Vulnerability will be considered the authoritative detection.</div>
         </div>
         <div class="cco-opt" id="cco-native" onclick="selectCveConflict('native_only')">
           <div class="cco-ico">⚡</div>
-          <div class="cco-title">Keep Native Only</div>
-          <div class="cco-desc">Native QVM scan remains authoritative. This Custom Exploit will not override it.</div>
+          <div class="cco-title">Native TruConfirm Scan</div>
+          <div class="cco-desc">Result of native TruConfirm scan will remain authoritative. The result of the Custom Vulnerability scan will not override it.</div>
         </div>
         <div class="cco-opt" id="cco-both" onclick="selectCveConflict('keep_both')">
           <div class="cco-ico">🔀</div>
           <div class="cco-title">Keep Both</div>
-          <div class="cco-desc">Both sources stay active. If <i>either</i> flags the CVE, TruConfirm initiates downstream remediation.</div>
+          <div class="cco-desc">Both native and custom vulnerability scans will be considered for result computation. If either of the scan results is negative then that will be taken as the authoritative result and related downstream actions like QVSS score update will be triggered.</div>
         </div>
       </div>
       <div class="cco-selection-hint" id="cco-hint" style="display:none"></div>
