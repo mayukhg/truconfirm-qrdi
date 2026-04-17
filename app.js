@@ -335,7 +335,6 @@ function openInfo(id, e){
 function openNew(){
   S.editEntry = null;
   S.nextQid = Math.max(...S.entries.filter(e=>e.type==='qrdi').map(e=>e.qid), 410005) + 1;
-  S.vendorRefs = [];
   S.detType = 'http dialog';
   S.scanType = 'service_scan';
   S.debugSel = 0;
@@ -384,8 +383,6 @@ function openEdit(id, e){
   qsa('.dbg-opt').forEach(opt=>{
     opt.classList.toggle('on', parseInt(opt.dataset.val)===S.debugSel);
   });
-  // vendor refs
-  renderVendorRefs();
   switchModalTab('tab-general');
   openModal('qrdi-vuln');
 }
@@ -405,8 +402,6 @@ function resetVulnForm(){
   qs('.dbg-opt[data-val="0"]').classList.add('on');
   $('json-status').textContent='';
   $('json-status').className='jstat';
-  S.vendorRefs=[];
-  renderVendorRefs();
 }
 
 function saveQrdiVuln(){
