@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>TruConfirm – KnowledgeBase</title>
-<link rel="stylesheet" href="styles.css?v=15" />
+<link rel="stylesheet" href="styles.css?v=16" />
 </head>
 <body>
 
@@ -329,7 +329,6 @@
                 <span class="ndi-ico">🔬</span>
                 <div>
                   <div style="font-weight:500;color:var(--text-primary)">Custom Exploit Vulnerability</div>
-                  <div style="font-size:10px;color:var(--text-muted)">Custom HTTP/TCP detection (QID 410001–430000)</div>
                 </div>
               </div>
               <div class="ndi" onclick="openLuaLib();$('new-drop').classList.remove('open')">
@@ -401,7 +400,6 @@
       <!-- Left nav -->
       <div style="width:160px;background:var(--bg-panel);border-right:1px solid var(--border);padding:10px 0;flex-shrink:0;overflow-y:auto">
         <div class="mtab on" data-tab="tab-general" onclick="switchModalTab('tab-general')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">General Info</div>
-        <div class="mtab" data-tab="tab-mappings" onclick="switchModalTab('tab-mappings')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">Additional Mappings</div>
         <div class="mtab" data-tab="tab-qrdi" onclick="switchModalTab('tab-qrdi')" style="display:block;border-bottom:none;border-right:2px solid transparent;padding:9px 14px">CEV Definition</div>
       </div>
 
@@ -420,8 +418,9 @@
 
           <div class="fg">
             <label>CVE ID <span class="req">*</span></label>
-            <input class="fi" id="cve-primary-field" placeholder="e.g. CVE-2024-1234" />
-            <div class="hint-text">Primary CVE this custom exploit targets. Used for conflict detection against native scan results.</div>
+            <input class="fi" id="cve-primary-field" placeholder="e.g. CVE-2024-1234" oninput="debounceCveCheck()" autocomplete="off" />
+            <div class="hint-text">Primary CVE this custom exploit targets. Checked against native scan results for conflicts.</div>
+            <div id="cve-conflict-panel" style="display:none;margin-top:10px"></div>
           </div>
 
           <div class="fr2">
@@ -487,32 +486,7 @@
           </div>
         </div>
 
-        <!-- Mappings -->
-        <div class="tpane" id="tab-mappings">
-          <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">Additional Mappings</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Map this vulnerability to industry standard identifiers for use in reports and asset views.</div>
-
-          <div class="fg">
-            <label>CVE IDs</label>
-            <input class="fi" id="cve-ids-field" placeholder="e.g. CVE-2023-1234, CVE-2023-5678" />
-            <div class="hint-text">Comma-separated CVE IDs associated with this vulnerability.</div>
-          </div>
-
-          <div class="fg">
-            <label>Bugtraq IDs</label>
-            <input class="fi" id="bugtraq-field" placeholder="e.g. 12345" />
-            <div class="hint-text">Bugtraq ID number assigned to the vulnerability.</div>
-          </div>
-
-          <div class="fg">
-            <label>Vendor References</label>
-            <div id="vendor-refs-list"></div>
-            <button class="add-row" onclick="addVendorRef()">+ Add Vendor Reference</button>
-            <div class="hint-text">Provide vendor reference ID and URL. Example: [{"reference":"Vendor1","url":"http://www.vendor.com"}]</div>
-          </div>
-        </div>
-
-        <!-- QRDI Definition -->
+        <!-- CEV Definition -->
         <div class="tpane" id="tab-qrdi">
           <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:4px">CEV Definition</div>
           <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Upload a JSON document that describes the logic of the Custom Exploit Validation — the conditions under which to run the detection, the sequence of data to be sent and received, any pattern matching rules and other data required to run the detection.</div>
@@ -969,7 +943,7 @@
 <!-- TOASTS -->
 <div class="toast-c" id="toast-c"></div>
 
-<script src="app.js?v=15"></script>
+<script src="app.js?v=16"></script>
 <script>
 // Template snippets
 const TEMPLATES = {
@@ -1150,6 +1124,93 @@ function updateSevWarn(){
   const v = sel.value;
   el.textContent = SEV_WARN_TEXT[v] || '';
   el.className = 'sev-warn sev-warn-' + v;
+}
+
+// ── CVE Conflict Detection ──
+let _cveCheckTimer = null;
+function debounceCveCheck(){
+  clearTimeout(_cveCheckTimer);
+  _cveCheckTimer = setTimeout(checkCveConflict, 420);
+}
+
+function checkCveConflict(){
+  const raw = $('cve-primary-field').value.trim();
+  const panel = $('cve-conflict-panel');
+  if(!panel) return;
+  if(!raw || !/^CVE-\d{4}-\d{4,}$/i.test(raw)){
+    panel.style.display = 'none';
+    S.cevConflictChoice = null;
+    return;
+  }
+  const cve = raw.toUpperCase();
+  // Search native findings for this CVE
+  const match = (typeof NATIVE_FINDINGS !== 'undefined')
+    ? NATIVE_FINDINGS.find(f => f.cve && f.cve.toUpperCase() === cve)
+    : null;
+
+  if(!match){
+    panel.style.display = '';
+    panel.innerHTML = `<div class="cve-ok-panel">
+      <span class="cve-ok-ico">✓</span>
+      <span>No existing native scan found for <b>${cve}</b> — this Custom Exploit will be the sole detection source.</span>
+    </div>`;
+    S.cevConflictChoice = 'custom_only';
+    return;
+  }
+
+  // Conflict found
+  S.cevConflictChoice = null;
+  const sc = {'Critical':'b-crit','High':'b-high','Medium':'b-med','Low':'b-low'}[match.sev]||'b-blue';
+  panel.style.display = '';
+  panel.innerHTML = `
+    <div class="cve-conflict-wrap">
+      <div class="ccw-hdr">⚠ Native Scan Conflict Detected</div>
+      <div class="ccw-detail">
+        <b>${cve}</b> is already covered by a native QVM scan:<br>
+        <span style="color:var(--text-primary);font-weight:500">${escHtml(match.title)}</span><br>
+        <span style="color:var(--text-muted);font-size:11px">${escHtml(match.host)} · ${escHtml(match.profile)} · <span class="badge ${sc}" style="font-size:10px">${match.sev}</span></span>
+      </div>
+      <div class="ccw-question">How should TruConfirm handle this conflict?</div>
+      <div class="cco-row">
+        <div class="cco-opt" id="cco-custom" onclick="selectCveConflict('custom_only')">
+          <div class="cco-ico">🔬</div>
+          <div class="cco-title">Keep Custom Only</div>
+          <div class="cco-desc">Suppress native result. This Custom Exploit becomes the authoritative detection.</div>
+        </div>
+        <div class="cco-opt" id="cco-native" onclick="selectCveConflict('native_only')">
+          <div class="cco-ico">⚡</div>
+          <div class="cco-title">Keep Native Only</div>
+          <div class="cco-desc">Native QVM scan remains authoritative. This Custom Exploit will not override it.</div>
+        </div>
+        <div class="cco-opt" id="cco-both" onclick="selectCveConflict('keep_both')">
+          <div class="cco-ico">🔀</div>
+          <div class="cco-title">Keep Both</div>
+          <div class="cco-desc">Both sources stay active. If <i>either</i> flags the CVE, TruConfirm initiates downstream remediation.</div>
+        </div>
+      </div>
+      <div class="cco-selection-hint" id="cco-hint" style="display:none"></div>
+    </div>`;
+}
+
+function selectCveConflict(choice){
+  S.cevConflictChoice = choice;
+  ['custom','native','both'].forEach(k=>{
+    const el = $('cco-'+k);
+    if(el) el.classList.toggle('on',
+      (k==='custom' && choice==='custom_only') ||
+      (k==='native' && choice==='native_only') ||
+      (k==='both'   && choice==='keep_both'));
+  });
+  const hint = $('cco-hint');
+  if(hint){
+    const msgs = {
+      custom_only: '✓ Native scan will be suppressed for this CVE. Custom Exploit is now the sole detection source.',
+      native_only: '✓ This Custom Exploit will not affect native scan results for this CVE.',
+      keep_both:   '✓ Both detections are active. If either flags <b>'+$('cve-primary-field').value.trim().toUpperCase()+'</b>, TruConfirm will trigger downstream remediation automatically.'
+    };
+    hint.innerHTML = msgs[choice]||'';
+    hint.style.display = '';
+  }
 }
 
 // ── Scan type selector ──

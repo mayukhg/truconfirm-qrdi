@@ -4,14 +4,14 @@
 const CVE_DATA = [
   { id:'CVE-2026-1281', type:'cve', title:'CVE-2026-1281', sub:'CVE-2026-1281: ...', sev:'Critical', score:9.5, cvss:9.8, expl:'Actively Exploited', tc:true, hosts:109, jobs:9, actors:1, patch:0, riskFactors:['internet','service','auth','privesc'], ciseKev:true },
   { id:'CVE-2025-1546', type:'cve', title:'CVE-2025-1546', sub:'CVE-2025-1546: ...', sev:'Medium', score:4.2, cvss:8.8, expl:'POC Exploit', tc:true, hosts:0, jobs:0, actors:0, patch:22, riskFactors:['internet','service','auth'], ciseKev:false },
-  { id:'CVE-2026-2374', type:'cve', title:'CVE-2026-2374', sub:'CVE-2026-2374: ...', sev:'Critical', score:9.5, cvss:9.8, expl:'Actively Exploited', tc:true, hosts:0, jobs:0, actors:0, patch:0, riskFactors:['internet','service','auth','privesc'], ciseKev:true },
+  { id:'CVE-2026-2374', type:'cve', title:'CVE-2026-2374', sub:'CVE-2026-2374: ...', sev:'Critical', score:9.2, cvss:9.8, expl:'Actively Exploited', tc:true, hosts:0, jobs:0, actors:0, patch:0, riskFactors:['internet','service','auth','privesc'], ciseKev:true },
   { id:'CVE-2025-0891', type:'cve', title:'CVE-2025-0891', sub:'CVE-2025-0891: ...', sev:'High', score:7.2, cvss:7.8, expl:'Easy Exploit', tc:false, hosts:42, jobs:3, actors:0, patch:5, riskFactors:['internet','service'], ciseKev:false },
   { id:'CVE-2024-9912', type:'cve', title:'CVE-2024-9912', sub:'CVE-2024-9912: ...', sev:'Low', score:2.1, cvss:3.2, expl:'', tc:false, hosts:0, jobs:0, actors:0, patch:1, riskFactors:[], ciseKev:false },
 ];
 
 const QRDI_DEFAULTS = [
   { id:'QID-410001', type:'qrdi', qid:410001, title:'Custom XSS Detection', sub:'HTTP dialog – Custom Exploit',
-    sev:'Critical', score:9.0, cvss:7.5, expl:'POC Exploit', tc:true,
+    sev:'Critical', score:9.1, cvss:7.5, expl:'POC Exploit', tc:true,
     hosts:14, jobs:2, actors:0, patch:0,
     vulnType:'Vulnerability', severity:4, debugLevel:0, enabled:true, detectionType:'http dialog',
     cvePrimary:'CVE-2023-1234', scanType:'web_app_scan',
@@ -31,7 +31,7 @@ const QRDI_DEFAULTS = [
     cveIds:'', bugtraqIds:'12345', vendorRefs:[],
     jsonDef:`{\n  "detection_type": "tcp dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "services": ["imap", "imaps"],\n  "debug_level": 100,\n  "title": "IMAP auth check",\n  "dialog": [\n    { "transaction": "send", "data": "a001 LOGIN myuser mypassword\\n" },\n    { "transaction": "receive", "mode": "luapattern", "match": "\\na001 [^\\n]*\\n" },\n    { "transaction": "report", "result": {"user": "result"} }\n  ]\n}` },
   { id:'QID-410003', type:'qrdi', qid:410003, title:'SMB Protocol Version Detection', sub:'TCP dialog – Custom Exploit',
-    sev:'Critical', score:9.1, cvss:9.0, expl:'Actively Exploited', tc:true,
+    sev:'Critical', score:9.4, cvss:9.2, expl:'Actively Exploited', tc:true,
     hosts:31, jobs:5, actors:2, patch:0,
     vulnType:'Vulnerability', severity:4, debugLevel:0, enabled:true, detectionType:'tcp dialog',
     cvePrimary:'CVE-2024-5678', scanType:'service_scan',
@@ -78,6 +78,7 @@ const S = {
   detType: 'http dialog',
   trigType: 'service',
   scanType: 'service_scan',
+  cevConflictChoice: null,
   debugSel: 0,
   statusEnabled: true,
   confirmCb: null,
@@ -115,7 +116,7 @@ function filteredEntries(){
     if(S.filter.rti==='debug' && (e.type!=='qrdi'||e.debugLevel===0)) return false;
     if(S.filter.rti==='disabled' && (e.type!=='qrdi'||e.enabled!==false)) return false;
     return true;
-  });
+  }).sort((a,b)=> b.score - a.score);
 }
 
 function renderActiveFilters(){
@@ -179,8 +180,9 @@ function renderTable(){
       <button class="qab" onclick="openEdit('${e.id}',event)">Edit</button>
       <button class="qab ${disabled?'':'warn'}" onclick="toggleEnable('${e.id}',event)">${disabled?'Enable':'Disable'}</button>
     ` : `<button class="qab" onclick="openInfo('${e.id}',event)">Info</button>`;
+    const subColor = isQrdi ? 'var(--qrdi)' : 'var(--accent)';
     return `<tr class="${disabled?'row-disabled':''}" onclick="openInfo('${e.id}')">
-      <td><div class="rt">${escHtml(e.title)}${debugBadge}${disabledBadge}</div><div class="rs">${escHtml(e.sub||e.id)}</div>${tcBadge}</td>
+      <td><div class="rt">${escHtml(e.title)}${debugBadge}${disabledBadge}</div><div class="rs" style="color:${subColor}">${escHtml(e.sub||e.id)}</div>${tcBadge}</td>
       <td>${qrdiBadge}${scanTypeBadge} <span class="badge ${sevCls}">${e.sev} · ${e.score}</span></td>
       <td><span style="font-size:13px;font-weight:600">${e.cvss}</span></td>
       <td>${expl}</td>
@@ -367,8 +369,8 @@ function openEdit(id, e){
   $('threat-field').value = entry.threat||'';
   $('impact-field').value = entry.impact||'';
   $('solution-field').value = entry.solution||'';
-  $('cve-ids-field').value = entry.cveIds||'';
-  $('bugtraq-field').value = entry.bugtraqIds||'';
+  // run conflict check with existing CVE value after fields are populated
+  setTimeout(()=>{ if(typeof checkCveConflict==='function') checkCveConflict(); }, 0);
   $('json-def').value = entry.jsonDef||'{}';
   $('status-toggle').checked = S.statusEnabled;
   $('status-lbl').textContent = S.statusEnabled?'Enabled':'Disabled';
@@ -389,7 +391,9 @@ function openEdit(id, e){
 }
 
 function resetVulnForm(){
-  ['title-field','cve-primary-field','cve-ids-field','bugtraq-field','threat-field','impact-field','solution-field'].forEach(id=>{ if($(id)) $(id).value=''; });
+  ['title-field','cve-primary-field','threat-field','impact-field','solution-field'].forEach(id=>{ if($(id)) $(id).value=''; });
+  const cp=$('cve-conflict-panel'); if(cp){ cp.style.display='none'; }
+  S.cevConflictChoice = null;
   $('type-field').value='Vulnerability';
   $('sev-field').value='4';
   $('scan-type-svc').classList.add('on');
@@ -412,6 +416,13 @@ function saveQrdiVuln(){
   const cvePrimary = $('cve-primary-field').value.trim();
   if(!cvePrimary){ showToast('CVE ID is required','terr'); $('cve-primary-field').focus(); return; }
   if(!/^CVE-\d{4}-\d{4,}$/i.test(cvePrimary)){ showToast('CVE ID must be in format CVE-YYYY-NNNNN','terr'); return; }
+  // Conflict gate: if a native scan exists for this CVE the user must choose how to handle it
+  const nativeMatch = NATIVE_FINDINGS.find(f=>f.cve&&f.cve.toUpperCase()===cvePrimary.toUpperCase());
+  if(nativeMatch && !S.cevConflictChoice){
+    showToast('Please select how to handle the native scan conflict for '+cvePrimary,'terr');
+    switchModalTab('tab-general');
+    return;
+  }
   const jsonTxt = stripJsonComments($('json-def').value).trim();
   try{ JSON.parse(jsonTxt); }catch(err){ showToast('Invalid JSON in CEV Definition','terr'); return; }
   const sevNum = parseInt($('sev-field').value);
@@ -435,9 +446,7 @@ function saveQrdiVuln(){
     threat:$('threat-field').value,
     impact:$('impact-field').value,
     solution:$('solution-field').value,
-    cveIds:$('cve-ids-field').value,
-    bugtraqIds:$('bugtraq-field').value,
-    vendorRefs:[...S.vendorRefs],
+    cevConflictChoice: S.cevConflictChoice,
     jsonDef:jsonTxt
   };
   if(S.editEntry){
@@ -446,7 +455,10 @@ function saveQrdiVuln(){
     showToast(`QID ${qid} updated successfully`,'tok');
   } else {
     S.entries.push(entry);
-    showToast(`QID ${qid} created successfully`,'tok');
+    const conflictMsg = S.cevConflictChoice==='keep_both'
+      ? ` — Dual detection active. TruConfirm will trigger downstream on either flag.`
+      : S.cevConflictChoice==='native_only' ? ` — Native scan retained as authoritative.` : '';
+    showToast(`QID ${qid} created successfully${conflictMsg}`,'tok');
   }
   closeModal('qrdi-vuln');
   renderAll();
