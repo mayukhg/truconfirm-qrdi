@@ -36,9 +36,9 @@ echo $BACKEND_PID > "$SCRIPT_DIR/.backend.pid"
 sleep 1
 
 # ── Start frontend ──────────────────────────────
-echo "[2/2] Starting frontend on port 3000..."
+echo "[2/2] Starting frontend on port 8888 (no-cache)..."
 cd "$SCRIPT_DIR"
-$PYTHON -m http.server 3000 &
+$PYTHON serve.py &
 FRONTEND_PID=$!
 echo $FRONTEND_PID > "$SCRIPT_DIR/.frontend.pid"
 sleep 1
@@ -47,7 +47,7 @@ echo ""
 echo "==============================================="
 echo " Both servers are running!"
 echo ""
-echo "  App  →  http://localhost:3000"
+echo "  App  →  http://localhost:8888"
 echo "  API  →  http://localhost:3001/api"
 echo ""
 echo "  Run ./stop.sh to stop both servers."
@@ -56,9 +56,9 @@ echo ""
 
 # Open browser
 if command -v xdg-open &>/dev/null; then
-  xdg-open "http://localhost:3000" &>/dev/null &
+  xdg-open "http://localhost:8888" &>/dev/null &
 elif command -v open &>/dev/null; then
-  open "http://localhost:3000" &>/dev/null &
+  open "http://localhost:8888" &>/dev/null &
 fi
 
 # Wait so Ctrl+C stops both servers
