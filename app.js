@@ -2676,6 +2676,11 @@ function renderSelectedTags(){
 }
 
 function _cveAssocCell(c, idx){
+  // CVEs from the right-panel (Unique CVEs with CEV) → locked "Yes", no toggle, no radios
+  if(c.fromCev){
+    return `<span class="tc-assoc-label tc-assoc-yes">Yes</span>`;
+  }
+  // TruConfirm CVE list → interactive Yes/No toggle + scan-mode radios when Yes
   const isYes = !!c.tc;
   const mode  = c.scanMode || 'cev_only';
   const scanModeHtml = isYes ? `
@@ -2851,14 +2856,14 @@ function addSelectedCves(){
     const cve = TC_CVE_PICKER.find(c=>c.id===id);
     if(cve && !_tcSelectedCves.find(x=>x.id===id)){
       const isUniqueCed = cb.dataset.source === 'unique_ced';
-      const isTruConfirm = cb.dataset.source === 'truconfirm';
-      const associatedWithCed = isUniqueCed ? true : isTruConfirm ? Math.random() >= 0.5 : cve.tc;
-      _tcSelectedCves.push({...cve, tc: associatedWithCed, scanMode:'cev_only'});
+      const associatedWithCed = isUniqueCed ? true : cve.tc;
+      _tcSelectedCves.push({...cve, tc: associatedWithCed, fromCev: isUniqueCed, scanMode:'cev_only'});
     }
   });
-  const truConfirmSelections = _tcSelectedCves.filter(c=>c.source==='truconfirm');
-  if(truConfirmSelections.length && !truConfirmSelections.some(c=>c.tc===false)){
-    truConfirmSelections[Math.floor(Math.random() * truConfirmSelections.length)].tc = false;
+  // Ensure at least one TruConfirm CVE shows "No" so the toggle is demonstrated
+  const tcList = _tcSelectedCves.filter(c => !c.fromCev);
+  if(tcList.length && !tcList.some(c => c.tc === false)){
+    tcList[Math.floor(Math.random() * tcList.length)].tc = false;
   }
   renderCveContent();
   closeCvePickerModal();
