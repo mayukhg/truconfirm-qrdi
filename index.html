@@ -1205,20 +1205,20 @@
     <div style="padding:0 22px 14px">
       <input class="tc-input" id="tc-cve-search" type="text" placeholder="Search CVEs..." oninput="renderCvePickerList()">
     </div>
-    <div style="padding:0 22px;flex:1;overflow-y:auto">
-      <table class="tc-cve-tbl tc-cvepicker-tbl">
-        <thead>
-          <tr>
-            <th style="width:36px"><input type="checkbox" id="tc-cve-pick-all" onchange="tcCvePickAll(this)"></th>
-            <th>TITLE</th>
-            <th>EXPLOITABILITY
-              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:2px;opacity:.6"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-            </th>
-            <th>IMPACTED ASSET</th>
-          </tr>
-        </thead>
-        <tbody id="tc-cve-picker-tbody"></tbody>
-      </table>
+    <div class="tc-cve-picker-panels">
+      <section class="tc-cve-picker-panel">
+        <div class="tc-cve-picker-panel-hdr">
+          <h3>TruConfirm CVEs</h3>
+        </div>
+        <div class="tc-cve-picker-list" id="tc-cve-picker-truconfirm"></div>
+      </section>
+      <section class="tc-cve-picker-panel">
+        <div class="tc-cve-picker-panel-hdr">
+          <h3>Unique CVEs with CED</h3>
+          <p>These are unique CVEs associated with Custom exploits and not part of TruConfirm CVE list</p>
+        </div>
+        <div class="tc-cve-picker-list" id="tc-cve-picker-unique"></div>
+      </section>
     </div>
     <div class="tc-tags-modal-ftr">
       <button class="btn btn-s" onclick="closeCvePickerModal()">Cancel</button>
