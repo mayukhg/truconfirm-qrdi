@@ -2,27 +2,61 @@
 //  DATA
 // ─────────────────────────────────────────────
 const CVE_DATA = [
-  { id:'CVE-2026-1281', type:'cve', title:'CVE-2026-1281', sub:'CVE-2026-1281: ...', sev:'Critical', score:9.5, cvss:9.8, expl:'Actively Exploited', tc:true, hosts:109, jobs:9, actors:1, patch:0, riskFactors:['internet','service','auth','privesc'], ciseKev:true },
-  { id:'CVE-2025-1546', type:'cve', title:'CVE-2025-1546', sub:'CVE-2025-1546: ...', sev:'Medium', score:4.2, cvss:8.8, expl:'POC Exploit', tc:true, hosts:0, jobs:0, actors:0, patch:22, riskFactors:['internet','service','auth'], ciseKev:false },
-  { id:'CVE-2026-2374', type:'cve', title:'CVE-2026-2374', sub:'CVE-2026-2374: ...', sev:'Critical', score:9.2, cvss:9.8, expl:'Actively Exploited', tc:true, hosts:0, jobs:0, actors:0, patch:0, riskFactors:['internet','service','auth','privesc'], ciseKev:true },
-  { id:'CVE-2025-0891', type:'cve', title:'CVE-2025-0891', sub:'CVE-2025-0891: ...', sev:'High', score:7.2, cvss:7.8, expl:'Easy Exploit', tc:false, hosts:42, jobs:3, actors:0, patch:5, riskFactors:['internet','service'], ciseKev:false },
-  { id:'CVE-2024-9912', type:'cve', title:'CVE-2024-9912', sub:'CVE-2024-9912: ...', sev:'Low', score:2.1, cvss:3.2, expl:'', tc:false, hosts:0, jobs:0, actors:0, patch:1, riskFactors:[], ciseKev:false },
+  { id:'CVE-2026-1281', type:'cve',
+    title:'Apache HTTP Server Remote Code Execution',
+    sub:'CVE-2026-1281 · TruConfirm CVE',
+    sev:'Critical', score:9.5, cvss:9.8,
+    expl:'Actively Exploited', tc:true,
+    hosts:109, jobs:9, actors:2, patch:0, wow:3,
+    riskFactors:['internet','service','auth','privesc'], ciseKev:true },
+  { id:'CVE-2026-2374', type:'cve',
+    title:'OpenSSL TLS Certificate Validation Bypass',
+    sub:'CVE-2026-2374 · TruConfirm CVE',
+    sev:'Critical', score:9.2, cvss:9.8,
+    expl:'Actively Exploited', tc:true,
+    hosts:0, jobs:0, actors:0, patch:0, wow:32,
+    riskFactors:['internet','service','auth','privesc'], ciseKev:true },
+  { id:'CVE-2025-1546', type:'cve',
+    title:'Stack Buffer Overflow in OpenLDAP Service',
+    sub:'CVE-2025-1546 · TruConfirm CVE',
+    sev:'Medium', score:4.2, cvss:8.8,
+    expl:'POC Exploit', tc:true,
+    hosts:56, jobs:4, actors:0, patch:22, wow:0,
+    riskFactors:['internet','service','auth'], ciseKev:false },
+  { id:'CVE-2025-0891', type:'cve',
+    title:'Microsoft Exchange ProxyLogon SSRF',
+    sub:'CVE-2025-0891 · TruConfirm CVE',
+    sev:'High', score:7.2, cvss:7.8,
+    expl:'Easy Exploit', tc:false,
+    hosts:42, jobs:3, actors:0, patch:5, wow:-1,
+    riskFactors:['internet','service'], ciseKev:false },
+  { id:'CVE-2024-9912', type:'cve',
+    title:'PHP Version Information Disclosure',
+    sub:'CVE-2024-9912 · TruConfirm CVE',
+    sev:'Low', score:2.1, cvss:3.2,
+    expl:'', tc:false,
+    hosts:0, jobs:0, actors:0, patch:1, wow:45,
+    riskFactors:[], ciseKev:false },
 ];
 
 const QRDI_DEFAULTS = [
-  { id:'QID-410001', type:'qrdi', qid:410001, title:'Custom XSS Detection', sub:'HTTP dialog – Custom Exploit',
-    sev:'Critical', score:9.1, cvss:7.5, expl:'POC Exploit', tc:true,
-    hosts:14, jobs:2, actors:0, patch:0,
+  { id:'QID-410001', type:'qrdi', qid:410001,
+    title:'Apache HTTP Server RCE — Custom Detection',
+    sub:'Apache HTTP Server RCE — Custom Detection · Custom Exploit Detection',
+    sev:'Critical', score:9.49, cvss:9.8,
+    expl:'Actively Exploited', tc:true,
+    hosts:31, jobs:3, actors:2, patch:0, wow:1,
     vulnType:'Vulnerability', severity:4, debugLevel:0, enabled:true, detectionType:'http dialog',
-    cvePrimary:'CVE-2023-1234', scanType:'web_app_scan',
-    threat:'Cross-site scripting vulnerability detected via custom HTTP dialog detection.',
-    impact:'Attacker can execute arbitrary scripts in the browser of a victim user.',
-    solution:'Apply input validation and output encoding. Upgrade to patched version.',
-    cveIds:'CVE-2023-1234', bugtraqIds:'', vendorRefs:[{ref:'Vendor1',url:'http://vendor.com'}],
-    jsonDef:`{\n  "detection_type": "http dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "title": "custom XSS detection",\n  "dialog": [\n    {\n      "transaction": "http get",\n      "object": "/cgi-bin/no5_such3_file7.pl?\\"><script>alert(73541);</script>"\n    },\n    {\n      "transaction": "process",\n      "mode": "regexp",\n      "match": "\\"><script>alert\\\\(73541\\\\);</script>"\n    },\n    {\n      "transaction": "report",\n      "result": "XSS found"\n    }\n  ]\n}` },
-  { id:'QID-410002', type:'qrdi', qid:410002, title:'IMAP Authentication Check', sub:'TCP dialog – Custom Exploit',
+    cvePrimary:'CVE-2026-1281', scanType:'service_scan',
+    riskFactors:['internet','service'],
+    threat:'Custom exploit validation for Apache HTTP Server 2.4.51 RCE via mod_cgi buffer overflow.',
+    impact:'Remote code execution with web server privileges. Full host compromise possible.',
+    solution:'Upgrade Apache to 2.4.52+. Disable mod_cgi if not required.',
+    cveIds:'CVE-2026-1281', bugtraqIds:'', vendorRefs:[],
+    jsonDef:`{\n  "detection_type": "http dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "title": "Apache RCE custom detection",\n  "dialog": [\n    {\n      "transaction": "http get",\n      "object": "/cgi-bin/test.cgi"\n    },\n    {\n      "transaction": "process",\n      "mode": "regexp",\n      "match": "Apache/2\\\\.4\\\\.(4[0-9]|5[01])"\n    },\n    {\n      "transaction": "report",\n      "result": "Vulnerable Apache version detected"\n    }\n  ]\n}` },
+  { id:'QID-410002', type:'qrdi', qid:410002, title:'IMAP Authentication Check', sub:'IMAP Authentication Check · Custom Exploit Detection',
     sev:'High', score:6.8, cvss:6.5, expl:'', tc:false,
-    hosts:0, jobs:0, actors:0, patch:0,
+    hosts:0, jobs:0, actors:0, patch:0, wow:5, riskFactors:['service','auth'],
     vulnType:'Information Gathered', severity:3, debugLevel:100, enabled:true, detectionType:'tcp dialog',
     cvePrimary:'', scanType:'service_scan',
     threat:'IMAP service exposes account information through authentication checks.',
@@ -30,9 +64,9 @@ const QRDI_DEFAULTS = [
     solution:'Disable unauthenticated IMAP enumeration or enforce strict authentication.',
     cveIds:'', bugtraqIds:'12345', vendorRefs:[],
     jsonDef:`{\n  "detection_type": "tcp dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "services": ["imap", "imaps"],\n  "debug_level": 100,\n  "title": "IMAP auth check",\n  "dialog": [\n    { "transaction": "send", "data": "a001 LOGIN myuser mypassword\\n" },\n    { "transaction": "receive", "mode": "luapattern", "match": "\\na001 [^\\n]*\\n" },\n    { "transaction": "report", "result": {"user": "result"} }\n  ]\n}` },
-  { id:'QID-410003', type:'qrdi', qid:410003, title:'SMB Protocol Version Detection', sub:'TCP dialog – Custom Exploit',
+  { id:'QID-410003', type:'qrdi', qid:410003, title:'SMB Protocol Version Detection', sub:'SMB Protocol Version Detection · Custom Exploit Detection',
     sev:'Critical', score:9.4, cvss:9.2, expl:'Actively Exploited', tc:true,
-    hosts:31, jobs:5, actors:2, patch:0,
+    hosts:31, jobs:5, actors:2, patch:0, wow:8, riskFactors:['internet','service','auth','privesc'],
     vulnType:'Vulnerability', severity:4, debugLevel:0, enabled:true, detectionType:'tcp dialog',
     cvePrimary:'CVE-2024-5678', scanType:'service_scan',
     threat:'SMB service exposes supported protocol versions, revealing potential downgrade attack vectors.',
@@ -40,9 +74,9 @@ const QRDI_DEFAULTS = [
     solution:'Disable legacy SMB versions (SMBv1, SMBv2.0.2). Enforce SMBv3.1.1 minimum.',
     cveIds:'CVE-2024-5678', bugtraqIds:'', vendorRefs:[{ref:'MS-ADV2024-001',url:'https://microsoft.com/security'}],
     jsonDef:`{\n  "detection_type": "tcp dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "services": ["microsoft-ds"],\n  "title": "SMB version detection",\n  "dialog": [\n    { "transaction": "send", "data": {"call": {"name": "qrdiuser_smb_create_v1_negotiate"}} },\n    { "transaction": "receive", "mode": "call", "name": "qrdiuser_smb_check" },\n    { "transaction": "process", "mode": "call", "name": "qrdiuser_smb_process_packet" },\n    { "transaction": "report", "result": {"user": "result"} }\n  ]\n}` },
-  { id:'QID-410004', type:'qrdi', qid:410004, title:'HTTP Header Injection Test', sub:'HTTP dialog – Custom Exploit',
+  { id:'QID-410004', type:'qrdi', qid:410004, title:'HTTP Header Injection Test', sub:'HTTP Header Injection Test · Custom Exploit Detection',
     sev:'Critical', score:8.5, cvss:8.2, expl:'Easy Exploit', tc:true,
-    hosts:7, jobs:1, actors:1, patch:0,
+    hosts:7, jobs:1, actors:1, patch:0, wow:12, riskFactors:['internet','service'],
     vulnType:'Vulnerability', severity:4, debugLevel:200, enabled:true, detectionType:'http dialog',
     cvePrimary:'', scanType:'web_app_scan',
     threat:'Custom HTTP header injection check targeting misconfigurations in reverse proxies.',
@@ -52,7 +86,7 @@ const QRDI_DEFAULTS = [
     jsonDef:`{\n  "detection_type": "http dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "debug_level": 200,\n  "title": "HTTP header injection test",\n  "dialog": [\n    {\n      "transaction": "http get",\n      "http_header": "HEADER_TEST: HeaderTest\\nCOMPANY: TestCo",\n      "object": "index.html"\n    },\n    { "transaction": "process", "mode": "substring", "match": "HeaderTest" },\n    { "transaction": "report", "result": "Header injection confirmed" }\n  ]\n}` },
   { id:'QID-410005', type:'qrdi', qid:410005, title:'TCP Service Banner Check', sub:'TCP dialog – Custom Exploit',
     sev:'Low', score:2.4, cvss:3.1, expl:'', tc:false,
-    hosts:0, jobs:0, actors:0, patch:0,
+    hosts:0, jobs:0, actors:0, patch:0, wow:60, riskFactors:[],
     vulnType:'Information Gathered', severity:1, debugLevel:0, enabled:false, detectionType:'tcp dialog',
     cvePrimary:'', scanType:'service_scan',
     threat:'Service banner reveals version information useful in reconnaissance.',
@@ -60,6 +94,36 @@ const QRDI_DEFAULTS = [
     solution:'Suppress or modify service banners to remove version information.',
     cveIds:'', bugtraqIds:'', vendorRefs:[],
     jsonDef:`{\n  "detection_type": "tcp dialog",\n  "api_version": 1,\n  "trigger_type": "service",\n  "services": ["ftp"],\n  "title": "FTP banner check",\n  "dialog": [\n    { "transaction": "receive", "mode": "regexp", "match": "220.*FTP" },\n    { "transaction": "report", "result": {"system": "body"} }\n  ]\n}` },
+];
+
+// ─────────────────────────────────────────────
+//  SCAN LIST DATA
+// ─────────────────────────────────────────────
+const SCAN_LIST = [
+  { title:'Native — CVE-2026-1281', sub:'TruConfirm CVE',
+    kind:'native', validated:'109 of 109',
+    scopeLabel:'IP Addresses', scopeIp:'10.115.67.44',
+    createdBy:'Sumedh Thakar', createdOn:'Apr 2, 2026', status:'Finished' },
+  { title:'Custom — CVE-2026-1281', sub:'Custom Vulnerability Exploit',
+    kind:'custom', validated:'31 of 31',
+    scopeLabel:'IP Addresses', scopeIp:'10.115.67.44',
+    createdBy:'portal user', createdOn:'Apr 15, 2026', status:'Finished' },
+  { title:'Sanity-10.115.67.44', sub:'',
+    kind:'native', validated:'19 of 21',
+    scopeLabel:'IP Addresses', scopeIp:'10.115.67.44',
+    createdBy:'Sumedh Thakar', createdOn:'Mar 27, 2026', status:'Finished' },
+  { title:'Agent Val - Internal Scan - 1774555123', sub:'',
+    kind:'native', validated:'0 of 1',
+    scopeLabel:'IP Addresses', scopeIp:'10.115.97.105',
+    createdBy:'portal user', createdOn:'Mar 27, 2026', status:'Finished' },
+  { title:'march26masifscan-ETM-10647', sub:'',
+    kind:'native', validated:'0 of 1',
+    scopeLabel:'IP Addresses', scopeIp:'10.88.21.220',
+    createdBy:'Sumedh Thakar', createdOn:'Mar 26, 2026', status:'Finished' },
+  { title:'Agent Val - External Scan - 1774437508', sub:'',
+    kind:'native', validated:'1 of 1',
+    scopeLabel:'IP Addresses', scopeIp:'54.91.121.250',
+    createdBy:'Sumedh Thakar', createdOn:'Mar 25, 2026', status:'Finished' },
 ];
 
 // ─────────────────────────────────────────────
@@ -78,7 +142,9 @@ const S = {
   detType: 'http dialog',
   trigType: 'service',
   scanType: 'service_scan',
+  cevList: [],          // [{cve, choice}] — all confirmed CVEs for this entry
   cevConflictChoice: null,
+  cevPhase: 1,          // 1 = strict block, 2 = flexible resolution
   debugSel: 0,
   statusEnabled: true,
   confirmCb: null,
@@ -152,7 +218,7 @@ function renderTable(){
   const data = filteredEntries();
   const tbody = $('kb-tbody');
   if(!data.length){
-    tbody.innerHTML=`<tr><td colspan="8"><div class="empty-s"><div class="ei">🔍</div><div class="et">No results found</div><div class="ed">Try adjusting your search or filters</div></div></td></tr>`;
+    tbody.innerHTML=`<tr><td colspan="9"><div class="empty-s"><div class="ei">🔍</div><div class="et">No results found</div><div class="ed">Try adjusting your search or filters</div></div></td></tr>`;
     $('tcount').textContent=`Total 0`;
     return;
   }
@@ -161,43 +227,88 @@ function renderTable(){
     const isQrdi = e.type==='qrdi';
     const disabled = isQrdi && !e.enabled;
     const sevCls = sevClass(e.sev);
-    const expl = e.expl ? `<span style="display:flex;align-items:center;gap:4px;white-space:nowrap">
-      <span>${e.expl==='Actively Exploited'?'🔥':e.expl==='POC Exploit'?'💻':'⚡'}</span>
-      <span style="font-size:12px">${e.expl}</span></span>` : '<span style="color:var(--text-muted);font-size:12px">—</span>';
-    const tcBadge = e.tc ? `<div class="tcbadge" style="margin-top:3px">🛡 TruConfirm Validation Available</div>` : '';
-    const debugBadge = isQrdi && e.debugLevel>0 ? `<span class="badge b-debug" style="margin-left:4px">Debug ${e.debugLevel}</span>` : '';
-    const disabledBadge = disabled ? `<span class="badge b-dis" style="margin-left:4px">Disabled</span>` : '';
-    const scanTypeBadge = isQrdi ? `<span class="badge b-scan-${e.scanType||'service_scan'}">${e.scanType==='web_app_scan'?'🌐 Web App':'🔌 Service'}</span>` : '';
-    const qrdiBadge = isQrdi ? `<span class="badge b-qrdi">Custom Exploit</span>` : '';
-    const impact = `<div class="imp">
-      <span class="impi">🖥 ${e.hosts}</span>
-      <span class="impi">💼 ${e.jobs}</span>
+    const idColor = isQrdi ? 'var(--qrdi)' : 'var(--accent)';
+    const mainId = isQrdi ? (e.cvePrimary || `QID-${e.qid}`) : e.id;
+
+    // Exploitability + validation badge
+    const explTxt = e.expl ? `<div class="kb-expl-row">
+      <span class="kb-expl-ico">${e.expl==='Actively Exploited'?'🔥':e.expl==='POC Exploit'?'💻':e.expl==='Easy Exploit'?'⚡':'◆'}</span>
+      <span class="kb-expl-lbl">${e.expl}</span></div>` : '';
+    const SHIELD_SVG = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
+    const CEV_SVG    = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/><line x1="11" y1="8" x2="11" y2="14"/><line x1="8" y1="11" x2="14" y2="11"/></svg>`;
+    const valBadge = e.tc
+      ? `<div class="kb-val-badge kb-val-tc">${SHIELD_SVG} TruConfirm Validation Available</div>`
+      : (isQrdi ? `<div class="kb-val-badge kb-val-cev">${CEV_SVG} Custom Exploit Validation</div>` : '');
+
+    // Risk factor icons
+    const RF_ICONS = [
+      `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>`,
+      `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>`,
+      `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`,
+      `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 6 13.5 15.5 8.5 10.5 1 18"/><polyline points="17 6 23 6 23 12"/></svg>`,
+    ];
+    const rfCount = (e.riskFactors||[]).length;
+    const rfIcons = `<div class="kb-rf-row">${RF_ICONS.slice(0,Math.min(rfCount,4)).map(ico=>`<span class="kb-rf-ico">${ico}</span>`).join('')}${rfCount===0?'<span style="color:var(--text-muted);font-size:11px">—</span>':''}</div>`;
+
+    // WoW (Window of Weakness)
+    const wowVal = e.wow;
+    const wowHtml = wowVal !== undefined
+      ? (() => {
+          const neg = wowVal < 0;
+          const col = neg ? 'var(--danger,#ef4444)' : '#f59e0b';
+          const arrow = neg ? '◄' : '►';
+          return `<div class="kb-wow-cell" style="color:${col}"><span class="kb-wow-arrow">${arrow}</span><span class="kb-wow-days">${Math.abs(wowVal)} Days</span></div>`;
+        })()
+      : `<span style="color:var(--text-muted)">—</span>`;
+
+    // Assets Impacted
+    const hasAssets = e.hosts > 0 || e.jobs > 0;
+    const assetsHtml = hasAssets
+      ? `<div class="kb-assets-row">
+          <span class="kb-asset-item">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+            ${e.hosts}
+          </span>
+          <span class="kb-asset-item">
+            <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>
+            ${e.jobs}
+          </span>
+        </div>`
+      : `<span class="kb-not-impacted">Not Impacted</span>`;
+
+    // Qualys Patchable
+    const pCls = e.patch > 0 ? 'b-ok' : 'b-dis';
+    const patchHtml = `<div class="kb-patch-cell">
+      <span class="badge ${pCls} kb-patch-badge">
+        <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+        ${e.patch}
+      </span>
+      ${isQrdi ? `<div class="qa"><button class="qab" onclick="openEdit('${e.id}',event)">Edit</button><button class="qab ${disabled?'':'warn'}" onclick="toggleEnable('${e.id}',event)">${disabled?'Enable':'Disable'}</button></div>` : `<div class="qa"><button class="qab" onclick="openInfo('${e.id}',event)">Info</button></div>`}
     </div>`;
-    const actors = `<span style="font-size:13px">${e.actors||0}</span>`;
-    const patchNum = e.patch>0 ? `<span class="badge b-ok btn-sm">${e.patch}</span>` : `<span class="badge b-dis btn-sm">0</span>`;
-    const qas = isQrdi ? `
-      <button class="qab" onclick="openInfo('${e.id}',event)">Info</button>
-      <button class="qab" onclick="openEdit('${e.id}',event)">Edit</button>
-      <button class="qab ${disabled?'':'warn'}" onclick="toggleEnable('${e.id}',event)">${disabled?'Enable':'Disable'}</button>
-    ` : `<button class="qab" onclick="openInfo('${e.id}',event)">Info</button>`;
-    const subColor = isQrdi ? 'var(--qrdi)' : 'var(--accent)';
+
+    // Debug/disabled badges
+    const debugBadge = isQrdi && e.debugLevel>0 ? `<span class="badge b-debug" style="margin-left:4px;font-size:10px">Debug ${e.debugLevel}</span>` : '';
+    const disabledBadge = disabled ? `<span class="badge b-dis" style="margin-left:4px;font-size:10px">Disabled</span>` : '';
+
     return `<tr class="${disabled?'row-disabled':''}" onclick="openInfo('${e.id}')">
-      <td><div class="rt">${escHtml(e.title)}${debugBadge}${disabledBadge}</div><div class="rs" style="color:${subColor}">${escHtml(e.sub||e.id)}</div>${tcBadge}</td>
-      <td>${qrdiBadge}${scanTypeBadge} <span class="badge ${sevCls}">${e.sev} · ${e.score}</span></td>
-      <td><span style="font-size:13px;font-weight:600">${e.cvss}</span></td>
-      <td>${expl}</td>
-      <td>${riskIcons(e)}</td>
-      <td>${impact}</td>
-      <td>${actors}</td>
-      <td><div style="display:flex;align-items:center;gap:5px">${patchNum}<div class="qa">${qas}</div></div></td>
+      <td class="kb-title-cell">
+        <div class="kb-cve-id" style="color:${idColor}">${escHtml(mainId)}${debugBadge}${disabledBadge}</div>
+        <div class="kb-cve-title">${escHtml(e.title)}</div>
+        <div class="kb-cve-sub" style="color:${idColor}">${escHtml(isQrdi ? `${e.title} · Custom Exploit Detection` : (e.sub||''))}</div>
+      </td>
+      <td><span class="badge ${sevCls} kb-sev-badge">${e.sev} · ${e.score}</span></td>
+      <td><span class="kb-cvss-num">${e.cvss}</span></td>
+      <td class="kb-expl-cell">${explTxt}${valBadge}</td>
+      <td>${rfIcons}</td>
+      <td class="kb-actor-cell"><span class="kb-actor-num">${e.actors||0}</span></td>
+      <td>${wowHtml}</td>
+      <td>${assetsHtml}</td>
+      <td>${patchHtml}</td>
     </tr>`;
   }).join('');
 }
 
-function riskIcons(e){
-  const icons=['🌐','🖥','🔧','🔑'];
-  return `<div style="display:flex;gap:3px">${(e.riskFactors||[]).slice(0,4).map((_,i)=>`<span style="font-size:14px;opacity:.7">${icons[i]||'◆'}</span>`).join('')}</div>`;
-}
+function riskIcons(e){ return ''; } // replaced by inline RF_ICONS in renderTable
 
 // ─────────────────────────────────────────────
 //  RENDER STATS
@@ -341,7 +452,7 @@ function openNew(){
   S.statusEnabled = true;
   S.jsonValid = null;
   resetVulnForm();
-  $('vuln-modal-title').textContent = 'New Custom Exploit Vulnerability';
+  $('vuln-modal-title').textContent = 'New Custom Exploit Detection';
   $('det-type-http').classList.add('on');
   $('det-type-tcp').classList.remove('on');
   switchModalTab('tab-general');
@@ -360,7 +471,7 @@ function openEdit(id, e){
   S.statusEnabled = entry.enabled!==false;
   S.jsonValid = null;
   resetVulnForm();
-  $('vuln-modal-title').textContent = 'Edit Custom Exploit Vulnerability';
+  $('vuln-modal-title').textContent = 'Edit Custom Exploit Detection';
   $('title-field').value = entry.title;
   $('cve-primary-field').value = entry.cvePrimary||'';
   $('type-field').value = entry.vulnType||'Vulnerability';
@@ -368,8 +479,12 @@ function openEdit(id, e){
   $('threat-field').value = entry.threat||'';
   $('impact-field').value = entry.impact||'';
   $('solution-field').value = entry.solution||'';
-  // run conflict check with existing CVE value after fields are populated
-  setTimeout(()=>{ if(typeof checkCveConflict==='function') checkCveConflict(); }, 0);
+  // Restore CVE chips from saved entry
+  S.cevList = [...(entry.cevList||[])];
+  if(!S.cevList.length && entry.cvePrimary){
+    S.cevList=[{cve:entry.cvePrimary, choice:entry.cevConflictChoice||'custom_only'}];
+  }
+  renderCevChips();
   $('json-def').value = entry.jsonDef||'{}';
   $('status-toggle').checked = S.statusEnabled;
   $('status-lbl').textContent = S.statusEnabled?'Enabled':'Disabled';
@@ -383,14 +498,18 @@ function openEdit(id, e){
   qsa('.dbg-opt').forEach(opt=>{
     opt.classList.toggle('on', parseInt(opt.dataset.val)===S.debugSel);
   });
+  updateSaveBtn(); // existing entry always has title + CVE → enable immediately
   switchModalTab('tab-general');
   openModal('qrdi-vuln');
 }
 
 function resetVulnForm(){
   ['title-field','cve-primary-field','threat-field','impact-field','solution-field'].forEach(id=>{ if($(id)) $(id).value=''; });
-  const cp=$('cve-conflict-panel'); if(cp){ cp.style.display='none'; }
-  S.cevConflictChoice = null;
+  const cp=$('cve-conflict-panel'); if(cp) cp.style.display='none';
+  const addBar=$('cev-add-bar'); if(addBar) addBar.style.display='none';
+  S.cevList=[];
+  S.cevConflictChoice=null;
+  renderCevChips();
   $('type-field').value='Vulnerability';
   $('sev-field').value='4';
   $('scan-type-svc').classList.add('on');
@@ -402,22 +521,97 @@ function resetVulnForm(){
   qs('.dbg-opt[data-val="0"]').classList.add('on');
   $('json-status').textContent='';
   $('json-status').className='jstat';
+  updateSaveBtn(); // new form → button disabled until required fields filled
+}
+
+// ─────────────────────────────────────────────
+//  MULTI-CVE MANAGEMENT
+// ─────────────────────────────────────────────
+function renderCevChips(){
+  const bar=$('cev-chips-bar');
+  if(!bar) return;
+  if(!S.cevList.length){ bar.style.display='none'; return; }
+  bar.style.display='flex';
+  const icons={custom_only:'🔬',native_only:'⚡',keep_both:'🔀'};
+  const labels={custom_only:'Custom Only',native_only:'Native Only',keep_both:'Keep Both'};
+  bar.innerHTML=S.cevList.map((item,i)=>`
+    <span class="cev-chip" title="${labels[item.choice]||''}">
+      ${icons[item.choice]||'🔬'} <b>${escHtml(item.cve)}</b>
+      <span class="cev-chip-x" onclick="removeCevCve(${i})">×</span>
+    </span>`).join('');
+}
+
+function addCveToCev(){
+  const cve=($('cve-primary-field').value||'').trim().toUpperCase();
+  if(!cve||!/^CVE-\d{4}-\d{4,}$/i.test(cve)){ showToast('Enter a valid CVE ID (e.g. CVE-2024-1234)','terr'); return; }
+  if(S.cevList.find(x=>x.cve===cve)){ showToast(cve+' already added','terr'); return; }
+  // Default conflict choice if not set (no conflict check in this flow)
+  if(!S.cevConflictChoice) S.cevConflictChoice='custom_only';
+  S.cevList.push({cve, choice:S.cevConflictChoice});
+  renderCevChips();
+  $('cve-primary-field').value='';
+  const panel=$('cve-conflict-panel'); if(panel) panel.style.display='none';
+  const addBar=$('cev-add-bar'); if(addBar) addBar.style.display='none';
+  S.cevConflictChoice=null;
+  updateSaveBtn();
+  showToast(cve+' added — type the next CVE above to continue','tok');
+  // Refocus input so user can immediately type the next CVE
+  setTimeout(()=>{ const f=$('cve-primary-field'); if(f) f.focus(); }, 50);
+}
+
+function removeCevCve(idx){
+  const removed=S.cevList.splice(idx,1);
+  renderCevChips();
+  updateSaveBtn();
+  if(removed.length) showToast(removed[0].cve+' removed','tinf');
+}
+
+function cancelCevInput(){
+  if($('cve-primary-field')) $('cve-primary-field').value='';
+  const panel=$('cve-conflict-panel'); if(panel) panel.style.display='none';
+  const addBar=$('cev-add-bar'); if(addBar) addBar.style.display='none';
+  S.cevConflictChoice=null;
+}
+
+function selectCevPhase(n){
+  S.cevPhase = n;
+  // Update card highlight
+  [1,2].forEach(i=>{
+    const c = $('cevp-card-'+i);
+    if(c) c.classList.toggle('on', i===n);
+  });
+  // Re-run conflict check immediately if a valid CVE is already in the field
+  const f = $('cve-primary-field');
+  if(f && /^CVE-\d{4}-\d{4,}$/i.test(f.value.trim())) checkCveConflict();
+}
+
+// ── Save button gate ──────────────────────────────────────
+// Enabled only when:
+//   1. Title is filled
+//   2. At least one CVE chip confirmed
+//   3. JSON definition is valid and has at least one dialog step
+function updateSaveBtn(){
+  const btn = $('btn-save-cev');
+  if(!btn) return;
+  // Enable only when the CEV Definition tab is active
+  const onCevTab = !!($('tab-qrdi') && $('tab-qrdi').classList.contains('on'));
+  btn.disabled = !onCevTab;
 }
 
 function saveQrdiVuln(){
   const qid = S.editEntry ? S.editEntry.qid : S.nextQid;
   const title = $('title-field').value.trim();
   if(!title){ showToast('Title is required','terr'); return; }
-  const cvePrimary = $('cve-primary-field').value.trim();
-  if(!cvePrimary){ showToast('CVE ID is required','terr'); $('cve-primary-field').focus(); return; }
-  if(!/^CVE-\d{4}-\d{4,}$/i.test(cvePrimary)){ showToast('CVE ID must be in format CVE-YYYY-NNNNN','terr'); return; }
-  // Conflict gate: if a native scan exists for this CVE the user must choose how to handle it
-  const nativeMatch = NATIVE_FINDINGS.find(f=>f.cve&&f.cve.toUpperCase()===cvePrimary.toUpperCase());
-  if(nativeMatch && !S.cevConflictChoice){
-    showToast('Please select how to handle the native scan conflict for '+cvePrimary,'terr');
+  // Multi-CVE gate: must have at least one confirmed CVE chip
+  if(!S.cevList.length){
+    // Check if user has typed but not confirmed a CVE
+    const typed=($('cve-primary-field').value||'').trim();
+    showToast(typed ? 'Click "+ Add CVE" to confirm the CVE before saving' : 'At least one CVE ID is required','terr');
     switchModalTab('tab-general');
+    $('cve-primary-field').focus();
     return;
   }
+  const cvePrimary = S.cevList[0].cve; // first confirmed CVE is primary
   const jsonTxt = stripJsonComments($('json-def').value).trim();
   try{ JSON.parse(jsonTxt); }catch(err){ showToast('Invalid JSON in CEV Definition','terr'); return; }
   const sevNum = parseInt($('sev-field').value);
@@ -425,7 +619,7 @@ function saveQrdiVuln(){
   const entry = {
     id: S.editEntry ? S.editEntry.id : `QID-${qid}`,
     type:'qrdi', qid, title,
-    sub:`${S.detType} – Custom Exploit`,
+    sub:`${title} · Custom Exploit Detection`,
     cvePrimary,
     scanType: S.scanType,
     sev:sevLbl, score:parseFloat(((sevNum/5)*10).toFixed(1)),
@@ -441,22 +635,45 @@ function saveQrdiVuln(){
     threat:$('threat-field').value,
     impact:$('impact-field').value,
     solution:$('solution-field').value,
-    cevConflictChoice: S.cevConflictChoice,
+    cevList: [...S.cevList],
     jsonDef:jsonTxt
   };
   if(S.editEntry){
     const idx=S.entries.findIndex(e=>e.id===S.editEntry.id);
     if(idx>-1) S.entries[idx]=entry;
-    showToast(`QID ${qid} updated successfully`,'tok');
+    showToast(`QID ${qid} updated — ${S.cevList.length} CVE(s) linked`,'tok');
+    closeModal('qrdi-vuln');
+    renderAll();
   } else {
     S.entries.push(entry);
-    const conflictMsg = S.cevConflictChoice==='keep_both'
-      ? ` — Dual detection active. TruConfirm will trigger downstream on either flag.`
-      : S.cevConflictChoice==='native_only' ? ` — Native scan retained as authoritative.` : '';
-    showToast(`QID ${qid} created successfully${conflictMsg}`,'tok');
+    // Also register in SCAN_LIST for the Scan tab
+    const cveLabels = S.cevList.map(x=>x.cve).join(', ');
+    const now=new Date();
+    const scanDate=now.toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+    SCAN_LIST.unshift({
+      title: title,
+      sub: `${cveLabels} · Custom Exploit Detection`,
+      kind: 'custom',
+      validated: '—',
+      scopeLabel: 'IP Addresses',
+      scopeIp: '—',
+      createdBy: 'portal user',
+      createdOn: scanDate,
+      status: 'Scheduled'
+    });
+    closeModal('qrdi-vuln');
+    // Navigate to KnowledgeBase tab so user sees the new entry
+    switchTab('kb');
+    // Briefly highlight the new row
+    setTimeout(()=>{
+      const rows = document.querySelectorAll('#kb-tbody tr');  // sorted by score desc — new entry is highest
+      if(rows.length) {
+        rows[0].classList.add('kb-row-new');
+        setTimeout(()=>rows[0].classList.remove('kb-row-new'), 2000);
+      }
+    }, 80);
+    showToast(`"${title}" added to KnowledgeBase`,'tok');
   }
-  closeModal('qrdi-vuln');
-  renderAll();
 }
 
 // ─────────────────────────────────────────────
@@ -473,7 +690,7 @@ function toggleEnable(id, e){
     closeModal('confirm');
     renderAll();
   };
-  $('cfm-title').textContent = `${action==='disable'?'Disable':'Enable'} Custom Exploit Vulnerability`;
+  $('cfm-title').textContent = `${action==='disable'?'Disable':'Enable'} Custom Exploit Detection`;
   $('cfm-desc').textContent = `Are you sure you want to ${action} QID ${entry.qid}: "${entry.title}"?`;
   $('cfm-ico').textContent = action==='disable' ? '⏸' : '▶';
   openModal('confirm');
@@ -498,12 +715,22 @@ function removeVendorRef(i){ S.vendorRefs.splice(i,1); renderVendorRefs(); }
 //  MODAL TABS
 // ─────────────────────────────────────────────
 function switchModalTab(tabId){
-  qsa('.mtab').forEach(t=>t.classList.remove('on'));
+  qsa('.mtab').forEach(t=>{
+    t.classList.remove('on');
+    t.style.color='';
+    t.style.borderRight='2px solid transparent';
+  });
   qsa('.tpane').forEach(p=>p.classList.remove('on'));
   const tab = qs(`.mtab[data-tab="${tabId}"]`);
   const pane = $(tabId);
-  if(tab) tab.classList.add('on');
+  if(tab){
+    tab.classList.add('on');
+    tab.style.color='var(--accent)';
+    tab.style.borderRight='2px solid var(--accent)';
+  }
   if(pane) pane.classList.add('on');
+  // Re-evaluate save button on every tab switch
+  updateSaveBtn();
 }
 
 // ─────────────────────────────────────────────
@@ -534,6 +761,7 @@ function validateJson(){
       el.className='jstat ok'; el.textContent='✓ Valid JSON';
     }
   }catch(e){ el.className='jstat err'; el.textContent='✗ '+e.message.slice(0,60); }
+  updateSaveBtn();
 }
 
 function uploadJsonFile(){
@@ -543,7 +771,7 @@ function uploadJsonFile(){
   inp.onchange=e=>{
     const f=e.target.files[0]; if(!f) return;
     const r=new FileReader();
-    r.onload=ev=>{ $('json-def').value=ev.target.result; validateJson(); showToast(`Loaded: ${f.name}`,'tok'); };
+    r.onload=ev=>{ $('json-def').value=ev.target.result; validateJson(); renderJsonHighlight(); showToast(`Loaded: ${f.name}`,'tok'); updateSaveBtn(); };
     r.readAsText(f);
   };
   inp.click();
@@ -790,13 +1018,49 @@ const NATIVE_FINDINGS = [
 //  SCAN TAB RENDER
 // ─────────────────────────────────────────────
 function renderScanTab(){
-  const list=$('profile-list');
-  list.innerHTML=SCAN_PROFILES.map(p=>`
-    <div class="profile-item ${S._activeProfile===p.id?'on':''}" onclick="selectProfile('${p.id}')">
-      <div class="pi-name">${escHtml(p.name)}</div>
-      <div class="pi-meta">${p.checks.length} Custom Exploit check${p.checks.length!==1?'s':''} attached</div>
-    </div>`).join('');
-  if(S._activeProfile) renderProfileDetail(S._activeProfile);
+  const tbody = $('scan-tbl-body');
+  if(!tbody) return;
+
+  // Update pagination total dynamically
+  const totalEl = document.querySelector('.scan-pg-total');
+  if(totalEl) totalEl.textContent = `Total ${SCAN_LIST.length}`;
+
+  tbody.innerHTML = SCAN_LIST.map((r,i)=>{
+    const isCustom = r.kind==='custom';
+    const isNativeFirst = !isCustom && i === SCAN_LIST.findIndex(x=>x.kind==='native');
+    const kindBadge = isCustom
+      ? `<span class="scan-kind-badge scan-kind-custom">Custom Exploit</span>`
+      : (isNativeFirst ? `<span class="scan-kind-badge scan-kind-native">TruConfirm Native</span>` : '');
+    const subLine = r.sub
+      ? `<div class="scan-row-sub">${escHtml(r.sub)}${kindBadge ? '&ensp;'+kindBadge : ''}</div>`
+      : '';
+    const rowCls = isNativeFirst ? 'scan-tr scan-tr-highlight-native'
+                 : isCustom ? 'scan-tr scan-tr-highlight-custom'
+                 : 'scan-tr';
+    const statusCls = r.status==='Scheduled' ? 'scan-td-status sched'
+                   : r.status==='Running'   ? 'scan-td-status running'
+                   : 'scan-td-status';
+    const scopeIpHtml = r.scopeIp === '—'
+      ? `<span style="color:var(--text-muted)">—</span>`
+      : `<div class="scan-scope-ip">${escHtml(r.scopeIp)}</div>`;
+    return `<tr class="${rowCls}">
+      <td style="width:36px;text-align:center"><input type="checkbox"></td>
+      <td class="scan-td-title">
+        <div class="scan-row-title">${escHtml(r.title)}</div>
+        ${subLine}
+      </td>
+      <td class="scan-td-val">${escHtml(r.validated)}</td>
+      <td class="scan-td-scope">
+        <div class="scan-scope-label">${escHtml(r.scopeLabel)}</div>
+        ${scopeIpHtml}
+      </td>
+      <td class="scan-td-by">${escHtml(r.createdBy)}</td>
+      <td class="scan-td-on">${escHtml(r.createdOn)}</td>
+      <td class="${statusCls}">
+        <span class="scan-status-dot"></span>${escHtml(r.status)}
+      </td>
+    </tr>`;
+  }).join('');
 }
 
 function selectProfile(id){
@@ -1679,6 +1943,9 @@ const AI = {
   lastGenerated: null,
 };
 
+function showAIPhase2Toast(){
+  showToast('AI Signature Assistant is available in Phase 2','tinf');
+}
 function toggleAIPanel(){
   const p=$('ai-panel');
   const isHidden = p.style.display==='none';
@@ -2101,6 +2368,7 @@ function applyAISignature(){
       qsa('.dbg-opt').forEach(o=>o.classList.toggle('on', parseInt(o.dataset.val)===S.debugSel));
     }
   } catch(e){}
+  updateSaveBtn();
 }
 
 // ─────────────────────────────────────────────
@@ -2354,6 +2622,520 @@ renderProfileDetail = function(profile){
   btn.onclick = () => runScanAPI(profile.id);
   detailEl.prepend(btn);
 };
+
+// ─────────────────────────────────────────────
+//  TC ASSESSMENT WIZARD
+// ─────────────────────────────────────────────
+let _tcStep = 1;
+let _tcScopeType = 'assets';
+let _tcCveMode = 'all';
+let _tcSelectedTags = [];
+let _tcSelectedCves  = []; // array of selected CVE objects
+
+// Static CVE picker list (demo data)
+const TC_CVE_PICKER = [
+  { id:'CVE-2023-48795', title:'Terrapin: Protocol Flaw in SSH Enables Man-in-the-Middle Truncation Attacks', tc:true,  exploit:'No Public Exploit', assets:1 },
+  { id:'CVE-2024-1281',  title:'Apache HTTP Server mod_cgi Buffer Overflow Remote Code Execution',            tc:true,  exploit:'Actively Exploited', assets:5 },
+  { id:'CVE-2024-5678',  title:'SMB Protocol Version Negotiation Information Disclosure',                     tc:false, exploit:'PoC Exploit',        assets:3 },
+  { id:'CVE-2024-9912',  title:'PHP Version Information Disclosure via HTTP Response Headers',                tc:false, exploit:'No Public Exploit', assets:0 },
+  { id:'CVE-2024-3094',  title:'XZ Utils Backdoor — Malicious Code in Compression Library',                  tc:true,  exploit:'Actively Exploited', assets:2 },
+];
+
+// SVG reused for empty-state cards
+const _TC_BOX_SVG = `<svg width="38" height="38" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.3"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>`;
+const _TC_PLUS_SVG = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+
+function renderSelectedTags(){
+  const card = $('tc-selected-tags-card');
+  if(!card) return;
+  if(!_tcSelectedTags.length){
+    card.innerHTML = `<div class="tc-scope-empty-card">
+      <div class="tc-scope-empty-ico">${_TC_BOX_SVG}</div>
+      <div class="tc-tags-scope-body">
+        <div class="tc-tags-scope-title">Selected Tags</div>
+        <div class="tc-tags-scope-sub">Any host that has all the selected tags associated with it, will be included.</div>
+      </div>
+      <button class="tc-tags-add-btn" onclick="openTagsModal()">${_TC_PLUS_SVG}</button>
+    </div>`;
+  } else {
+    const chips = _tcSelectedTags.map((t,i)=>
+      `<span class="tc-added-tag-chip">${escHtml(t)}<button class="tc-tag-rm-btn" onclick="tcRemoveTag(${i})">×</button></span>`
+    ).join('');
+    card.innerHTML = `<div class="tc-scope-filled-card">
+      <div class="tc-scope-filled-hdr">
+        <span class="tc-scope-filled-title">Selected Tags</span>
+        <div style="display:flex;align-items:center;gap:10px">
+          <a class="tc-link" href="#" onclick="tcClearTags();return false">Remove All</a>
+          <button class="tc-tags-add-btn" onclick="openTagsModal()">${_TC_PLUS_SVG}</button>
+        </div>
+      </div>
+      <div class="tc-added-tags-row">${chips}</div>
+    </div>`;
+  }
+}
+
+function _cveAssocCell(c, idx){
+  const isYes = !!c.tc;
+  const mode  = c.scanMode || 'cev_only';
+  const scanModeHtml = isYes ? `
+    <div class="tc-cve-scanmode-group">
+      <label class="tc-cve-inline-opt">
+        <input type="radio" name="tcm${idx}" value="cev_only" ${mode==='cev_only'?'checked':''} onchange="tcSetCveScanMode(${idx},'cev_only')">
+        <span>Run scan only on CEV</span>
+      </label>
+      <label class="tc-cve-inline-opt">
+        <input type="radio" name="tcm${idx}" value="both" ${mode==='both'?'checked':''} onchange="tcSetCveScanMode(${idx},'both')">
+        <span>Run TruConfirm Native and CEV scans</span>
+      </label>
+    </div>` : '';
+  return `<div class="tc-cve-assoc-inline">
+    <div class="tc-assoc-toggle">
+      <button class="tc-assoc-btn${isYes?' tc-assoc-active-yes':''}" onclick="tcToggleCveAssoc(${idx},true)">Yes</button>
+      <button class="tc-assoc-btn${!isYes?' tc-assoc-active-no':''}" onclick="tcToggleCveAssoc(${idx},false)">No</button>
+    </div>
+    ${scanModeHtml}
+  </div>`;
+}
+
+function tcToggleCveAssoc(idx, val){
+  if(_tcSelectedCves[idx]){
+    _tcSelectedCves[idx].tc = val;
+    renderCveContent();
+    /* re-attach radio listeners lost after re-render */
+  }
+}
+
+function renderCveContent(){
+  const cont = $('tc-cve-content');
+  if(!cont) return;
+  if(!_tcSelectedCves.length){
+    cont.innerHTML = `<div class="tc-scope-empty-card">
+      <div class="tc-scope-empty-ico">${_TC_BOX_SVG}</div>
+      <div class="tc-tags-scope-body">
+        <div class="tc-tags-scope-title">Select CVEs</div>
+        <div class="tc-tags-scope-sub">These CVEs will be validated on the selected assets.</div>
+      </div>
+      <button class="tc-tags-add-btn" onclick="openCvePickerModal()">${_TC_PLUS_SVG}</button>
+    </div>`;
+    return;
+  }
+
+  const rows = _tcSelectedCves.map((c, idx) => {
+    const assetHtml = c.assets > 0
+      ? `<div class="tc-cve-asset"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><span class="tc-asset-num">${c.assets}</span></div>`
+      : `<span style="color:var(--text-muted)">—</span>`;
+    const tcBadge = c.tc
+      ? `<div class="tc-cve-tc-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>TruConfirm Validation Available</div>`
+      : '';
+    return `<tr class="tc-cve-row">
+      <td><input type="checkbox"></td>
+      <td>
+        <div class="tc-cve-id">${escHtml(c.id)}</div>
+        <div class="tc-cve-title-sub">${escHtml(c.title.length>70?c.title.substring(0,70)+'…':c.title)}</div>
+      </td>
+      <td>
+        <div class="tc-cve-expl-row">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span class="tc-cve-expl-txt">${escHtml(c.exploit)}</span>
+        </div>
+        ${tcBadge}
+      </td>
+      <td>${_cveAssocCell(c, idx)}</td>
+      <td>${assetHtml}</td>
+      <td style="width:32px;text-align:center">
+        <button class="tc-cve-rm-btn" onclick="tcRemoveCve(${idx})" title="Remove">×</button>
+      </td>
+    </tr>`;
+  }).join('');
+
+  cont.innerHTML = `<div class="tc-cve-table-card">
+    <div class="tc-cve-table-hdr">
+      <span class="tc-cve-table-title">Selected CVEs</span>
+      <button class="tc-tags-add-btn" style="width:28px;height:28px" onclick="openCvePickerModal()">${_TC_PLUS_SVG}</button>
+    </div>
+    <div class="tc-cve-table-actions">
+      <a class="tc-link" href="#" onclick="tcClearCves();return false">Clear Selection</a>
+      <span class="tc-link-sep" style="margin:0 8px">|</span>
+      <a class="tc-link" href="#" onclick="return false">Remove Selected</a>
+    </div>
+    <table class="tc-cve-tbl">
+      <thead><tr>
+        <th style="width:36px"><input type="checkbox"></th>
+        <th>TITLE</th>
+        <th>EXPLOITABILITY
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:2px;opacity:.7"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+        </th>
+        <th>ASSOCIATED WITH CUSTOM EXPLOIT DETECTION</th>
+        <th>IMPACTED ASSET</th>
+        <th style="width:32px"></th>
+      </tr></thead>
+      <tbody>${rows}</tbody>
+    </table>
+  </div>`;
+}
+
+function tcSetCveScanMode(idx, mode){
+  if(_tcSelectedCves[idx]) _tcSelectedCves[idx].scanMode = mode;
+}
+
+function tcRemoveCve(idx){
+  _tcSelectedCves.splice(idx, 1);
+  renderCveContent();
+}
+
+function tcRemoveTag(i){
+  _tcSelectedTags.splice(i,1);
+  renderSelectedTags();
+}
+
+function tcClearTags(){
+  _tcSelectedTags = [];
+  renderSelectedTags();
+}
+
+function tcClearCves(){
+  _tcSelectedCves = [];
+  renderCveContent();
+}
+
+function tcAddCveClick(){
+  openCvePickerModal();
+}
+
+// ── CVE Picker Modal ──────────────────────────────────────
+function openCvePickerModal(){
+  $('tc-cve-modal').style.display = 'flex';
+  const search = $('tc-cve-search');
+  if(search) search.value = '';
+  renderCvePickerList();
+}
+
+function closeCvePickerModal(){
+  $('tc-cve-modal').style.display = 'none';
+}
+
+function renderCvePickerList(){
+  const tbody = $('tc-cve-picker-tbody');
+  if(!tbody) return;
+  const q = ($('tc-cve-search')&&$('tc-cve-search').value||'').toLowerCase();
+  const filtered = TC_CVE_PICKER.filter(c =>
+    c.id.toLowerCase().includes(q) || c.title.toLowerCase().includes(q)
+  );
+  if(!filtered.length){
+    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted)">No CVEs match your search.</td></tr>`;
+    return;
+  }
+  tbody.innerHTML = filtered.map((c,i) => {
+    const alreadyAdded = !!_tcSelectedCves.find(x=>x.id===c.id);
+    const assetHtml = c.assets > 0
+      ? `<div class="tc-cve-asset"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><span class="tc-asset-num">${c.assets}</span></div>`
+      : `<span style="color:var(--text-muted)">—</span>`;
+    const tcBadge = c.tc
+      ? `<div class="tc-cve-tc-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>TruConfirm Validation Available</div>`
+      : '';
+    return `<tr class="tc-cve-row${alreadyAdded?' tc-cve-row-added':''}">
+      <td><input type="checkbox" class="tc-cve-pick-cb" data-id="${escHtml(c.id)}" ${alreadyAdded?'checked disabled':''}></td>
+      <td>
+        <div class="tc-cve-id">${escHtml(c.id)}</div>
+        <div class="tc-cve-title-sub">${escHtml(c.title.length>80?c.title.substring(0,80)+'…':c.title)}</div>
+      </td>
+      <td>
+        <div class="tc-cve-expl-row">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+          <span class="tc-cve-expl-txt">${escHtml(c.exploit)}</span>
+        </div>
+        ${tcBadge}
+      </td>
+      <td>${assetHtml}</td>
+    </tr>`;
+  }).join('');
+}
+
+function tcCvePickAll(masterCb){
+  document.querySelectorAll('.tc-cve-pick-cb:not(:disabled)').forEach(cb => cb.checked = masterCb.checked);
+}
+
+function addSelectedCves(){
+  const checked = document.querySelectorAll('.tc-cve-pick-cb:checked:not(:disabled)');
+  checked.forEach(cb => {
+    const id = cb.dataset.id;
+    const cve = TC_CVE_PICKER.find(c=>c.id===id);
+    if(cve && !_tcSelectedCves.find(x=>x.id===id)) _tcSelectedCves.push({...cve, scanMode:'cev_only'});
+  });
+  renderCveContent();
+  closeCvePickerModal();
+}
+
+function openTcAssessWizard(){
+  _tcStep = 1;
+  _tcScopeType = 'assets';
+  _tcCveMode = 'all';
+  _tcSelectedTags = [];
+  _tcSelectedCves  = [];
+  const tf = $('tc-title-field');
+  if(tf) tf.value = '';
+  // Reset radios
+  const ra = $('tc-scope-radio-assets'), rc = $('tc-cve-radio-all');
+  if(ra) ra.checked = true;
+  if(rc) rc.checked = true;
+  const ap = $('tc-scope-assets-panel'), tp = $('tc-scope-tags-panel'), cp = $('tc-cve-select-panel');
+  if(ap) ap.style.display = '';
+  if(tp) tp.style.display = 'none';
+  if(cp) cp.style.display = 'none';
+  const statC = $('tc-stat-cves'), statF = $('tc-stat-findings');
+  if(statC) statC.textContent = '145';
+  if(statF) statF.textContent = '5.28K';
+  $('tc-assess-overlay').style.display = 'flex';
+  tcAssessStep(1);
+  // Initialise dynamic cards
+  setTimeout(()=>{ renderSelectedTags(); renderCveContent(); }, 0);
+}
+
+function closeTcAssessWizard(){
+  $('tc-assess-overlay').style.display = 'none';
+}
+
+function tcAssessStep(n){
+  _tcStep = n;
+  const ind = $('tc-step-indicator');
+  if(ind) ind.textContent = `Step ${n}/3`;
+  for(let i=1;i<=3;i++){
+    const item = $(`tc-step-item-${i}`);
+    const ico  = $(`tc-step-ico-${i}`);
+    if(!item || !ico) continue;
+    if(i < n){
+      item.className = 'tc-step-item tc-step-done';
+      ico.className  = 'tc-step-ico tc-ico-done';
+      ico.textContent = '✓';
+    } else if(i === n){
+      item.className = 'tc-step-item tc-step-active';
+      ico.className  = 'tc-step-ico tc-ico-active';
+      ico.textContent = '';
+    } else {
+      item.className = 'tc-step-item';
+      ico.className  = 'tc-step-ico tc-ico-pending';
+      ico.textContent = '';
+    }
+    const panel = $(`tc-assess-step-${i}`);
+    if(panel) panel.style.display = i===n ? '' : 'none';
+  }
+}
+
+function tcScopeTypeSelect(type){
+  _tcScopeType = type;
+  const ap = $('tc-scope-assets-panel');
+  const tp = $('tc-scope-tags-panel');
+  if(ap) ap.style.display = type==='assets' ? '' : 'none';
+  if(tp) tp.style.display = type==='tags'   ? '' : 'none';
+  if(type==='tags') renderSelectedTags();
+  const stats = {
+    assets:   {cves:'145',  findings:'5.28K'},
+    tags:     {cves:'24',   findings:'63'},
+    business: {cves:'87',   findings:'1.2K'}
+  };
+  const s = stats[type] || stats.assets;
+  const sc = $('tc-stat-cves'), sf = $('tc-stat-findings');
+  if(sc) sc.textContent = s.cves;
+  if(sf) sf.textContent = s.findings;
+}
+
+function tcCveModeSelect(mode){
+  _tcCveMode = mode;
+  const cp = $('tc-cve-select-panel');
+  if(cp) cp.style.display = mode==='select' ? '' : 'none';
+  if(mode==='select') renderCveContent();
+}
+
+function tcAssessGoReview(){
+  const title = ($('tc-title-field').value||'').trim() || '—';
+
+  // Stats based on current scope selection
+  const assetNum  = _tcScopeType==='assets' ? 145 : _tcScopeType==='tags' ? 24 : 87;
+  const cveNum    = _tcCveMode==='select' ? _tcSelectedCves.length : 145;
+  const findNum   = _tcCveMode==='select'
+    ? _tcSelectedCves.reduce((a,c)=>a+(c.assets||0),0)
+    : '5.28K';
+
+  // Host details block
+  let hostHtml = '';
+  if(_tcScopeType==='tags'){
+    const chips = _tcSelectedTags.length
+      ? _tcSelectedTags.map(t=>`<span class="tc-rv-tag-chip">${escHtml(t)}</span>`).join('')
+      : `<span style="color:var(--text-muted);font-size:12px">No tags selected</span>`;
+    hostHtml = `<div class="tc-rv-subsect-body">
+      <div class="tc-rv-host-lbl">Selected Tags</div>
+      <div class="tc-rv-tags-row">${chips}</div>
+    </div>`;
+  } else {
+    const lbl = _tcScopeType==='business' ? 'Business Entities' : 'Assets (IP Ranges)';
+    hostHtml = `<div class="tc-rv-subsect-body">
+      <div class="tc-rv-host-lbl">${lbl}</div>
+      <div style="color:var(--text-secondary);font-size:13px">${assetNum} assets in scope</div>
+    </div>`;
+  }
+
+  // CVE rows
+  const editSvg = `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>`;
+  const pencilSvg = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>`;
+  const chevSvg  = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>`;
+  const shieldSvg= `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`;
+  const monSvg   = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>`;
+
+  let cveRowsHtml = '';
+  if(_tcSelectedCves.length){
+    cveRowsHtml = _tcSelectedCves.map(c=>{
+      const scanLbl = c.scanMode==='both'
+        ? 'Run TruConfirm Native and CEV scans'
+        : 'Run scan only on CEV';
+      const assocHtml = c.tc
+        ? `<div class="tc-rv-assoc-yes">Yes</div>
+           <div class="tc-rv-scanmode-lbl">${escHtml(scanLbl)}</div>`
+        : `<span class="tc-rv-assoc-no">No</span>`;
+      const tcBadge = c.tc
+        ? `<div class="tc-rv-tc-badge">
+            <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+            TruConfirm Validation Available
+          </div>` : '';
+      return `<tr class="tc-rv-cve-row">
+        <td class="tc-rv-td-title">
+          <div class="tc-rv-cve-id">${escHtml(c.id)}</div>
+          <div class="tc-rv-cve-title">${escHtml(c.title)}</div>
+        </td>
+        <td class="tc-rv-td-expl">
+          <div class="tc-rv-expl-row">${shieldSvg}<span>${escHtml(c.exploit)}</span></div>
+          ${tcBadge}
+        </td>
+        <td class="tc-rv-td-assoc">${assocHtml}</td>
+        <td class="tc-rv-td-assets">${monSvg}&ensp;${c.assets}</td>
+      </tr>`;
+    }).join('');
+  } else {
+    cveRowsHtml = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">No CVEs selected</td></tr>`;
+  }
+
+  $('tc-assess-step-3').innerHTML = `
+    <div class="tc-section-heading">Review &amp; Confirm</div>
+
+    <!-- Basic Information card -->
+    <div class="tc-rv-card">
+      <div class="tc-rv-card-hdr">
+        <span class="tc-rv-chev">${chevSvg}</span>
+        <span class="tc-rv-card-ttl">Basic Information</span>
+        <button class="tc-rv-edit-btn" onclick="tcAssessStep(1)" title="Edit">${pencilSvg}</button>
+      </div>
+      <div class="tc-rv-info-grid">
+        <div class="tc-rv-info-col"><div class="tc-rv-info-key">Title</div><div class="tc-rv-info-val">${escHtml(title)}</div></div>
+        <div class="tc-rv-info-col"><div class="tc-rv-info-key">Option Profile</div><div class="tc-rv-info-val">TruConfirm Test Option Profile</div></div>
+        <div class="tc-rv-info-col"><div class="tc-rv-info-key">Scanner Appliance</div><div class="tc-rv-info-val">External</div></div>
+      </div>
+    </div>
+
+    <!-- Assessment Scope card -->
+    <div class="tc-rv-card" style="margin-top:16px">
+      <div class="tc-rv-card-hdr">
+        <span class="tc-rv-chev">${chevSvg}</span>
+        <span class="tc-rv-card-ttl">Assessment Scope</span>
+        <button class="tc-rv-edit-btn" onclick="tcAssessStep(2)" title="Edit">${pencilSvg}</button>
+      </div>
+
+      <!-- Stats row -->
+      <div class="tc-rv-stats-row">
+        <div class="tc-rv-stat"><div class="tc-rv-stat-num">${assetNum}</div><div class="tc-rv-stat-lbl">Assets in scope</div></div>
+        <div class="tc-rv-stat-div"></div>
+        <div class="tc-rv-stat"><div class="tc-rv-stat-num">${cveNum}</div><div class="tc-rv-stat-lbl">Unique CVEs in scope</div></div>
+        <div class="tc-rv-stat-div"></div>
+        <div class="tc-rv-stat"><div class="tc-rv-stat-num">${findNum}</div><div class="tc-rv-stat-lbl">Findings in scope</div></div>
+      </div>
+
+      <!-- Host Details -->
+      <div class="tc-rv-subsect-hdr">Host Details</div>
+      ${hostHtml}
+
+      <!-- CVE Details -->
+      <div class="tc-rv-subsect-hdr" style="margin-top:20px">CVE Details</div>
+      <div class="tc-rv-subsect-body">
+        <div class="tc-rv-subsect-inner-ttl">Selected CVEs</div>
+        <div class="tc-rv-cve-tbl-wrap">
+          <table class="tc-rv-cve-tbl">
+            <thead><tr>
+              <th>Title</th>
+              <th>Exploitability ${editSvg}</th>
+              <th>Associated with Custom Exploit Detection</th>
+              <th>Impacted Asset</th>
+            </tr></thead>
+            <tbody>${cveRowsHtml}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="tc-step-footer">
+      <button class="btn btn-s" onclick="closeTcAssessWizard()">Cancel</button>
+      <div style="display:flex;gap:8px">
+        <button class="btn btn-s" onclick="tcAssessStep(2)">Previous</button>
+        <button class="btn btn-p" onclick="tcAssessLaunch()">Launch</button>
+      </div>
+    </div>`;
+
+  tcAssessStep(3);
+}
+
+function tcAssessLaunch(){
+  const title = ($('tc-title-field')&&$('tc-title-field').value||'').trim() || 'TruConfirm Assessment';
+  const today = new Date().toLocaleDateString('en-US',{month:'short',day:'numeric',year:'numeric'});
+  const scopeLabel = _tcScopeType==='tags' ? 'Tags'
+                   : _tcScopeType==='business' ? 'Business Entities'
+                   : 'IP Addresses';
+  SCAN_LIST.unshift({
+    title,
+    sub: 'TruConfirm Assessment',
+    kind: 'custom',
+    validated: '—',
+    scopeLabel,
+    scopeIp: '—',
+    createdBy: 'portal user',
+    createdOn: today,
+    status: 'Running'
+  });
+  closeTcAssessWizard();
+  switchTab('scan');
+  setTimeout(()=>{
+    const firstRow = document.querySelector('#scan-tbl-body tr');
+    if(firstRow){ firstRow.classList.add('kb-row-new'); setTimeout(()=>firstRow.classList.remove('kb-row-new'), 2500); }
+  }, 80);
+  showToast('TruConfirm Assessment launched — scan is running','tok');
+}
+
+function openTagsModal(){
+  $('tc-tags-modal').style.display = 'flex';
+}
+
+function closeTagsModal(){
+  $('tc-tags-modal').style.display = 'none';
+}
+
+function addSelectedTags(){
+  // Collect checked tags from modal checkboxes
+  document.querySelectorAll('.tc-tag-item input[type="checkbox"]:checked').forEach(cb => {
+    const chip = cb.nextElementSibling;
+    if(chip){
+      const tag = chip.textContent.trim();
+      if(!_tcSelectedTags.includes(tag)) _tcSelectedTags.push(tag);
+    }
+  });
+  // Uncheck all after adding
+  document.querySelectorAll('.tc-tag-item input[type="checkbox"]').forEach(cb => cb.checked = false);
+  renderSelectedTags();
+  closeTagsModal();
+}
+
+function tcTagsTab(tab){
+  ['recent','all'].forEach(t=>{
+    const btn = $(`tc-tags-tab-${t}`);
+    if(btn) btn.className = 'tc-tags-tab' + (t===tab ? ' tc-tags-tab-active' : '');
+  });
+}
 
 // ── Boot the API layer ────────────────────────────────────────────────────────
 probeBackend();

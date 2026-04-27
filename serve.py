@@ -4,7 +4,7 @@ Run: python serve.py
 """
 import http.server, os
 
-PORT = 5000
+PORT = 8888
 BASE = os.path.dirname(os.path.abspath(__file__))
 
 class NoCacheHandler(http.server.SimpleHTTPRequestHandler):

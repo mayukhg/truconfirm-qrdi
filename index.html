@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>TruConfirm – KnowledgeBase</title>
-<link rel="stylesheet" href="styles.css?v=16" />
+<link rel="stylesheet" href="styles.css?v=56" />
 </head>
 <body>
 
@@ -100,23 +100,48 @@
 
     <!-- ══ SCAN TAB ══ -->
     <div class="tab-view" id="view-scan">
-      <div class="scan-layout">
-        <!-- Left: Profiles list -->
-        <div class="scan-left">
-          <div class="scan-left-hdr">
-            <span class="scan-left-title">Scan Profiles</span>
-            <button class="btn btn-p btn-sm" onclick="newProfile()">+ New</button>
+      <div class="scan-list-layout">
+        <!-- Toolbar -->
+        <div class="scan-toolbar">
+          <div class="scan-tb-left">
+            <input type="checkbox" class="scan-chk-all" title="Select all">
+            <button class="btn btn-s btn-sm scan-tb-btn">Actions (0)
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
+            <button class="btn btn-p btn-sm scan-tb-btn" onclick="openTcAssessWizard()">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+              TruConfirm Assessment
+            </button>
+            <button class="btn btn-s btn-sm scan-tb-btn">
+              <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Filters
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+            </button>
           </div>
-          <div id="profile-list"></div>
+          <div class="scan-tb-right">
+            <button class="scan-pg-btn">&#8249;</button>
+            <span class="scan-pg-cur">1</span>
+            <span class="scan-pg-sep">/ 1 pages</span>
+            <button class="scan-pg-btn">&#8250;</button>
+            <span class="scan-pg-total">Total 6</span>
+          </div>
         </div>
-        <!-- Right: Profile detail -->
-        <div class="scan-right">
-          <div class="scan-right-hdr" id="scan-right-hdr">
-            <span style="color:var(--text-muted);font-size:13px">Select a scan profile</span>
-          </div>
-          <div class="scan-right-body" id="scan-right-body">
-            <div class="attach-empty"><div class="ei">📋</div><p>Select a scan profile from the left to manage Custom Exploit checks and view results.</p></div>
-          </div>
+        <!-- Table -->
+        <div class="scan-tbl-wrap">
+          <table class="scan-tbl">
+            <thead>
+              <tr>
+                <th style="width:36px"><input type="checkbox"></th>
+                <th>Title</th>
+                <th>Exploitation Validated</th>
+                <th>Scope</th>
+                <th>Created By</th>
+                <th>Created On</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody id="scan-tbl-body"></tbody>
+          </table>
         </div>
       </div>
     </div>
@@ -328,7 +353,7 @@
               <div class="ndi" onclick="openNew();$('new-drop').classList.remove('open')">
                 <span class="ndi-ico">🔬</span>
                 <div>
-                  <div style="font-weight:500;color:var(--text-primary)">Custom Exploit Vulnerability</div>
+                  <div style="font-weight:500;color:var(--text-primary)">Custom Exploit Detection</div>
                 </div>
               </div>
               <div class="ndi" onclick="openLuaLib();$('new-drop').classList.remove('open')">
@@ -364,13 +389,14 @@
             <thead>
               <tr>
                 <th>Title</th>
-                <th>QVSS Base</th>
-                <th>CVSS Base</th>
+                <th>QVSS</th>
+                <th>CVSS</th>
                 <th>Exploitability ⓘ</th>
                 <th>Risk Factors</th>
-                <th>Impact</th>
                 <th>Threat Actor</th>
-                <th>Qualys Patch</th>
+                <th>WoW ⓘ</th>
+                <th>Assets Impacted</th>
+                <th>Qualys Patchable</th>
               </tr>
             </thead>
             <tbody id="kb-tbody"></tbody>
@@ -391,7 +417,7 @@
     <div class="mhdr">
       <div class="mtitle">
         <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--qrdi)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-        <span id="vuln-modal-title">New Custom Exploit Vulnerability</span>
+        <span id="vuln-modal-title">New Custom Exploit Detection</span>
       </div>
       <button class="mclose" onclick="closeModal('qrdi-vuln')">✕</button>
     </div>
@@ -409,80 +435,50 @@
         <!-- General Info -->
         <div class="tpane on" id="tab-general">
           <div style="font-size:11px;font-weight:600;color:var(--text-muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:12px">General Information</div>
-          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Define a Custom Exploit Validation (CEV) check. QID is auto-assigned from the reserved block (410001–430000).</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-bottom:14px">Define a Custom Exploit Detection check. QID is auto-assigned from the reserved block (410001–430000).</div>
 
           <div class="fg">
             <label>Title <span class="req">*</span></label>
-            <input class="fi" id="title-field" placeholder="Enter vulnerability title" />
+            <input class="fi" id="title-field" placeholder="Enter detection title" oninput="updateSaveBtn()" />
           </div>
 
           <div class="fg">
-            <label>CVE ID <span class="req">*</span></label>
-            <input class="fi" id="cve-primary-field" placeholder="e.g. CVE-2024-1234" oninput="debounceCveCheck()" autocomplete="off" />
-            <div class="hint-text">Primary CVE this custom exploit targets. Checked against native scan results for conflicts.</div>
-            <div id="cve-conflict-panel" style="display:none;margin-top:10px"></div>
-          </div>
-
-          <div class="fr2">
-            <div class="fg">
-              <label>Vulnerability Type</label>
-              <select class="fsel" id="type-field">
-                <option>Vulnerability</option>
-                <option>Information Gathered</option>
-              </select>
+            <label>CVE IDs <span class="req">*</span></label>
+            <!-- Confirmed CVE chips -->
+            <div id="cev-chips-bar" style="display:none;flex-wrap:wrap;gap:6px;margin-bottom:8px"></div>
+            <!-- Input row -->
+            <div style="display:flex;gap:8px;align-items:center">
+              <input class="fi" id="cve-primary-field" placeholder="e.g. CVE-2024-1234"
+                oninput="const v=this.value.trim();const bar=$('cev-add-bar');bar.style.display=v?'flex':'none';"
+                autocomplete="off" style="flex:1;margin:0" />
             </div>
-            <div class="fg">
-              <label>Severity</label>
-              <select class="fsel" id="sev-field" onchange="updateSevWarn()">
-                <option value="1">1 – Low</option>
-                <option value="2">2 – Medium</option>
-                <option value="3">3 – High</option>
-                <option value="4" selected>4 – Critical</option>
-              </select>
-              <div id="sev-warn" class="sev-warn sev-warn-4">Pages IT Director immediately (P1, 4-hour SLA). Automated port quarantine may be activated.</div>
+            <div class="hint-text">Enter one or more CVE IDs this custom exploit detection targets.</div>
+            <!-- hidden panel kept for JS compatibility -->
+            <div id="cve-conflict-panel" style="display:none"></div>
+            <!-- Add / Cancel bar -->
+            <div id="cev-add-bar" style="display:none;margin-top:10px;gap:8px;align-items:center">
+              <button class="btn btn-p btn-sm" onclick="addCveToCev()">+ Add CVE</button>
+              <button class="btn btn-s btn-sm" onclick="cancelCevInput()">Cancel</button>
             </div>
           </div>
 
-          <div class="fg">
-            <label>Scan Type</label>
-            <div class="dt-pills">
-              <div class="dt-pill scan-type-svc on" id="scan-type-svc" onclick="selectScanType('service_scan')">
-                🔌 Service Scan
-              </div>
-              <div class="dt-pill scan-type-web" id="scan-type-web" onclick="selectScanType('web_app_scan')">
-                🌐 Web Application Scan
-              </div>
-            </div>
-            <div class="hint-text">Service Scan targets network-layer services (TCP/UDP). Web Application Scan targets HTTP application endpoints and web logic.</div>
-          </div>
+          <!-- hidden fields kept for JS compatibility -->
+          <select id="type-field" style="display:none"><option>Vulnerability</option></select>
+          <select id="sev-field" style="display:none"><option value="4" selected>4 – Critical</option></select>
+          <div id="scan-type-svc" style="display:none"></div>
+          <div id="scan-type-web" style="display:none"></div>
+          <input type="checkbox" id="status-toggle" checked style="display:none">
+          <span id="status-lbl" style="display:none">Enabled</span>
+          <textarea id="threat-field" style="display:none"></textarea>
+          <textarea id="impact-field" style="display:none"></textarea>
+          <textarea id="solution-field" style="display:none"></textarea>
 
-          <div class="sep"></div>
-          <div class="fg">
-            <label>Status</label>
-            <div class="tog-wrap">
-              <label class="tog">
-                <input type="checkbox" id="status-toggle" checked />
-                <span class="tslider"></span>
-              </label>
-              <span class="tog-lbl" id="status-lbl">Enabled</span>
-            </div>
-            <div class="hint-text">When disabled, the QID is included in scans but appears grayed out in results.</div>
-          </div>
-
-          <div class="sep"></div>
-          <div class="fg">
-            <label>Threat Description</label>
-            <textarea class="fta" id="threat-field" rows="4" placeholder="Describe the threat posed by this vulnerability..."></textarea>
-          </div>
-
-          <div class="fg">
-            <label>Impact</label>
-            <textarea class="fta" id="impact-field" rows="4" placeholder="Describe the impact if this vulnerability is exploited..."></textarea>
-          </div>
-
-          <div class="fg">
-            <label>Solution / Remediation</label>
-            <textarea class="fta" id="solution-field" rows="4" placeholder="Describe how to remediate or mitigate this vulnerability..."></textarea>
+          <!-- Tab navigation -->
+          <div class="tab-nav-row">
+            <span></span>
+            <button class="btn btn-p btn-sm tab-nav-btn" onclick="switchModalTab('tab-qrdi')">
+              CEV Definition &nbsp;→
+            </button>
           </div>
         </div>
 
@@ -561,7 +557,7 @@
               <span class="jstat" id="json-status"></span>
             </div>
             <div class="jed-wrap">
-            <textarea class="jed" id="json-def" spellcheck="false" oninput="S.jsonValid=null;$('json-status').textContent='';renderJsonHighlight()" rows="16">
+            <textarea class="jed" id="json-def" spellcheck="false" oninput="S.jsonValid=null;$('json-status').textContent='';renderJsonHighlight();updateSaveBtn()" rows="16">
 {
   "detection_type": "http dialog",
   "api_version": 1,
@@ -591,10 +587,11 @@
             </div>
           </div>
 
-          <!-- AI SIGNATURE ASSISTANT ENTRY BUTTON -->
-          <button class="ai-entry-btn" onclick="toggleAIPanel()">
+          <!-- AI SIGNATURE ASSISTANT ENTRY BUTTON — Phase 2 -->
+          <button class="ai-entry-btn ai-phase2-btn" onclick="showAIPhase2Toast()" title="Available in Phase 2">
             <span class="pulse"></span>
             ✦ AI Signature Assistant
+            <span class="ai-phase2-badge">Phase 2</span>
           </button>
 
           <!-- AI SIGNATURE ASSISTANT PANEL -->
@@ -667,6 +664,14 @@
 
             </div>
           </div>
+
+          <!-- Tab navigation -->
+          <div class="tab-nav-row">
+            <button class="btn btn-s btn-sm tab-nav-btn" onclick="switchModalTab('tab-general')">
+              ←&nbsp; General Info
+            </button>
+            <span></span>
+          </div>
         </div>
 
       </div><!-- /content -->
@@ -674,9 +679,9 @@
 
     <div class="mftr">
       <button class="btn btn-s" onclick="closeModal('qrdi-vuln')">Cancel</button>
-      <button class="btn btn-p" onclick="saveQrdiVuln()">
+      <button class="btn btn-p" id="btn-save-cev" onclick="saveQrdiVuln()" disabled>
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
-        Save Custom Exploit Vulnerability
+        Save Custom Exploit Detection
       </button>
     </div>
   </div>
@@ -940,10 +945,292 @@
   </div>
 </div>
 
+<!-- ══ TC ASSESSMENT WIZARD OVERLAY ══ -->
+<div class="tc-assess-overlay" id="tc-assess-overlay" style="display:none">
+  <div class="tc-assess-wizard">
+    <!-- Header -->
+    <div class="tc-assess-hdr">
+      <button class="tc-assess-back" onclick="closeTcAssessWizard()" title="Back">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+      </button>
+      <span class="tc-assess-launch-lbl">Launch:</span>
+      <span class="tc-assess-launch-ttl">TruConfirm Assessment</span>
+    </div>
+    <!-- Body -->
+    <div class="tc-assess-body">
+      <!-- Sidebar -->
+      <div class="tc-assess-sidebar">
+        <div class="tc-step-indicator" id="tc-step-indicator">Step 1/3</div>
+        <div class="tc-step-list">
+          <div class="tc-step-item tc-step-active" id="tc-step-item-1">
+            <div class="tc-step-track">
+              <div class="tc-step-ico tc-ico-active" id="tc-step-ico-1"></div>
+              <div class="tc-step-line"></div>
+            </div>
+            <span class="tc-step-label">Basic Information</span>
+          </div>
+          <div class="tc-step-item" id="tc-step-item-2">
+            <div class="tc-step-track">
+              <div class="tc-step-ico tc-ico-pending" id="tc-step-ico-2"></div>
+              <div class="tc-step-line"></div>
+            </div>
+            <span class="tc-step-label">Assessment Scope</span>
+          </div>
+          <div class="tc-step-item" id="tc-step-item-3">
+            <div class="tc-step-track">
+              <div class="tc-step-ico tc-ico-pending" id="tc-step-ico-3"></div>
+              <div class="tc-step-line tc-step-line-last"></div>
+            </div>
+            <span class="tc-step-label">Review and Confirm</span>
+          </div>
+        </div>
+      </div>
+      <!-- Main content -->
+      <div class="tc-assess-main">
+
+        <!-- ── Step 1: Basic Information ── -->
+        <div class="tc-assess-step" id="tc-assess-step-1">
+          <div class="tc-section-heading">Basic Information</div>
+          <div class="tc-section-sub">Provide a name for your assessment and choose a scanner type (Internal or External) from the list.</div>
+
+          <div class="tc-form-group" style="margin-top:28px">
+            <label class="tc-label">Title <span class="tc-req">*</span></label>
+            <input id="tc-title-field" class="tc-input" type="text" placeholder="Enter scan title">
+          </div>
+
+          <div class="tc-form-row" style="margin-top:20px;gap:20px">
+            <div class="tc-form-group" style="flex:1">
+              <div class="tc-label-row">
+                <label class="tc-label">Option Profile <span class="tc-req">*</span></label>
+                <div class="tc-label-actions">
+                  <a class="tc-link" href="#" onclick="return false">Create</a>
+                  <span class="tc-link-sep">|</span>
+                  <a class="tc-link" href="#" onclick="return false">View all</a>
+                  <span class="tc-link-sep">|</span>
+                  <button class="tc-refresh-btn" title="Refresh">
+                    <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="1 4 1 10 7 10"/><path d="M3.51 15a9 9 0 1 0 .49-3.87"/></svg>
+                  </button>
+                </div>
+              </div>
+              <div class="tc-select-wrap">
+                <span class="tc-select-placeholder">Select Option Profile</span>
+                <div class="tc-select-actions">
+                  <button class="tc-select-dots">··</button>
+                  <svg class="tc-select-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+            </div>
+            <div class="tc-form-group" style="flex:1">
+              <div class="tc-label-row">
+                <label class="tc-label">Scanner Appliance <span class="tc-req">*</span>
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="margin-left:3px;vertical-align:middle;opacity:.6"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                </label>
+              </div>
+              <div class="tc-select-wrap">
+                <span class="tc-select-placeholder">Select Scanner Appliance</span>
+                <div class="tc-select-actions">
+                  <button class="tc-select-dots">··</button>
+                  <svg class="tc-select-chev" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="tc-step-footer" style="justify-content:flex-end">
+            <button class="btn btn-p" onclick="tcAssessStep(2)">Next</button>
+          </div>
+        </div>
+
+        <!-- ── Step 2: Assessment Scope ── -->
+        <div class="tc-assess-step" id="tc-assess-step-2" style="display:none">
+          <div class="tc-section-heading">Assessment Scope</div>
+          <div class="tc-section-sub">Below are the selected scope for TruConfirm Assessment</div>
+
+          <!-- Stats row -->
+          <div class="tc-scope-stats">
+            <div class="tc-stat-box">
+              <div class="tc-stat-num">0</div>
+              <div class="tc-stat-lbl">Assets in scope</div>
+            </div>
+            <div class="tc-stat-divider"></div>
+            <div class="tc-stat-box">
+              <div class="tc-stat-num" id="tc-stat-cves">145</div>
+              <div class="tc-stat-lbl">Unique CVEs in scope</div>
+            </div>
+            <div class="tc-stat-divider"></div>
+            <div class="tc-stat-box">
+              <div class="tc-stat-num" id="tc-stat-findings">5.28K</div>
+              <div class="tc-stat-lbl">Findings in scope</div>
+            </div>
+          </div>
+
+          <!-- Host Details -->
+          <div class="tc-section-title" style="margin-top:22px">Host Details</div>
+          <div class="tc-section-desc">Select the scope for this assessment</div>
+
+          <div class="tc-radio-group" style="margin-top:10px">
+            <label class="tc-radio-label">
+              <input type="radio" id="tc-scope-radio-assets" name="tc-scope-type" checked onchange="tcScopeTypeSelect('assets')">
+              <span>Assets</span>
+            </label>
+            <label class="tc-radio-label">
+              <input type="radio" id="tc-scope-radio-tags" name="tc-scope-type" onchange="tcScopeTypeSelect('tags')">
+              <span>Tags</span>
+            </label>
+            <label class="tc-radio-label">
+              <input type="radio" id="tc-scope-radio-business" name="tc-scope-type" onchange="tcScopeTypeSelect('business')">
+              <span>Business Entities</span>
+            </label>
+          </div>
+
+          <!-- Assets panel -->
+          <div id="tc-scope-assets-panel" style="margin-top:14px">
+            <div class="tc-form-row" style="gap:16px">
+              <div class="tc-form-group" style="flex:1">
+                <label class="tc-label">IPv4/v6 Addresses / Ranges <span class="tc-req">*</span></label>
+                <textarea class="tc-textarea" rows="4"></textarea>
+              </div>
+              <div class="tc-form-group" style="flex:1">
+                <label class="tc-label">Exclude IPv4/v6 Addresses / Ranges</label>
+                <textarea class="tc-textarea" rows="4"></textarea>
+              </div>
+            </div>
+          </div>
+
+          <!-- Tags panel -->
+          <div id="tc-scope-tags-panel" style="display:none;margin-top:14px">
+            <div id="tc-selected-tags-card"></div>
+            <label class="tc-check-label" style="margin-top:10px">
+              <input type="checkbox">
+              <span>Exclude tags</span>
+            </label>
+          </div>
+
+          <!-- CVE Details -->
+          <div style="margin-top:24px;border-top:1px solid var(--border);padding-top:20px">
+            <div class="tc-section-title">CVE Details</div>
+            <div class="tc-section-desc">Select the CVEs you want to validate. Only CVEs available for TruConfirm will be available based on the selected asset scope.</div>
+
+            <div class="tc-radio-group" style="margin-top:10px">
+              <label class="tc-radio-label">
+                <input type="radio" id="tc-cve-radio-all" name="tc-cve-mode" checked onchange="tcCveModeSelect('all')">
+                <span>All CVEs</span>
+              </label>
+              <label class="tc-radio-label">
+                <input type="radio" id="tc-cve-radio-select" name="tc-cve-mode" onchange="tcCveModeSelect('select')">
+                <span>Select CVEs</span>
+              </label>
+            </div>
+
+            <!-- Select CVEs panel (dynamic) -->
+            <div id="tc-cve-select-panel" style="display:none;margin-top:14px">
+              <div id="tc-cve-content"></div>
+            </div>
+          </div>
+
+          <div class="tc-step-footer">
+            <button class="btn btn-s" onclick="closeTcAssessWizard()">Cancel</button>
+            <div style="display:flex;gap:8px">
+              <button class="btn btn-s" onclick="tcAssessStep(1)">Previous</button>
+              <button class="btn btn-p" onclick="tcAssessGoReview()">Next</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- ── Step 3: Review and Confirm (rendered dynamically by tcAssessGoReview) ── -->
+        <div class="tc-assess-step" id="tc-assess-step-3" style="display:none"></div>
+
+      </div><!-- tc-assess-main -->
+    </div><!-- tc-assess-body -->
+  </div><!-- tc-assess-wizard -->
+</div><!-- tc-assess-overlay -->
+
+<!-- ══ TAGS SELECTION MODAL ══ -->
+<div class="tc-tags-modal-overlay" id="tc-tags-modal" style="display:none">
+  <div class="tc-tags-modal">
+    <div class="tc-tags-modal-hdr">
+      <span class="tc-tags-modal-title">Select Tags</span>
+      <a class="tc-link" href="#" onclick="return false" style="font-size:13px">Create New Tag</a>
+    </div>
+    <div class="tc-tags-info-banner">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="var(--accent)" stroke-width="2" style="flex-shrink:0;margin-top:1px"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+      <span>Dynamic and System Tags are automatically assigned to assets based on the rules. They are not available for manual asset tagging.</span>
+    </div>
+    <div class="tc-tags-tabs">
+      <button class="tc-tags-tab tc-tags-tab-active" id="tc-tags-tab-recent" onclick="tcTagsTab('recent')">Recent &amp; Favourites</button>
+      <button class="tc-tags-tab" id="tc-tags-tab-all" onclick="tcTagsTab('all')">All Tags</button>
+    </div>
+    <div class="tc-tags-panels">
+      <!-- Recent & Favourites -->
+      <div class="tc-tags-panel tc-tags-panel-recent">
+        <div class="tc-tags-panel-title">Recent Tags</div>
+        <div class="tc-tags-list">
+          <label class="tc-tag-item"><input type="checkbox"><span class="tc-tag-chip">static tag 181 child</span></label>
+          <label class="tc-tag-item"><input type="checkbox"><span class="tc-tag-chip">static tag 181</span></label>
+          <label class="tc-tag-item"><input type="checkbox"><span class="tc-tag-chip">test_abhi_07</span></label>
+          <label class="tc-tag-item"><input type="checkbox"><span class="tc-tag-chip">test_acs_05</span></label>
+          <label class="tc-tag-item"><input type="checkbox"><span class="tc-tag-chip">Test_BU</span></label>
+          <label class="tc-tag-item"><input type="checkbox"><span class="tc-tag-chip">Test_BU_Tag</span></label>
+        </div>
+      </div>
+      <!-- Favorite Tags -->
+      <div class="tc-tags-panel tc-tags-panel-fav">
+        <div class="tc-tags-panel-title">Favorite Tags</div>
+        <div class="tc-tags-empty">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <div class="tc-tags-empty-txt">No data available</div>
+        </div>
+      </div>
+      <!-- Selected panel -->
+      <div class="tc-tags-panel tc-tags-panel-sel">
+        <div class="tc-tags-empty">
+          <svg width="42" height="42" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.2"><path d="M21 16V8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16z"/><polyline points="3.27 6.96 12 12.01 20.73 6.96"/><line x1="12" y1="22.08" x2="12" y2="12"/></svg>
+          <div class="tc-tags-empty-txt">No data available</div>
+        </div>
+      </div>
+    </div>
+    <div class="tc-tags-modal-ftr">
+      <button class="btn btn-s" onclick="closeTagsModal()">Cancel</button>
+      <button class="btn btn-p" onclick="addSelectedTags()">Add Tag</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ CVE PICKER MODAL ══ -->
+<div class="tc-tags-modal-overlay" id="tc-cve-modal" style="display:none">
+  <div class="tc-tags-modal" style="width:920px;max-height:78vh">
+    <div class="tc-tags-modal-hdr">
+      <span class="tc-tags-modal-title">Select CVEs</span>
+    </div>
+    <div style="padding:0 22px 14px">
+      <input class="tc-input" id="tc-cve-search" type="text" placeholder="Search CVEs..." oninput="renderCvePickerList()">
+    </div>
+    <div style="padding:0 22px;flex:1;overflow-y:auto">
+      <table class="tc-cve-tbl tc-cvepicker-tbl">
+        <thead>
+          <tr>
+            <th style="width:36px"><input type="checkbox" id="tc-cve-pick-all" onchange="tcCvePickAll(this)"></th>
+            <th>TITLE</th>
+            <th>EXPLOITABILITY
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle;margin-left:2px;opacity:.6"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+            </th>
+            <th>IMPACTED ASSET</th>
+          </tr>
+        </thead>
+        <tbody id="tc-cve-picker-tbody"></tbody>
+      </table>
+    </div>
+    <div class="tc-tags-modal-ftr">
+      <button class="btn btn-s" onclick="closeCvePickerModal()">Cancel</button>
+      <button class="btn btn-p" onclick="addSelectedCves()">Add CVE</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOASTS -->
 <div class="toast-c" id="toast-c"></div>
 
-<script src="app.js?v=16"></script>
+<script src="app.js?v=56"></script>
 <script>
 // Template snippets
 const TEMPLATES = {
@@ -1107,64 +1394,56 @@ const TEMPLATES = {
 function loadTemplate(key){
   document.getElementById('json-def').value = TEMPLATES[key];
   validateJson();
+  renderJsonHighlight();
+  updateSaveBtn();
   showToast('Template loaded: ' + key, 'tinf');
-}
-
-// ── Severity impact warning ──
-const SEV_WARN_TEXT = {
-  '1': 'Logged for compliance review only. No ticket or on-call notification is generated.',
-  '2': 'Added to weekly digest. No immediate alert.',
-  '3': 'Creates a ServiceNow ticket (P3, 5-day SLA) and notifies the security team.',
-  '4': 'Pages IT Director immediately (P1, 4-hour SLA). Automated port quarantine may be activated.'
-};
-function updateSevWarn(){
-  const sel = document.getElementById('sev-field');
-  const el  = document.getElementById('sev-warn');
-  if(!sel || !el) return;
-  const v = sel.value;
-  el.textContent = SEV_WARN_TEXT[v] || '';
-  el.className = 'sev-warn sev-warn-' + v;
 }
 
 // ── CVE Conflict Detection ──
 let _cveCheckTimer = null;
 function debounceCveCheck(){
   clearTimeout(_cveCheckTimer);
-  _cveCheckTimer = setTimeout(checkCveConflict, 420);
+  _cveCheckTimer = setTimeout(checkCveConflict, 180);
 }
 
 function checkCveConflict(){
   const raw = $('cve-primary-field').value.trim();
   const panel = $('cve-conflict-panel');
   if(!panel) return;
+
+  // Hide panel + add bar if input is empty or not a valid CVE format
   if(!raw || !/^CVE-\d{4}-\d{4,}$/i.test(raw)){
     panel.style.display = 'none';
     S.cevConflictChoice = null;
+    const ab = $('cev-add-bar'); if(ab) ab.style.display = 'none';
     return;
   }
+
   const cve = raw.toUpperCase();
-  // Search native findings for this CVE
   const match = (typeof NATIVE_FINDINGS !== 'undefined')
     ? NATIVE_FINDINGS.find(f => f.cve && f.cve.toUpperCase() === cve)
     : null;
 
   if(!match){
+    // No conflict — show info message and Add CVE button
+    S.cevConflictChoice = 'custom_only';
     panel.style.display = '';
     panel.innerHTML = `<div class="cve-ok-panel">
       <span class="cve-ok-ico">✓</span>
-      <span>No existing native scan found for <b>${cve}</b> — this Custom Exploit will be the sole detection source.</span>
+      <span>This CVE is not part of any TruConfirm scan.</span>
     </div>`;
-    S.cevConflictChoice = 'custom_only';
+    const ab = $('cev-add-bar'); if(ab) ab.style.display = 'flex';
     return;
   }
 
-  // Conflict found
+  // Conflict found — show 2-option resolution panel, show Add CVE button
   S.cevConflictChoice = null;
   const sc = {'Critical':'b-crit','High':'b-high','Medium':'b-med','Low':'b-low'}[match.sev]||'b-blue';
+  const ab = $('cev-add-bar'); if(ab) ab.style.display = 'flex';
   panel.style.display = '';
   panel.innerHTML = `
     <div class="cve-conflict-wrap">
-      <div class="ccw-hdr">⚠ Native Scan Conflict Detected</div>
+      <div class="ccw-hdr">⚠ Native TruConfirm Scan Conflict Detected</div>
       <div class="ccw-detail">
         <b>${cve}</b> is already covered by a TruConfirm scan:<br>
         <span style="color:var(--text-primary);font-weight:500">${escHtml(match.title)}</span><br>
@@ -1176,11 +1455,6 @@ function checkCveConflict(){
           <div class="cco-ico">🔬</div>
           <div class="cco-title">Keep Custom Only</div>
           <div class="cco-desc">Suppress native TruConfirm scan result. The scan result of this Custom Vulnerability will be considered the authoritative detection.</div>
-        </div>
-        <div class="cco-opt" id="cco-native" onclick="selectCveConflict('native_only')">
-          <div class="cco-ico">⚡</div>
-          <div class="cco-title">Native TruConfirm Scan</div>
-          <div class="cco-desc">Result of native TruConfirm scan will remain authoritative. The result of the Custom Vulnerability scan will not override it.</div>
         </div>
         <div class="cco-opt" id="cco-both" onclick="selectCveConflict('keep_both')">
           <div class="cco-ico">🔀</div>
@@ -1194,19 +1468,19 @@ function checkCveConflict(){
 
 function selectCveConflict(choice){
   S.cevConflictChoice = choice;
-  ['custom','native','both'].forEach(k=>{
+  const ab = $('cev-add-bar'); if(ab) ab.style.display = 'flex';
+  ['custom','both'].forEach(k=>{
     const el = $('cco-'+k);
     if(el) el.classList.toggle('on',
       (k==='custom' && choice==='custom_only') ||
-      (k==='native' && choice==='native_only') ||
       (k==='both'   && choice==='keep_both'));
   });
   const hint = $('cco-hint');
   if(hint){
+    const cve = ($('cve-primary-field')||{value:''}).value.trim().toUpperCase();
     const msgs = {
-      custom_only: '✓ Native scan will be suppressed for this CVE. Custom Exploit is now the sole detection source.',
-      native_only: '✓ This Custom Exploit will not affect native scan results for this CVE.',
-      keep_both:   '✓ Both detections are active. If either flags <b>'+$('cve-primary-field').value.trim().toUpperCase()+'</b>, TruConfirm will trigger downstream remediation automatically.'
+      custom_only: '✓ TruConfirm will now run a scan for this CVE based on only the Custom Exploit Detection.',
+      keep_both:   '✓ TruConfirm will now run both the native and Custom Exploit Detection scan for this CVE.'
     };
     hint.innerHTML = msgs[choice]||'';
     hint.style.display = '';
