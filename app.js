@@ -320,6 +320,7 @@ function renderStats(){
   const aktExpl = S.entries.filter(e=>e.expl==='Actively Exploited').length;
   const withPatch = S.entries.filter(e=>e.patch>0).length;
   const statsEl = $('stats-row');
+  if (!statsEl) return;
   statsEl.innerHTML = `
     <div class="sc" onclick="setStatFilter('ciseKev')" title="CISA Known Exploited"><span class="sico2">🛡</span><div><div class="sn2">246</div><div class="sl2">CISA KEV</div></div></div>
     <div class="sc" onclick="setStatFilter('ransomware')"><span class="sico2">🔒</span><div><div class="sn2">96</div><div class="sl2">Ransomware</div></div></div>
@@ -2634,11 +2635,11 @@ let _tcSelectedCves  = []; // array of selected CVE objects
 
 // Static CVE picker list (demo data)
 const TC_CVE_PICKER = [
-  { id:'CVE-2023-48795', title:'Terrapin: Protocol Flaw in SSH Enables Man-in-the-Middle Truncation Attacks', tc:true,  exploit:'No Public Exploit', assets:1 },
-  { id:'CVE-2024-1281',  title:'Apache HTTP Server mod_cgi Buffer Overflow Remote Code Execution',            tc:true,  exploit:'Actively Exploited', assets:5 },
-  { id:'CVE-2024-5678',  title:'SMB Protocol Version Negotiation Information Disclosure',                     tc:false, exploit:'PoC Exploit',        assets:3 },
-  { id:'CVE-2024-9912',  title:'PHP Version Information Disclosure via HTTP Response Headers',                tc:false, exploit:'No Public Exploit', assets:0 },
-  { id:'CVE-2024-3094',  title:'XZ Utils Backdoor — Malicious Code in Compression Library',                  tc:true,  exploit:'Actively Exploited', assets:2 },
+  { id:'CVE-2023-48795', title:'Terrapin: Protocol Flaw in SSH Enables Man-in-the-Middle Truncation Attacks', tc:true,  exploit:'No Public Exploit', assets:1, source:'truconfirm' },
+  { id:'CVE-2024-1281',  title:'Apache HTTP Server mod_cgi Buffer Overflow Remote Code Execution',            tc:true,  exploit:'Actively Exploited', assets:5, source:'truconfirm' },
+  { id:'CVE-2024-5678',  title:'SMB Protocol Version Negotiation Information Disclosure',                     tc:true,  exploit:'PoC Exploit',        assets:3, source:'unique_ced' },
+  { id:'CVE-2024-9912',  title:'PHP Version Information Disclosure via HTTP Response Headers',                tc:true,  exploit:'No Public Exploit', assets:0, source:'unique_ced' },
+  { id:'CVE-2024-3094',  title:'XZ Utils Backdoor — Malicious Code in Compression Library',                  tc:true,  exploit:'Actively Exploited', assets:2, source:'truconfirm' },
 ];
 
 // SVG reused for empty-state cards
@@ -2724,7 +2725,7 @@ function renderCveContent(){
     const assetHtml = c.assets > 0
       ? `<div class="tc-cve-asset"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><span class="tc-asset-num">${c.assets}</span></div>`
       : `<span style="color:var(--text-muted)">—</span>`;
-    const tcBadge = c.tc
+    const tcBadge = c.tc && c.source !== 'unique_ced'
       ? `<div class="tc-cve-tc-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>TruConfirm Validation Available</div>`
       : '';
     return `<tr class="tc-cve-row">
@@ -2815,40 +2816,28 @@ function closeCvePickerModal(){
 }
 
 function renderCvePickerList(){
-  const tbody = $('tc-cve-picker-tbody');
-  if(!tbody) return;
+  const truconfirmList = $('tc-cve-picker-truconfirm');
+  const uniqueList = $('tc-cve-picker-unique');
+  if(!truconfirmList || !uniqueList) return;
   const q = ($('tc-cve-search')&&$('tc-cve-search').value||'').toLowerCase();
   const filtered = TC_CVE_PICKER.filter(c =>
     c.id.toLowerCase().includes(q) || c.title.toLowerCase().includes(q)
   );
-  if(!filtered.length){
-    tbody.innerHTML = `<tr><td colspan="4" style="text-align:center;padding:24px;color:var(--text-muted)">No CVEs match your search.</td></tr>`;
-    return;
-  }
-  tbody.innerHTML = filtered.map((c,i) => {
-    const alreadyAdded = !!_tcSelectedCves.find(x=>x.id===c.id);
-    const assetHtml = c.assets > 0
-      ? `<div class="tc-cve-asset"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><span class="tc-asset-num">${c.assets}</span></div>`
-      : `<span style="color:var(--text-muted)">—</span>`;
-    const tcBadge = c.tc
-      ? `<div class="tc-cve-tc-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>TruConfirm Validation Available</div>`
-      : '';
-    return `<tr class="tc-cve-row${alreadyAdded?' tc-cve-row-added':''}">
-      <td><input type="checkbox" class="tc-cve-pick-cb" data-id="${escHtml(c.id)}" ${alreadyAdded?'checked disabled':''}></td>
-      <td>
-        <div class="tc-cve-id">${escHtml(c.id)}</div>
-        <div class="tc-cve-title-sub">${escHtml(c.title.length>80?c.title.substring(0,80)+'…':c.title)}</div>
-      </td>
-      <td>
-        <div class="tc-cve-expl-row">
-          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
-          <span class="tc-cve-expl-txt">${escHtml(c.exploit)}</span>
-        </div>
-        ${tcBadge}
-      </td>
-      <td>${assetHtml}</td>
-    </tr>`;
-  }).join('');
+  const renderPanel = (source) => {
+    const cves = filtered.filter(c=>c.source===source);
+    if(!cves.length){
+      return `<div class="tc-cve-picker-empty">No CVEs match your search.</div>`;
+    }
+    return cves.map(c => {
+      const alreadyAdded = !!_tcSelectedCves.find(x=>x.id===c.id);
+      return `<label class="tc-cve-picker-item${alreadyAdded?' tc-cve-row-added':''}">
+        <input type="checkbox" class="tc-cve-pick-cb" data-id="${escHtml(c.id)}" data-source="${escHtml(source)}" ${alreadyAdded?'checked disabled':''}>
+        <span>${escHtml(c.id)}</span>
+      </label>`;
+    }).join('');
+  };
+  truconfirmList.innerHTML = renderPanel('truconfirm');
+  uniqueList.innerHTML = renderPanel('unique_ced');
 }
 
 function tcCvePickAll(masterCb){
@@ -2860,8 +2849,17 @@ function addSelectedCves(){
   checked.forEach(cb => {
     const id = cb.dataset.id;
     const cve = TC_CVE_PICKER.find(c=>c.id===id);
-    if(cve && !_tcSelectedCves.find(x=>x.id===id)) _tcSelectedCves.push({...cve, scanMode:'cev_only'});
+    if(cve && !_tcSelectedCves.find(x=>x.id===id)){
+      const isUniqueCed = cb.dataset.source === 'unique_ced';
+      const isTruConfirm = cb.dataset.source === 'truconfirm';
+      const associatedWithCed = isUniqueCed ? true : isTruConfirm ? Math.random() >= 0.5 : cve.tc;
+      _tcSelectedCves.push({...cve, tc: associatedWithCed, scanMode:'cev_only'});
+    }
   });
+  const truConfirmSelections = _tcSelectedCves.filter(c=>c.source==='truconfirm');
+  if(truConfirmSelections.length && !truConfirmSelections.some(c=>c.tc===false)){
+    truConfirmSelections[Math.floor(Math.random() * truConfirmSelections.length)].tc = false;
+  }
   renderCveContent();
   closeCvePickerModal();
 }
