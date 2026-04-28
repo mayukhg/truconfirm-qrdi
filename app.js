@@ -3183,10 +3183,10 @@ function renderCveContent(){
   const grpTc = [];
   
   _tcSelectedCves.forEach((c, idx) => {
-    const orig = TC_CVE_PICKER.find(x => x.id === c.id);
-    const supportsCED = orig ? (orig.tc || c.fromCev) : false;
-    if(!supportsCED) grpTc.push({c, idx});
-    else if(c.fromCev) grpCed.push({c, idx});
+    const orig = TC_CVE_PICKER.find(x => x.id === c.id) || c;
+    const typeStr = orig.tc ? 'tc_ced' : (orig.source === 'unique_ced' ? 'ced' : 'tc');
+    if(typeStr === 'tc') grpTc.push({c, idx});
+    else if(typeStr === 'ced') grpCed.push({c, idx});
     else grpBoth.push({c, idx});
   });
 
@@ -3199,7 +3199,8 @@ function renderCveContent(){
         : `<span style="color:var(--text-muted)">—</span>`;
 
       // Taxonomy Badge
-      const typeStr = c.tc ? 'tc_ced' : (c.fromCev ? 'ced' : 'tc');
+      const orig = TC_CVE_PICKER.find(x => x.id === c.id) || c;
+      const typeStr = orig.tc ? 'tc_ced' : (orig.source === 'unique_ced' ? 'ced' : 'tc');
       let typeBadgeHtml = '';
       if(typeStr === 'tc') {
         typeBadgeHtml = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(59,130,246,0.1);color:var(--accent);">TC</span>`;
@@ -3209,13 +3210,11 @@ function renderCveContent(){
         typeBadgeHtml = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;">CED</span>`;
       }
       
-      const orig = TC_CVE_PICKER.find(x => x.id === c.id);
-      const supportsCED = orig ? (orig.tc || c.fromCev) : false;
       let validationHtml = '';
       
-      if (!supportsCED) {
+      if (typeStr === 'tc') {
         validationHtml = `<div style="color:var(--text-muted);font-size:12px;padding:4px 0;font-weight:500;">TruConfirm scan <span style="color:var(--text-tertiary);opacity:0.6;">(auto)</span></div>`;
-      } else if(c.fromCev){
+      } else if(typeStr === 'ced'){
         validationHtml = `
           <div style="display:flex;align-items:center;gap:12px">
             <div style="color:var(--text-muted);font-size:12px;padding:4px 0;font-weight:500;">CED scan</div>
@@ -3646,10 +3645,10 @@ function tcAssessGoReview(){
     const grpTc = [];
 
     _tcSelectedCves.forEach((c, idx) => {
-      const orig = TC_CVE_PICKER.find(x => x.id === c.id);
-      const supportsCED = orig ? (orig.tc || c.fromCev) : false;
-      if(!supportsCED) grpTc.push({c, idx});
-      else if(c.fromCev) grpCed.push({c, idx});
+      const orig = TC_CVE_PICKER.find(x => x.id === c.id) || c;
+      const typeStr = orig.tc ? 'tc_ced' : (orig.source === 'unique_ced' ? 'ced' : 'tc');
+      if(typeStr === 'tc') grpTc.push({c, idx});
+      else if(typeStr === 'ced') grpCed.push({c, idx});
       else grpBoth.push({c, idx});
     });
 
