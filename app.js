@@ -3128,14 +3128,16 @@ function renderCveContent(){
     return;
   }
 
-  const grpTcOnly = [];
   const grpBoth = [];
-  const grpCedOnly = [];
+  const grpCed = [];
+  const grpTc = [];
   
   _tcSelectedCves.forEach((c, idx) => {
-    if (c.scanMode === 'tc_only') grpTcOnly.push({c, idx});
-    else if (c.scanMode === 'both') grpBoth.push({c, idx});
-    else grpCedOnly.push({c, idx});
+    const orig = TC_CVE_PICKER.find(x => x.id === c.id);
+    const supportsCED = orig ? (orig.tc || c.fromCev) : false;
+    if(!supportsCED) grpTc.push({c, idx});
+    else if(c.fromCev) grpCed.push({c, idx});
+    else grpBoth.push({c, idx});
   });
 
   function renderRowsForGroup(grp) {
@@ -3167,7 +3169,7 @@ function renderCveContent(){
         validationHtml = `
           <div style="display:flex;align-items:center;gap:12px">
             <div style="color:var(--text-muted);font-size:12px;padding:4px 0;font-weight:500;">CED scan</div>
-            <label class="tc-test-mode-wrap" title="CED scan will validate the exploit but will not update your scan results or findings. Use this to verify the detection works before running in production.">
+            <label class="tc-test-mode-wrap tc-tooltip" data-tooltip="CED scan will validate the exploit but will not update your scan results or findings. Use this to verify the detection works before running in production.">
               <input type="checkbox" class="tc-test-mode-cb" ${c.testMode?'checked':''} onchange="tcUpdateCveConfig(${idx}, 'testMode', this.checked)">
               Run CED scan in Test Mode
             </label>
@@ -3176,12 +3178,12 @@ function renderCveContent(){
         validationHtml = `
           <div style="display:flex;align-items:center;gap:12px">
             <select class="tc-badge-select" onchange="tcUpdateCveConfig(${idx}, 'scanMode', this.value)">
-              <option value="both" ${c.scanMode==='both'?'selected':''}>Run both TC and CED scans</option>
+              <option value="both" ${c.scanMode==='both'?'selected':''}>Both TruConfirm and CED scans</option>
               <option value="ced_only" ${c.scanMode==='ced_only'?'selected':''}>CED scan only</option>
               <option value="tc_only" ${c.scanMode==='tc_only'?'selected':''}>TruConfirm scan only</option>
             </select>
             ${c.scanMode !== 'tc_only' ? `
-            <label class="tc-test-mode-wrap" title="CED scan will validate the exploit but will not update your scan results or findings. Use this to verify the detection works before running in production.">
+            <label class="tc-test-mode-wrap tc-tooltip" data-tooltip="CED scan will validate the exploit but will not update your scan results or findings. Use this to verify the detection works before running in production.">
               <input type="checkbox" class="tc-test-mode-cb" ${c.testMode?'checked':''} onchange="tcUpdateCveConfig(${idx}, 'testMode', this.checked)">
               Run CED scan in Test Mode
             </label>` : ''}
@@ -3257,9 +3259,9 @@ function renderCveContent(){
         <th>IMPACTED ASSETS</th>
         <th style="width:32px"></th>
       </tr></thead>
-      ${renderGroupTbody(grpBoth, 'Run both TruConfirm and CED scans')}
-      ${renderGroupTbody(grpCedOnly, 'Run CED scan only')}
-      ${renderGroupTbody(grpTcOnly, 'Run TruConfirm scan only')}
+      ${renderGroupTbody(grpBoth, 'TruConfirm + CED')}
+      ${renderGroupTbody(grpCed, 'Unique · CED')}
+      ${renderGroupTbody(grpTc, 'TruConfirm only')}
     </table>
   </div>`;
 }
