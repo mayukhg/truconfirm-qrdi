@@ -1,14 +1,14 @@
 @echo off
-title TruConfirm QRDI — Startup
+title TruConfirm QRDI - Startup
 color 0A
 
 echo.
 echo  ===============================================
-echo   TruConfirm QRDI — Starting Services
+echo   TruConfirm QRDI - Starting Services
 echo  ===============================================
 echo.
 
-REM ── Check Node.js ──────────────────────────────
+REM -- Check Node.js --
 where node >nul 2>&1
 if %errorlevel% neq 0 (
     echo  [ERROR] Node.js not found. Install from https://nodejs.org
@@ -16,7 +16,7 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-REM ── Check Python ───────────────────────────────
+REM -- Check Python --
 where python >nul 2>&1
 if %errorlevel% neq 0 (
     echo  [ERROR] Python not found. Install from https://python.org
@@ -24,32 +24,32 @@ if %errorlevel% neq 0 (
     exit /b 1
 )
 
-REM ── Install backend dependencies if needed ─────
+REM -- Install backend dependencies if needed --
 if not exist "%~dp0backend\node_modules" (
     echo  [INFO] Installing backend dependencies...
-    cd /d "%~dp0backend"
+    pushd "%~dp0backend"
     call npm install --silent
-    cd /d "%~dp0"
+    popd
     echo  [OK] Dependencies installed
 )
 
-REM ── Start backend on port 3001 ──────────────────
+REM -- Start backend on port 3001 --
 echo  [1/2] Starting backend server on port 3001...
-start "TruConfirm QRDI Backend" /min cmd /c "cd /d "%~dp0backend" && node server.js"
+start "TruConfirm QRDI Backend" /min /d "%~dp0backend" cmd /c "node server.js"
 timeout /t 2 /nobreak >nul
 
-REM ── Start frontend on port 8888 (no-cache) ────────
+REM -- Start frontend on port 8888 (no-cache) --
 echo  [2/2] Starting frontend server on port 8888...
-start "TruConfirm QRDI Frontend" /min cmd /c "cd /d "%~dp0" && python serve.py"
+start "TruConfirm QRDI Frontend" /min /d "%~dp0" cmd /c "python serve.py"
 timeout /t 2 /nobreak >nul
 
-REM ── Open browser ────────────────────────────────
+REM -- Open browser --
 echo.
 echo  ===============================================
 echo   Both servers are running!
 echo.
-echo   App     -^>  http://localhost:8888
-echo   API     -^>  http://localhost:3001/api
+echo   App    ->  http://localhost:8888
+echo   API    ->  http://localhost:3001/api
 echo.
 echo   Close this window or run stop.bat to stop.
 echo  ===============================================
