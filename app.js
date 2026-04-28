@@ -2640,6 +2640,7 @@ const TC_CVE_PICKER = [
   { id:'CVE-2024-5678',  title:'SMB Protocol Version Negotiation Information Disclosure',                     tc:true,  exploit:'PoC Exploit',        assets:3, source:'unique_ced' },
   { id:'CVE-2024-9912',  title:'PHP Version Information Disclosure via HTTP Response Headers',                tc:true,  exploit:'No Public Exploit', assets:0, source:'unique_ced' },
   { id:'CVE-2024-3094',  title:'XZ Utils Backdoor — Malicious Code in Compression Library',                  tc:true,  exploit:'Actively Exploited', assets:2, source:'truconfirm' },
+  { id:'CVE-2024-21413', title:'Microsoft Outlook Remote Code Execution Vulnerability',                       tc:false, exploit:'Actively Exploited', assets:14, source:'unique_ced' },
 ];
 
 // SVG reused for empty-state cards
