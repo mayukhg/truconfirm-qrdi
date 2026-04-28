@@ -2713,8 +2713,6 @@ function _cveAssocCell(c, idx){
 function tcToggleCveAssoc(idx, val){
   if(_tcSelectedCves[idx]){
     _tcSelectedCves[idx].tc = val;
-    tcRenderInlineChips();
-    tcFilterInlineDropdown();
     renderCveContent();
   }
 }
@@ -3125,7 +3123,7 @@ function renderCveContent(){
         <div class="tc-tags-scope-title">Select CVEs</div>
         <div class="tc-tags-scope-sub">These CVEs will be validated on the selected assets.</div>
       </div>
-      <button class="tc-tags-add-btn" onclick="document.getElementById('tc-inline-search-input').focus()">${_TC_PLUS_SVG}</button>
+      <button class="tc-tags-add-btn" onclick="openCvePickerModal()">${_TC_PLUS_SVG}</button>
     </div>`;
     return;
   }
@@ -3217,6 +3215,7 @@ function renderCveContent(){
   cont.innerHTML = `<div class="tc-cve-table-card">
     <div class="tc-cve-table-hdr">
       <span class="tc-cve-table-title">Selected CVEs</span>
+      <button class="tc-tags-add-btn" style="width:28px;height:28px" onclick="openCvePickerModal()">${_TC_PLUS_SVG}</button>
     </div>
     <div class="tc-cve-table-actions" style="display:flex; align-items:center; width:100%;">
       <a class="tc-link" href="#" onclick="tcClearCves();return false">Clear All</a>
@@ -3287,26 +3286,60 @@ function tcAddCveClick(){
 // ── CVE Picker Modal ──────────────────────────────────────
 let _tcCveFilter = 'all';
 
-function tcShowInlineDropdown() {
-  const dd = $('tc-inline-search-dropdown');
-  if(dd) dd.style.display = 'block';
-  tcFilterInlineDropdown();
+function openCvePickerModal(){
+  $('tc-cve-modal').style.display = 'flex';
+  const search = $('tc-cve-search');
+  if(search) search.value = '';
+  _tcCveFilter = 'all';
+  
+  const total = TC_CVE_PICKER.length;
+  const customCount = TC_CVE_PICKER.filter(c => c.source === 'unique_ced' || c.tc).length;
+  const nativeCount = total - customCount;
+  const pills = document.querySelectorAll('.tc-facet-pill');
+  if(pills.length >= 3){
+    pills[0].textContent = `All (${total})`;
+    pills[1].textContent = `TruConfirm Native (${nativeCount})`;
+    pills[2].textContent = `Custom Exploit Detection (${customCount})`;
+  }
+  
+  tcRenderCveFacets();
+  renderCvePickerList();
 }
 
-function tcHideInlineDropdown() {
-  const dd = $('tc-inline-search-dropdown');
-  if(dd) dd.style.display = 'none';
+function closeCvePickerModal(){
+  $('tc-cve-modal').style.display = 'none';
 }
 
-function tcFilterInlineDropdown() {
-  const listEl = $('tc-inline-search-dropdown');
+function tcCveFilter(f){
+  _tcCveFilter = f;
+  tcRenderCveFacets();
+  renderCvePickerList();
+}
+
+function tcRenderCveFacets(){
+  const pills = document.querySelectorAll('.tc-facet-pill');
+  if(!pills.length) return;
+  pills.forEach(p => p.classList.remove('active'));
+  if(_tcCveFilter === 'all') pills[0].classList.add('active');
+  if(_tcCveFilter === 'native') pills[1].classList.add('active');
+  if(_tcCveFilter === 'custom') pills[2].classList.add('active');
+}
+
+function renderCvePickerList(){
+  const listEl = $('tc-cve-picker-list');
   if(!listEl) return;
-  const q = ($('tc-inline-search-input')&&$('tc-inline-search-input').value||'').toLowerCase();
+  const q = ($('tc-cve-search')&&$('tc-cve-search').value||'').toLowerCase();
   
   let filtered = TC_CVE_PICKER.filter(c => c.id.toLowerCase().includes(q) || c.title.toLowerCase().includes(q));
+  
+  if(_tcCveFilter === 'native'){
+    filtered = filtered.filter(c => !c.tc && c.source !== 'unique_ced');
+  } else if(_tcCveFilter === 'custom'){
+    filtered = filtered.filter(c => c.tc || c.source === 'unique_ced');
+  }
 
   if(!filtered.length){
-    listEl.innerHTML = `<div style="padding:16px;color:var(--text-muted);text-align:center;font-size:12px">No CVEs match your search.</div>`;
+    listEl.innerHTML = `<div style="padding:20px;color:var(--text-muted);text-align:center">No CVEs match your search.</div>`;
     return;
   }
   
@@ -3322,7 +3355,7 @@ function tcFilterInlineDropdown() {
     const explBadge = `<span style="display:inline-block;background:${explBg};color:${explColor};border:1px solid ${explBorder};border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600;margin-right:8px;">${c.exploit}</span>`;
     const assetBadge = `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted);"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>${c.assets} Assets</span>`;
 
-    return `<label class="tc-inline-dropdown-item" style="padding:12px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:flex-start;gap:12px;">
+    return `<label class="tc-cve-list-item" style="padding:12px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:flex-start;gap:12px;">
       <input type="checkbox" style="margin-top:2px" ${isAdded?'checked':''} onchange="tcTogglePickerCve('${c.id}', this.checked)">
       <div style="flex:1;">
         <div style="display:flex;align-items:center;gap:6px;">
@@ -3340,17 +3373,6 @@ function tcFilterInlineDropdown() {
   }).join('');
 }
 
-function tcRenderInlineChips() {
-  const cEl = $('tc-inline-chips-container');
-  if(!cEl) return;
-  cEl.innerHTML = _tcSelectedCves.map(c => `
-    <div class="tc-chip" style="display:inline-flex;align-items:center;gap:6px;padding:4px 10px;background:rgba(255,255,255,0.05);border:1px solid var(--border);border-radius:16px;font-size:12px;color:var(--text-primary);">
-      ${escHtml(c.id)}
-      <span class="tc-chip-close" style="cursor:pointer;color:var(--text-muted);" onclick="tcTogglePickerCve('${c.id}', false)">✕</span>
-    </div>
-  `).join('');
-}
-
 function tcTogglePickerCve(id, checked){
   if(checked){
     const cve = TC_CVE_PICKER.find(c=>c.id===id);
@@ -3365,6 +3387,7 @@ function tcTogglePickerCve(id, checked){
   } else {
     _tcSelectedCves = _tcSelectedCves.filter(x => x.id !== id);
   }
+  renderCvePickerList();
   renderCveContent();
 }
 
@@ -3395,8 +3418,6 @@ function tcRemoveSelectedRows() {
   const ids = tcGetSelectedRowIds();
   if(!ids.length) return;
   _tcSelectedCves = _tcSelectedCves.filter(c => !ids.includes(c.id));
-  tcRenderInlineChips();
-  tcFilterInlineDropdown();
   renderCveContent();
 }
 function tcBulkUpdateScanModeUI(mode) {
