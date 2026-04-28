@@ -3162,7 +3162,7 @@ function renderCveContent(){
             <div class="tc-badge-native" style="width:fit-content">Custom Exploit Detection (CED) Scan</div>
             <label class="tc-test-mode-wrap" title="CED scan will validate the exploit but will not update your scan results or findings. Use this to verify the detection works before running in production.">
               <input type="checkbox" class="tc-test-mode-cb" ${c.testMode?'checked':''} onchange="tcUpdateCveConfig(${idx}, 'testMode', this.checked)">
-              Run scan in test mode
+              Run CED scan in Test Mode
             </label>
           </div>`;
       } else {
@@ -3176,7 +3176,7 @@ function renderCveContent(){
             ${c.scanMode !== 'tc_only' ? `
             <label class="tc-test-mode-wrap" title="CED scan will validate the exploit but will not update your scan results or findings. Use this to verify the detection works before running in production.">
               <input type="checkbox" class="tc-test-mode-cb" ${c.testMode?'checked':''} onchange="tcUpdateCveConfig(${idx}, 'testMode', this.checked)">
-              Run scan in test mode
+              Run CED scan in Test Mode
             </label>` : ''}
           </div>
         `;
@@ -3232,7 +3232,7 @@ function renderCveContent(){
         </select>
         <label class="tc-test-mode-wrap">
           <input type="checkbox" class="tc-test-mode-cb" onchange="tcBulkUpdateTestModeUI(this.checked)">
-          Run scan in test mode
+          Run CED scan in Test Mode
         </label>
       </div>
     </div>
