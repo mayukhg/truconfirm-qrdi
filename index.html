@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8" /><meta name="viewport" content="width=device-width,initial-scale=1" />
 <title>TruConfirm – KnowledgeBase</title>
-<link rel="stylesheet" href="styles.css?v=56" />
+<link rel="stylesheet" href="styles.css?v=60" />
 </head>
 <body>
 
@@ -30,8 +30,11 @@
     <button class="inav" title="Dashboard">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg>
     </button>
-    <button class="inav on" title="TruConfirm">
+    <button class="inav on" id="inav-tc" title="Knowledge Base" onclick="switchNavPanel('tc')">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+    </button>
+    <button class="inav" id="inav-rm" title="Risk Management" onclick="switchNavPanel('rm')">
+      <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="18" y1="20" x2="18" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="6" y1="20" x2="6" y2="14"/></svg>
     </button>
     <button class="inav" title="Assets">
       <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg>
@@ -407,6 +410,189 @@
     </div><!-- /kb-layout -->
     </div><!-- /view-kb -->
   </div><!-- /main-area -->
+
+  <!-- ══ RISK MANAGEMENT AREA ══ -->
+  <div class="rm-area" id="rm-area" style="display:none">
+
+    <!-- Top bar: module title + sub-nav -->
+    <div class="rm-topbar">
+      <div class="rm-module-hdr">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="M9 12l2 2 4-4"/></svg>
+        <span>Risk Management</span>
+      </div>
+      <nav class="rm-subnav">
+        <button class="rm-stab on" id="rm-stab-findings"      onclick="rmSetSubNav('findings')">Findings</button>
+        <button class="rm-stab"    id="rm-stab-workbench"     onclick="rmSetSubNav('workbench')">Risk Workbench</button>
+        <button class="rm-stab"    id="rm-stab-customization" onclick="rmSetSubNav('customization')">Risk Customization</button>
+        <button class="rm-stab"    id="rm-stab-mitre"         onclick="rmSetSubNav('mitre')">MITRE ATT&amp;CK Matrix</button>
+        <button class="rm-stab"    id="rm-stab-rules"         onclick="rmSetSubNav('rules')">Finding Rules</button>
+      </nav>
+    </div>
+
+    <!-- Secondary filter row -->
+    <div class="rm-sec-filter">
+      <button class="rm-sf-btn on" id="rm-sf-all"             onclick="rmSetTypeFilter('all')">All</button>
+      <button class="rm-sf-btn"    id="rm-sf-vulnerability"   onclick="rmSetTypeFilter('vulnerability')">Vulnerabilities</button>
+      <button class="rm-sf-btn"    id="rm-sf-misconfiguration" onclick="rmSetTypeFilter('misconfiguration')">Misconfigurations</button>
+    </div>
+
+    <!-- Findings view (body) -->
+    <div class="rm-body" id="rm-findings-view">
+
+      <!-- ── Left Sidebar ── -->
+      <div class="rm-sidebar">
+        <div class="rm-sb-total">
+          <div class="rm-sb-total-num">2.72M</div>
+          <div class="rm-sb-total-lbl">Total Findings</div>
+        </div>
+        <div class="rm-sb-qf-hdr">Quick Filters</div>
+
+        <!-- Type -->
+        <div class="rm-sb-sect">
+          <div class="rm-sb-sect-hdr" data-sect="type" onclick="rmToggleSect('type')">
+            <span class="rm-sb-sect-lbl">Type</span><span class="rm-sb-chev">▾</span>
+          </div>
+          <div id="rm-sect-type">
+            <div class="rm-sb-item" data-cat="type" data-val="vulnerability"    onclick="rmToggleFilter('type','vulnerability')"><span>VULNERABILITY</span><span class="rm-sb-cnt">2.35M</span></div>
+            <div class="rm-sb-item" data-cat="type" data-val="misconfiguration" onclick="rmToggleFilter('type','misconfiguration')"><span>MISCONFIGU...</span><span class="rm-sb-cnt">368K</span></div>
+          </div>
+        </div>
+
+        <!-- QVSS Base -->
+        <div class="rm-sb-sect">
+          <div class="rm-sb-sect-hdr" data-sect="qvss" onclick="rmToggleSect('qvss')">
+            <span class="rm-sb-sect-lbl">QVSS Base</span><span class="rm-sb-chev">▾</span>
+          </div>
+          <div id="rm-sect-qvss">
+            <div class="rm-sb-item" data-cat="qvss" data-val="low"      onclick="rmToggleFilter('qvss','low')"><span>LOW</span><span class="rm-sb-cnt">1.83M</span></div>
+            <div class="rm-sb-item" data-cat="qvss" data-val="medium"   onclick="rmToggleFilter('qvss','medium')"><span>MEDIUM</span><span class="rm-sb-cnt">457K</span></div>
+            <div class="rm-sb-item" data-cat="qvss" data-val="high"     onclick="rmToggleFilter('qvss','high')"><span>HIGH</span><span class="rm-sb-cnt">218K</span></div>
+            <div class="rm-sb-item" data-cat="qvss" data-val="critical" onclick="rmToggleFilter('qvss','critical')"><span>CRITICAL</span><span class="rm-sb-cnt">207K</span></div>
+          </div>
+        </div>
+
+        <!-- Status -->
+        <div class="rm-sb-sect">
+          <div class="rm-sb-sect-hdr" data-sect="status" onclick="rmToggleSect('status')">
+            <span class="rm-sb-sect-lbl">Status</span><span class="rm-sb-chev">▾</span>
+          </div>
+          <div id="rm-sect-status">
+            <div class="rm-sb-item" data-cat="status" data-val="active"   onclick="rmToggleFilter('status','active')"><span>ACTIVE</span><span class="rm-sb-cnt">2.32M</span></div>
+            <div class="rm-sb-item" data-cat="status" data-val="fail"     onclick="rmToggleFilter('status','fail')"><span>FAIL</span><span class="rm-sb-cnt">368K</span></div>
+            <div class="rm-sb-item" data-cat="status" data-val="new"      onclick="rmToggleFilter('status','new')"><span>NEW</span><span class="rm-sb-cnt">26.5K</span></div>
+            <div class="rm-sb-item" data-cat="status" data-val="reopened" onclick="rmToggleFilter('status','reopened')"><span>REOPENED</span><span class="rm-sb-cnt">369</span></div>
+          </div>
+        </div>
+
+        <!-- Scan Mode -->
+        <div class="rm-sb-sect">
+          <div class="rm-sb-sect-hdr" data-sect="scanmode" onclick="rmToggleSect('scanmode')">
+            <span class="rm-sb-sect-lbl">Scan Mode</span><span class="rm-sb-chev">▾</span>
+          </div>
+          <div id="rm-sect-scanmode">
+            <div class="rm-sb-item" data-cat="scanMode" data-val="production" onclick="rmToggleFilter('scanMode','production')"><span>Production</span></div>
+            <div class="rm-sb-item" data-cat="scanMode" data-val="test"       onclick="rmToggleFilter('scanMode','test')"><span>Test</span></div>
+          </div>
+        </div>
+
+        <!-- Source -->
+        <div class="rm-sb-sect">
+          <div class="rm-sb-sect-hdr" data-sect="source" onclick="rmToggleSect('source')">
+            <span class="rm-sb-sect-lbl">Source</span><span class="rm-sb-chev">▾</span>
+          </div>
+          <div id="rm-sect-source">
+            <div class="rm-sb-item" data-cat="source" data-val="orca"    onclick="rmToggleFilter('source','orca')"><span>Orca Security</span><span class="rm-sb-cnt">1M</span></div>
+            <div class="rm-sb-item" data-cat="source" data-val="claroty" onclick="rmToggleFilter('source','claroty')"><span>Claroty xDome</span><span class="rm-sb-cnt">403K</span></div>
+            <div class="rm-sb-item" data-cat="source" data-val="csam"    onclick="rmToggleFilter('source','csam')"><span>CSAM</span><span class="rm-sb-cnt">361K</span></div>
+            <div class="rm-sb-item" data-cat="source" data-val="wiz"     onclick="rmToggleFilter('source','wiz')"><span>Wiz</span><span class="rm-sb-cnt">285K</span></div>
+            <div class="rm-sb-item" data-cat="source" data-val="vmdr"    onclick="rmToggleFilter('source','vmdr')"><span>Qualys-VMDR</span><span class="rm-sb-cnt">279K</span></div>
+            <div class="rm-sb-item rm-sb-ced" data-cat="source" data-val="ced" onclick="rmToggleFilter('source','ced')"><span>Custom Exploit Detection</span><span class="rm-sb-cnt">5</span></div>
+            <div class="rm-sb-more">31 more ▾</div>
+          </div>
+        </div>
+      </div><!-- /rm-sidebar -->
+
+      <!-- ── Main Content ── -->
+      <div class="rm-main">
+
+        <!-- Debug notice (shown when debug findings exist) -->
+        <div class="rm-debug-notice" id="rm-debug-notice" style="display:none">
+          <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+          <span id="rm-debug-msg"></span>
+        </div>
+
+        <!-- Stats chips -->
+        <div class="rm-stats-row">
+          <div class="rm-chip" data-chip="cisaKev"    onclick="rmToggleChip('cisaKev')"><div class="rm-chip-num">190K</div><div class="rm-chip-lbl">CISA KEV</div><svg class="rm-chip-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><path d="M12 8v4m0 4h.01"/></svg></div>
+          <div class="rm-chip" data-chip="ransomware" onclick="rmToggleChip('ransomware')"><div class="rm-chip-num">39.2K</div><div class="rm-chip-lbl">Ransomware</div><svg class="rm-chip-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg></div>
+          <div class="rm-chip" data-chip="patchable"  onclick="rmToggleChip('patchable')"><div class="rm-chip-num">79.4K</div><div class="rm-chip-lbl">Critical Patchable Findings</div><svg class="rm-chip-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg></div>
+          <div class="rm-chip" data-chip="age90"      onclick="rmToggleChip('age90')"><div class="rm-chip-num">1.13M</div><div class="rm-chip-lbl">Detection Age &gt; 90 Days</div><svg class="rm-chip-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg></div>
+          <div class="rm-chip" data-chip="critical"   onclick="rmToggleChip('critical')"><div class="rm-chip-num">207K</div><div class="rm-chip-lbl">Critical Vulnerabilities</div><svg class="rm-chip-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg></div>
+          <div class="rm-chip" data-chip="ports"      onclick="rmToggleChip('ports')"><div class="rm-chip-num">960</div><div class="rm-chip-lbl">Unauthorized Open Ports</div><svg class="rm-chip-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg></div>
+          <div class="rm-chip" data-chip="software"   onclick="rmToggleChip('software')"><div class="rm-chip-num">6</div><div class="rm-chip-lbl">Unauthorized Software</div><svg class="rm-chip-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><polyline points="16 18 22 12 16 6"/><polyline points="8 6 2 12 8 18"/></svg></div>
+          <div class="rm-chip" data-chip="eol"        onclick="rmToggleChip('eol')"><div class="rm-chip-num">106</div><div class="rm-chip-lbl">EOL / EOS</div><svg class="rm-chip-ico" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg></div>
+        </div>
+
+        <!-- Toolbar -->
+        <div class="rm-toolbar">
+          <div class="rm-tb-left">
+            <input type="checkbox" style="width:14px;height:14px;accent-color:var(--accent)">
+            <button class="btn btn-s btn-sm">Actions (0) <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <div class="rm-toggle-grp">
+              <button class="rm-toggle-btn">Asset</button>
+              <button class="rm-toggle-btn on">Finding</button>
+            </div>
+            <button class="btn btn-s btn-sm">Group by <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+            <button class="btn btn-s btn-sm"><svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg> Filters <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg></button>
+          </div>
+          <div class="rm-tb-right">
+            <button class="scan-pg-btn">&#8249;</button>
+            <span class="rm-pg-info" id="rm-pg-info">1 / 1 pages</span>
+            <button class="scan-pg-btn">&#8250;</button>
+            <span class="rm-pg-total" id="rm-pg-total">Total 8</span>
+          </div>
+        </div>
+
+        <!-- QQL Search Bar -->
+        <div class="rm-qql-wrap">
+          <div class="rm-qql-bar">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2" style="flex-shrink:0"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <div class="rm-qql-tokens" id="rm-qql-tokens"></div>
+            <input class="rm-qql-input" id="rm-qql-input" type="text"
+              placeholder="Search or enter QQL (e.g. truconfirm.customDetection:true)"
+              oninput="rmQqlInput(this.value)" onkeydown="rmQqlKeydown(event)">
+          </div>
+          <div class="rm-qql-suggestions" id="rm-qql-suggestions" style="display:none"></div>
+        </div>
+
+        <!-- Findings table -->
+        <div class="rm-tbl-wrap">
+          <table class="rm-tbl">
+            <thead>
+              <tr>
+                <th style="width:28px"><input type="checkbox"></th>
+                <th>Title</th>
+                <th>Technology / Category</th>
+                <th>QVSS Base <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></th>
+                <th>Sources</th>
+                <th>Impacted Asset</th>
+                <th>Supporting Artifacts</th>
+                <th>LifeCycle</th>
+                <th>TruRisk™ Score</th>
+              </tr>
+            </thead>
+            <tbody id="rm-findings-tbody"></tbody>
+          </table>
+        </div>
+
+      </div><!-- /rm-main -->
+    </div><!-- /rm-findings-view -->
+
+    <!-- Placeholder for non-Findings sub-nav tabs -->
+    <div id="rm-placeholder" style="display:none;flex:1;align-items:center;justify-content:center;color:var(--text-muted);font-size:14px"></div>
+
+  </div><!-- /rm-area -->
+
 </div><!-- /shell -->
 
 <!-- ══════════════════════════════════════════
@@ -1230,7 +1416,7 @@
 <!-- TOASTS -->
 <div class="toast-c" id="toast-c"></div>
 
-<script src="app.js?v=58"></script>
+<script src="app.js?v=61"></script>
 <script>
 // Template snippets
 const TEMPLATES = {

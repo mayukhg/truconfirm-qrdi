@@ -2676,9 +2676,16 @@ function renderSelectedTags(){
 }
 
 function _cveAssocCell(c, idx){
-  // CVEs from the right-panel (Unique CVEs with CEV) → locked "Yes", no toggle, no radios
+  // CVEs from the right-panel (Unique CVEs with CEV) → locked "Yes" + test-scan checkbox
   if(c.fromCev){
-    return `<span class="tc-assoc-label tc-assoc-yes">Yes</span>`;
+    const chk = c.testScan ? 'checked' : '';
+    return `<div class="tc-cve-assoc-inline">
+      <span class="tc-assoc-label tc-assoc-yes">Yes</span>
+      <label class="tc-cev-testscan-opt">
+        <input type="checkbox" ${chk} onchange="tcToggleCevTestScan(${idx},this.checked)">
+        <span>Run Test scan without impacting scan results</span>
+      </label>
+    </div>`;
   }
   // TruConfirm CVE list → interactive Yes/No toggle + scan-mode radios when Yes
   const isYes = !!c.tc;
@@ -2707,8 +2714,392 @@ function tcToggleCveAssoc(idx, val){
   if(_tcSelectedCves[idx]){
     _tcSelectedCves[idx].tc = val;
     renderCveContent();
-    /* re-attach radio listeners lost after re-render */
   }
+}
+
+function tcToggleCevTestScan(idx, checked){
+  if(_tcSelectedCves[idx]) _tcSelectedCves[idx].testScan = checked;
+}
+
+// ═══════════════════════════════════════════════════════════════
+//  RISK MANAGEMENT MODULE
+// ═══════════════════════════════════════════════════════════════
+
+// ── State ──────────────────────────────────────────────────────
+const RM = {
+  subNav:      'findings',
+  typeFilter:  'all',
+  filters: { type: new Set(), qvss: new Set(), status: new Set(), scanMode: new Set(), source: new Set() },
+  qqlTokens:   [],
+  activeChips: new Set(),
+  sectCollapsed: new Set()
+};
+
+// ── Mock findings data ─────────────────────────────────────────
+const RM_FINDINGS = [
+  { id:'rm1', title:'Apache HTTP Server Remote Code Execution',
+    cve:'CVE-2026-1281', type:'vulnerability', severity:'critical', qvss:9.8,
+    category:'Web Server', sources:['Custom Exploit Detection'],
+    assetLabel:'ip-10-0-1-15', assetId:'818283', assetCount:1,
+    lifecycle:{ firstFound:'Jan 02, 2026', status:'Active' },
+    hostName:'ip-172-31-87-116', ip:'172.31.87.116',
+    trurisk:1000, acs:3,
+    isCustom:true, scanMode:'production',
+    hasConflict:true, conflictNote:'Custom scan: VULNERABLE | Native scan: NOT DETECTED' },
+
+  { id:'rm2', title:'XZ Utils Backdoor — Malicious Code in Compression Library',
+    cve:'CVE-2024-3094', type:'vulnerability', severity:'critical', qvss:10.0,
+    category:'System Library', sources:['Custom Exploit Detection'],
+    assetLabel:'ip-10-0-1-18', assetId:'819102', assetCount:2,
+    lifecycle:{ firstFound:'Feb 14, 2026', status:'Active' },
+    hostName:'ip-172-31-87-118', ip:'172.31.87.118',
+    trurisk:980, acs:3,
+    isCustom:true, scanMode:'production', hasConflict:false },
+
+  { id:'rm3', title:'SMB Protocol Version Negotiation Information Disclosure',
+    cve:'CVE-2024-5678', type:'vulnerability', severity:'medium', qvss:5.3,
+    category:'Network Protocol', sources:['Custom Exploit Detection'],
+    assetLabel:'ip-10-0-3-14', assetId:'820011', assetCount:3,
+    lifecycle:{ firstFound:'Mar 20, 2026', status:'New' },
+    hostName:'ip-172-31-87-120', ip:'172.31.87.120',
+    trurisk:750, acs:2,
+    isCustom:true, scanMode:'test', hasConflict:false },
+
+  { id:'rm4', title:'OpenSSL TLS Certificate Validation Bypass',
+    cve:'CVE-2026-2374', type:'vulnerability', severity:'critical', qvss:9.8,
+    category:'Cryptography', sources:['Qualys VMDR'],
+    assetLabel:'ip-10-0-1-22', assetId:'818290', assetCount:1,
+    lifecycle:{ firstFound:'Jan 12, 2026', status:'Active' },
+    hostName:'ip-172-31-87-116', ip:'172.31.87.116',
+    trurisk:1000, acs:3,
+    isCustom:false, scanMode:'production', hasConflict:false },
+
+  { id:'rm5', title:'Microsoft Exchange ProxyLogon SSRF',
+    cve:'CVE-2025-0891', type:'vulnerability', severity:'high', qvss:7.8,
+    category:'Email Server', sources:['Qualys VMDR','Orca Security'],
+    assetLabel:'ip-10-0-2-10', assetId:'819055', assetCount:1,
+    lifecycle:{ firstFound:'Feb 03, 2026', status:'Active' },
+    hostName:'ip-172-31-87-119', ip:'172.31.87.119',
+    trurisk:900, acs:3,
+    isCustom:false, scanMode:'production', hasConflict:false },
+
+  { id:'rm6', title:'Improper Finite State Machine in SSH Client',
+    cve:'CVE-2024-21853', type:'vulnerability', severity:'low', qvss:3.0,
+    category:'OS / Kernel', sources:['Orca Security'],
+    assetLabel:'ip-172-31-87-11', assetId:'818283', assetCount:1,
+    lifecycle:{ firstFound:'Jan 05, 2026', status:'Active' },
+    hostName:'ip-172-31-87-116', ip:'172.31.87.116',
+    trurisk:1000, acs:3,
+    isCustom:false, scanMode:'production', hasConflict:false },
+
+  { id:'rm7', title:'Terrapin: Protocol Flaw in SSH Enables MITM Attacks',
+    cve:'CVE-2023-48795', type:'vulnerability', severity:'medium', qvss:5.9,
+    category:'Network Protocol', sources:['Custom Exploit Detection'],
+    assetLabel:'ip-10-0-1-20', assetId:'820033', assetCount:1,
+    lifecycle:{ firstFound:'Mar 14, 2026', status:'New' },
+    hostName:'ip-172-31-87-122', ip:'172.31.87.122',
+    trurisk:720, acs:2,
+    isCustom:true, scanMode:'test', hasConflict:false },
+
+  { id:'rm8', title:'BIND/IBM i DNS Denial-of-Service via Malformed Packet',
+    cve:'CVE-2022-3094', type:'vulnerability', severity:'low', qvss:3.5,
+    category:'DNS Service', sources:['Claroty xDome'],
+    assetLabel:'ip-172-31-87-11', assetId:'818283', assetCount:1,
+    lifecycle:{ firstFound:'Jan 11, 2026', status:'Active' },
+    hostName:'ip-172-31-87-116', ip:'172.31.87.116',
+    trurisk:1000, acs:3,
+    isCustom:false, scanMode:'production', hasConflict:false },
+];
+
+// ── QQL autocomplete suggestions ──────────────────────────────
+const QQL_SUGGESTIONS = [
+  { token:'truconfirm.customDetection:true',  desc:'Filter Custom Exploit Detection findings' },
+  { token:'truconfirm.status:test',           desc:'Show Test mode findings only' },
+  { token:'truconfirm.status:production',     desc:'Show Production findings only' },
+  { token:'truconfirm.debugMode:false',       desc:'Exclude debug-mode findings' },
+  { token:'source:customExploit',             desc:'Source = Custom Exploit Detection' },
+  { token:'source:qualysVmdr',               desc:'Source = Qualys VMDR' },
+  { token:'severity:critical',               desc:'Severity = Critical' },
+  { token:'severity:high',                   desc:'Severity = High' },
+  { token:'severity:medium',                 desc:'Severity = Medium' },
+  { token:'severity:low',                    desc:'Severity = Low' },
+];
+
+// ── Navigation ─────────────────────────────────────────────────
+function switchNavPanel(panel){
+  const tcArea = document.querySelector('.main-area');
+  const rmArea = $('rm-area');
+  const tcBtn  = $('inav-tc');
+  const rmBtn  = $('inav-rm');
+  if(panel === 'tc'){
+    if(tcArea) tcArea.style.display = '';
+    if(rmArea) rmArea.style.display = 'none';
+    if(tcBtn)  tcBtn.classList.add('on');
+    if(rmBtn)  rmBtn.classList.remove('on');
+  } else {
+    if(tcArea) tcArea.style.display = 'none';
+    if(rmArea) rmArea.style.display = 'flex';
+    if(tcBtn)  tcBtn.classList.remove('on');
+    if(rmBtn)  rmBtn.classList.add('on');
+    renderRMFindings();
+    rmShowDebugNotice();
+  }
+}
+
+// ── Sub-nav ────────────────────────────────────────────────────
+function rmSetSubNav(tab){
+  RM.subNav = tab;
+  document.querySelectorAll('.rm-stab').forEach(b=>b.classList.remove('on'));
+  const btn = $('rm-stab-'+tab);
+  if(btn) btn.classList.add('on');
+  const bodyEl = $('rm-findings-view');
+  const phEl   = $('rm-placeholder');
+  if(tab === 'findings'){
+    if(bodyEl) bodyEl.style.display = 'flex';
+    if(phEl)   phEl.style.display = 'none';
+  } else {
+    if(bodyEl) bodyEl.style.display = 'none';
+    if(phEl){
+      phEl.style.display = 'flex';
+      const label = tab==='workbench'    ? 'Risk Workbench'
+                  : tab==='customization'? 'Risk Customization'
+                  : tab==='mitre'        ? 'MITRE ATT&CK Matrix'
+                  :                        'Finding Rules';
+      phEl.textContent = label+' — coming soon';
+    }
+  }
+}
+
+// ── Secondary type filter ─────────────────────────────────────
+function rmSetTypeFilter(type){
+  RM.typeFilter = type;
+  document.querySelectorAll('.rm-sf-btn').forEach(b=>b.classList.remove('on'));
+  const btn = $('rm-sf-'+type);
+  if(btn) btn.classList.add('on');
+  renderRMFindings();
+}
+
+// ── Sidebar section toggle ─────────────────────────────────────
+function rmToggleSect(sect){
+  if(RM.sectCollapsed.has(sect)) RM.sectCollapsed.delete(sect);
+  else RM.sectCollapsed.add(sect);
+  const el  = $('rm-sect-'+sect);
+  const hdr = document.querySelector(`.rm-sb-sect-hdr[data-sect="${sect}"]`);
+  if(el)  el.style.display  = RM.sectCollapsed.has(sect) ? 'none' : '';
+  if(hdr) hdr.querySelector('.rm-sb-chev').textContent = RM.sectCollapsed.has(sect) ? '▸' : '▾';
+}
+
+// ── Sidebar filter toggle ──────────────────────────────────────
+function rmToggleFilter(category, value){
+  const set = RM.filters[category];
+  if(!set) return;
+  if(set.has(value)) set.delete(value); else set.add(value);
+  // Visual
+  document.querySelectorAll(`.rm-sb-item[data-cat="${category}"][data-val="${value}"]`)
+    .forEach(el=>el.classList.toggle('on', set.has(value)));
+  // Sync QQL for Scan Mode
+  if(category === 'scanMode'){
+    RM.qqlTokens = RM.qqlTokens.filter(t=>!t.startsWith('truconfirm.status:'));
+    set.forEach(v=>RM.qqlTokens.push('truconfirm.status:'+v));
+    renderQqlTokenChips();
+  }
+  renderRMFindings();
+}
+
+// ── Stats chip toggle ─────────────────────────────────────────
+function rmToggleChip(chip){
+  if(RM.activeChips.has(chip)) RM.activeChips.delete(chip);
+  else RM.activeChips.add(chip);
+  document.querySelectorAll(`.rm-chip[data-chip="${chip}"]`)
+    .forEach(c=>c.classList.toggle('on', RM.activeChips.has(chip)));
+  renderRMFindings();
+}
+
+// ── QQL bar ───────────────────────────────────────────────────
+function rmQqlInput(val){
+  const sugg = $('rm-qql-suggestions');
+  if(!val.trim()){ sugg.style.display='none'; return; }
+  const q = val.toLowerCase();
+  const matches = QQL_SUGGESTIONS.filter(s=>s.token.toLowerCase().includes(q));
+  if(!matches.length){ sugg.style.display='none'; return; }
+  sugg.innerHTML = matches.map(s=>
+    `<div class="rm-qql-sugg-item" onclick="rmAddToken('${escHtml(s.token)}')">
+       <span class="rm-qql-sugg-token">${escHtml(s.token)}</span>
+       <span class="rm-qql-sugg-desc">${escHtml(s.desc)}</span>
+     </div>`
+  ).join('');
+  sugg.style.display = 'block';
+}
+
+function rmQqlKeydown(e){
+  if(e.key==='Enter'){
+    const val = e.target.value.trim();
+    if(val){ rmAddToken(val); e.target.value=''; $('rm-qql-suggestions').style.display='none'; }
+  }
+  if(e.key==='Escape') $('rm-qql-suggestions').style.display='none';
+}
+
+function rmAddToken(token){
+  if(!RM.qqlTokens.includes(token)){
+    RM.qqlTokens.push(token);
+    if(token==='truconfirm.status:test')       RM.filters.scanMode.add('test');
+    if(token==='truconfirm.status:production') RM.filters.scanMode.add('production');
+    renderQqlTokenChips();
+    renderRMFindings();
+  }
+  const inp = $('rm-qql-input');
+  if(inp) inp.value = '';
+  $('rm-qql-suggestions').style.display='none';
+}
+
+function rmRemoveToken(idx){
+  const token = RM.qqlTokens[idx];
+  RM.qqlTokens.splice(idx,1);
+  if(token==='truconfirm.status:test')       RM.filters.scanMode.delete('test');
+  if(token==='truconfirm.status:production') RM.filters.scanMode.delete('production');
+  // de-highlight sidebar items
+  document.querySelectorAll('.rm-sb-item[data-cat="scanMode"]').forEach(el=>{
+    el.classList.toggle('on', RM.filters.scanMode.has(el.dataset.val));
+  });
+  renderQqlTokenChips();
+  renderRMFindings();
+}
+
+function renderQqlTokenChips(){
+  const cont = $('rm-qql-tokens');
+  if(!cont) return;
+  cont.innerHTML = RM.qqlTokens.map((t,i)=>
+    `<span class="rm-qql-chip">${escHtml(t)}<button class="rm-qql-chip-rm" onclick="rmRemoveToken(${i})">×</button></span>`
+  ).join('');
+}
+
+// ── Filtering logic ────────────────────────────────────────────
+function rmGetFiltered(){
+  let data = [...RM_FINDINGS];
+  if(RM.typeFilter !== 'all') data = data.filter(f=>f.type===RM.typeFilter);
+  if(RM.filters.qvss.size)   data = data.filter(f=>RM.filters.qvss.has(f.severity));
+  if(RM.filters.status.size) data = data.filter(f=>RM.filters.status.has(f.lifecycle.status.toLowerCase()));
+  if(RM.filters.scanMode.size) data = data.filter(f=>RM.filters.scanMode.has(f.scanMode));
+  if(RM.filters.source.size){
+    data = data.filter(f=>{
+      if(RM.filters.source.has('ced'))    return f.isCustom;
+      if(RM.filters.source.has('vmdr'))   return f.sources.includes('Qualys VMDR');
+      if(RM.filters.source.has('orca'))   return f.sources.includes('Orca Security');
+      if(RM.filters.source.has('claroty'))return f.sources.includes('Claroty xDome');
+      if(RM.filters.source.has('wiz'))    return f.sources.includes('Wiz');
+      if(RM.filters.source.has('csam'))   return f.sources.includes('CSAM');
+      return false;
+    });
+  }
+  RM.qqlTokens.forEach(tok=>{
+    if(tok==='truconfirm.customDetection:true'||tok==='source:customExploit') data=data.filter(f=>f.isCustom);
+    if(tok==='truconfirm.status:test')       data=data.filter(f=>f.scanMode==='test');
+    if(tok==='truconfirm.status:production') data=data.filter(f=>f.scanMode==='production');
+    if(tok==='source:qualysVmdr') data=data.filter(f=>f.sources.includes('Qualys VMDR'));
+    if(tok.startsWith('severity:')){ const s=tok.split(':')[1]; data=data.filter(f=>f.severity===s); }
+  });
+  if(RM.activeChips.has('critical')) data=data.filter(f=>f.severity==='critical');
+  return data;
+}
+
+// ── Debug notice ────────────────────────────────────────────────
+function rmShowDebugNotice(){
+  const debugCount = (S.entries||[]).filter(e=>e.type==='qrdi'&&e.debugLevel>0).length;
+  const el = $('rm-debug-notice'), msg = $('rm-debug-msg');
+  if(!el||!msg) return;
+  if(debugCount>0){
+    msg.textContent = `${debugCount} debug-mode detection${debugCount>1?'s':''} hidden — visible in Scan Results only`;
+    el.style.display='flex';
+  } else {
+    el.style.display='none';
+  }
+}
+
+// ── Render findings table ──────────────────────────────────────
+function renderRMFindings(){
+  const tbody = $('rm-findings-tbody');
+  if(!tbody) return;
+  const data = rmGetFiltered();
+  const pgInfo = $('rm-pg-info'), pgTotal = $('rm-pg-total');
+  if(pgInfo)  pgInfo.textContent  = '1 / 1 pages';
+  if(pgTotal) pgTotal.textContent = 'Total '+data.length;
+
+  if(!data.length){
+    tbody.innerHTML=`<tr><td colspan="9" style="text-align:center;padding:40px;color:var(--text-muted);font-size:13px">No findings match the current filters.</td></tr>`;
+    return;
+  }
+
+  const sevColor = s => s==='critical'?'var(--critical)':s==='high'?'var(--high)':s==='medium'?'var(--medium)':'var(--low)';
+  const sevBg    = s => s==='critical'?'var(--critical-bg)':s==='high'?'var(--high-bg)':s==='medium'?'var(--medium-bg)':'var(--low-bg)';
+  const truriskBg= n => n>=900?'var(--critical)':n>=700?'var(--high)':n>=400?'var(--medium)':'var(--low)';
+
+  tbody.innerHTML = data.map(f=>{
+    const rowCls = f.hasConflict ? 'rm-tr rm-tr-conflict'
+                 : f.isCustom   ? 'rm-tr rm-tr-ced'
+                 : 'rm-tr';
+
+    const qvssPill = `<span class="rm-qvss-pill" style="color:${sevColor(f.severity)};background:${sevBg(f.severity)}">${f.severity.charAt(0).toUpperCase()+f.severity.slice(1)} · ${f.qvss}</span>`;
+
+    const srcBadges = f.sources.map(s=>
+      `<span class="rm-src-badge${s==='Custom Exploit Detection'?' rm-src-ced':''}">${escHtml(s)}</span>`
+    ).join(' ');
+
+    const modeBadge = f.isCustom
+      ? (f.scanMode==='test'
+          ? `<span class="rm-mode-badge rm-mode-test">Test</span>`
+          : `<span class="rm-mode-badge rm-mode-prod">Production</span>`)
+      : '';
+
+    const artifactHtml = f.hasConflict
+      ? `<span class="rm-conflict-chip" title="${escHtml(f.conflictNote)}">⚡ CEV Confirms</span>`
+      : `<span style="color:var(--text-muted)">—</span>`;
+
+    const lcStatusCls = f.lifecycle.status==='Active'?'rm-lc-active':f.lifecycle.status==='New'?'rm-lc-new':'rm-lc-fail';
+
+    const launchBtn = f.isCustom
+      ? `<button class="rm-launch-btn" onclick="rmLaunchAssessment('${escHtml(f.cve)}')" title="Launch TruConfirm Assessment">
+           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
+         </button>` : '';
+
+    return `<tr class="${rowCls}">
+      <td style="width:28px;text-align:center;vertical-align:middle"><input type="checkbox"></td>
+      <td class="rm-td-title">
+        <div class="rm-finding-title">
+          <a class="rm-cve-link" href="#" title="${escHtml(f.title)}">${escHtml(f.title)}</a>
+          ${launchBtn}
+        </div>
+        <div class="rm-finding-sub">
+          <span class="rm-finding-type" style="${f.isCustom?'color:var(--qrdi)':''}">${f.isCustom?'Custom Exploit Detection':'VULNERABILITY'}</span>
+          <span style="color:var(--text-muted);font-size:10px">Confirmed</span>
+          <span class="rm-cve-id">${escHtml(f.cve)}</span>
+          ${modeBadge}
+        </div>
+      </td>
+      <td style="font-size:11px;color:var(--text-secondary)">${escHtml(f.category)}</td>
+      <td>${qvssPill}</td>
+      <td>${srcBadges}</td>
+      <td class="rm-td-asset">
+        <div class="rm-asset-name">${escHtml(f.assetLabel)}</div>
+        <div class="rm-asset-meta">HOST · ID: ${escHtml(f.assetId)}</div>
+        <div style="font-size:11px;color:var(--text-secondary);margin-top:2px">${f.assetCount}</div>
+      </td>
+      <td>${artifactHtml}</td>
+      <td>
+        <div style="font-size:11px;color:var(--text-muted)">First Found: ${escHtml(f.lifecycle.firstFound)}</div>
+        <div class="${lcStatusCls}">${escHtml(f.lifecycle.status)}</div>
+      </td>
+      <td style="text-align:center">
+        <span class="rm-trurisk" style="background:${truriskBg(f.trurisk)};color:#fff">${f.trurisk}</span>
+      </td>
+    </tr>`;
+  }).join('');
+}
+
+// ── Launch Assessment from Findings ───────────────────────────
+function rmLaunchAssessment(cve){
+  switchNavPanel('tc');
+  openTcAssessWizard();
+  showToast('TruConfirm Assessment launched for '+cve,'tok');
 }
 
 function renderCveContent(){
