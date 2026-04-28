@@ -12,22 +12,38 @@ echo ""
 # ── Stop backend ────────────────────────────────
 echo "[1/2] Stopping backend (port 3001)..."
 if [ -f "$SCRIPT_DIR/.backend.pid" ]; then
-  kill "$(cat "$SCRIPT_DIR/.backend.pid")" 2>/dev/null && echo "[OK] Backend stopped (PID file)"
+  if kill "$(cat "$SCRIPT_DIR/.backend.pid")" 2>/dev/null; then
+    echo "[OK] Backend stopped (PID file)"
+  else
+    echo "[INFO] Backend PID stale or already stopped"
+  fi
   rm -f "$SCRIPT_DIR/.backend.pid"
 else
   # Fallback: kill by port
   PID=$(lsof -ti tcp:3001 2>/dev/null)
-  if [ -n "$PID" ]; then kill $PID && echo "[OK] Backend stopped (port 3001)"; fi
+  if [ -n "$PID" ]; then
+    kill "$PID" && echo "[OK] Backend stopped (port 3001)"
+  else
+    echo "[INFO] Backend was not running"
+  fi
 fi
 
 # ── Stop frontend ───────────────────────────────
 echo "[2/2] Stopping frontend (port 8888)..."
 if [ -f "$SCRIPT_DIR/.frontend.pid" ]; then
-  kill "$(cat "$SCRIPT_DIR/.frontend.pid")" 2>/dev/null && echo "[OK] Frontend stopped (PID file)"
+  if kill "$(cat "$SCRIPT_DIR/.frontend.pid")" 2>/dev/null; then
+    echo "[OK] Frontend stopped (PID file)"
+  else
+    echo "[INFO] Frontend PID stale or already stopped"
+  fi
   rm -f "$SCRIPT_DIR/.frontend.pid"
 else
   PID=$(lsof -ti tcp:8888 2>/dev/null)
-  if [ -n "$PID" ]; then kill $PID && echo "[OK] Frontend stopped (port 8888)"; fi
+  if [ -n "$PID" ]; then
+    kill "$PID" && echo "[OK] Frontend stopped (port 8888)"
+  else
+    echo "[INFO] Frontend was not running"
+  fi
 fi
 
 echo ""
