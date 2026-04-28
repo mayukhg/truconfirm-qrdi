@@ -3124,11 +3124,15 @@ function renderCveContent(){
     const tcBadge = c.tc && c.source !== 'unique_ced'
       ? `<div class="tc-cve-tc-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>TruConfirm Validation Available</div>`
       : '';
+    const uniqueTag = c.fromCev
+      ? `<div class="tc-cve-unique-tag"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>Unique CVE, not part of TruConfirm CVE list</div>`
+      : '';
     return `<tr class="tc-cve-row">
       <td><input type="checkbox"></td>
       <td>
         <div class="tc-cve-id">${escHtml(c.id)}</div>
         <div class="tc-cve-title-sub">${escHtml(c.title.length>70?c.title.substring(0,70)+'…':c.title)}</div>
+        ${uniqueTag}
       </td>
       <td>
         <div class="tc-cve-expl-row">
