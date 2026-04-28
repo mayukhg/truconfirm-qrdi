@@ -3124,6 +3124,9 @@ function renderCveContent(){
     const tcBadge = c.tc && c.source !== 'unique_ced'
       ? `<div class="tc-cve-tc-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>TruConfirm Validation Available</div>`
       : '';
+    const cedBadge = c.fromCev
+      ? `<div class="tc-cve-ced-badge"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>Custom Exploit Detection</div>`
+      : '';
     return `<tr class="tc-cve-row">
       <td><input type="checkbox"></td>
       <td>
@@ -3135,7 +3138,7 @@ function renderCveContent(){
           <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>
           <span class="tc-cve-expl-txt">${escHtml(c.exploit)}</span>
         </div>
-        ${tcBadge}
+        ${tcBadge}${cedBadge}
       </td>
       <td>${_cveAssocCell(c, idx)}</td>
       <td>${assetHtml}</td>
