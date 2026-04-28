@@ -836,7 +836,6 @@ label .hint{color:var(--text-muted);font-weight:400;margin-left:3px;}
 .tc-cve-expl-row{display:flex;align-items:center;gap:5px;margin-bottom:5px;}
 .tc-cve-expl-txt{font-size:12px;color:var(--text-secondary);}
 .tc-cve-tc-badge{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--accent);font-weight:500;}
-.tc-cve-ced-badge{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--qrdi);font-weight:500;margin-top:3px;}
 .tc-cve-asset{display:flex;align-items:center;gap:5px;}
 .tc-asset-num{color:var(--accent);font-size:13px;}
 
