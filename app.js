@@ -2635,7 +2635,6 @@ let _tcSelectedCves  = []; // array of selected CVE objects
 
 // Static CVE picker list (demo data)
 const TC_CVE_PICKER = [
-  { id:'CVE-2023-48795', title:'Terrapin: Protocol Flaw in SSH Enables Man-in-the-Middle Truncation Attacks', tc:false, exploit:'No Public Exploit', assets:1, source:'truconfirm' },
   { id:'CVE-2024-1281',  title:'Apache HTTP Server mod_cgi Buffer Overflow Remote Code Execution',            tc:false,  exploit:'Actively Exploited', assets:5, source:'truconfirm' },
   { id:'CVE-2024-5678',  title:'SMB Protocol Version Negotiation Information Disclosure',                     tc:true,  exploit:'PoC Exploit',        assets:3, source:'unique_ced' },
   { id:'CVE-2024-9912',  title:'PHP Version Information Disclosure via HTTP Response Headers',                tc:true,  exploit:'No Public Exploit', assets:0, source:'unique_ced' },
