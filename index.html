@@ -1397,8 +1397,9 @@
         </div>
         <div class="tc-facet-bar" id="tc-cve-facets">
           <button class="tc-facet-pill active" onclick="tcCveFilter('all')">All (66)</button>
-          <button class="tc-facet-pill" onclick="tcCveFilter('native')">TruConfirm Native (64)</button>
-          <button class="tc-facet-pill" onclick="tcCveFilter('custom')">Custom Exploit Detection (2)</button>
+          <button class="tc-facet-pill tc-facet-tc" onclick="tcCveFilter('tc')">TruConfirm only (0)</button>
+          <button class="tc-facet-pill tc-facet-tc-ced" onclick="tcCveFilter('tc_ced')">TruConfirm + CED (0)</button>
+          <button class="tc-facet-pill tc-facet-ced" onclick="tcCveFilter('ced')">Unique · CED (0)</button>
         </div>
         <div class="tc-cve-list-wrap" id="tc-cve-picker-list"></div>
       </div>

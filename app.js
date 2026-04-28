@@ -3146,20 +3146,27 @@ function renderCveContent(){
         ? `<div class="tc-cve-asset ${isHighRisk ? 'tc-asset-high-risk' : ''}"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg><span class="tc-asset-num" style="${isHighRisk ? 'color:inherit' : ''}">${c.assets}</span></div>`
         : `<span style="color:var(--text-muted)">—</span>`;
 
-      const uniqueTag = c.fromCev
-        ? `<div class="tc-badge-teal-muted" style="margin-top:6px;width:fit-content;font-size:10px">Unique • CED</div>`
-        : '';
+      // Taxonomy Badge
+      const typeStr = c.tc ? 'tc_ced' : (c.fromCev ? 'ced' : 'tc');
+      let typeBadgeHtml = '';
+      if(typeStr === 'tc') {
+        typeBadgeHtml = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(59,130,246,0.1);color:var(--accent);">TC</span>`;
+      } else if(typeStr === 'tc_ced') {
+        typeBadgeHtml = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;">TC+CED</span>`;
+      } else {
+        typeBadgeHtml = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;">CED</span>`;
+      }
       
       const orig = TC_CVE_PICKER.find(x => x.id === c.id);
       const supportsCED = orig ? (orig.tc || c.fromCev) : false;
       let validationHtml = '';
       
       if (!supportsCED) {
-        validationHtml = `<div style="color:var(--text-muted);font-size:12px;padding:4px 0;font-weight:500;">TruConfirm scan</div>`;
+        validationHtml = `<div style="color:var(--text-muted);font-size:12px;padding:4px 0;font-weight:500;">TruConfirm scan <span style="color:var(--text-tertiary);opacity:0.6;">(auto)</span></div>`;
       } else if(c.fromCev){
         validationHtml = `
           <div style="display:flex;align-items:center;gap:12px">
-            <div class="tc-badge-native" style="width:fit-content">Custom Exploit Detection (CED) Scan</div>
+            <div style="color:var(--text-muted);font-size:12px;padding:4px 0;font-weight:500;">CED scan</div>
             <label class="tc-test-mode-wrap" title="CED scan will validate the exploit but will not update your scan results or findings. Use this to verify the detection works before running in production.">
               <input type="checkbox" class="tc-test-mode-cb" ${c.testMode?'checked':''} onchange="tcUpdateCveConfig(${idx}, 'testMode', this.checked)">
               Run CED scan in Test Mode
@@ -3169,9 +3176,9 @@ function renderCveContent(){
         validationHtml = `
           <div style="display:flex;align-items:center;gap:12px">
             <select class="tc-badge-select" onchange="tcUpdateCveConfig(${idx}, 'scanMode', this.value)">
-              <option value="both" ${c.scanMode==='both'?'selected':''}>Run both TruConfirm and CED scans</option>
-              <option value="ced_only" ${c.scanMode==='ced_only'?'selected':''}>Run CED scan only</option>
-              <option value="tc_only" ${c.scanMode==='tc_only'?'selected':''}>Run TruConfirm scan only</option>
+              <option value="both" ${c.scanMode==='both'?'selected':''}>Run both TC and CED scans</option>
+              <option value="ced_only" ${c.scanMode==='ced_only'?'selected':''}>CED scan only</option>
+              <option value="tc_only" ${c.scanMode==='tc_only'?'selected':''}>TruConfirm scan only</option>
             </select>
             ${c.scanMode !== 'tc_only' ? `
             <label class="tc-test-mode-wrap" title="CED scan will validate the exploit but will not update your scan results or findings. Use this to verify the detection works before running in production.">
@@ -3185,9 +3192,11 @@ function renderCveContent(){
       return `<tr class="tc-cve-row">
         <td><input type="checkbox" class="tc-cve-row-cb" data-id="${c.id}" onchange="tcUpdateBulkActionUI()"></td>
         <td>
-          <div class="tc-cve-id">${escHtml(c.id)}</div>
+          <div style="display:flex;align-items:center;gap:6px;">
+            <div class="tc-cve-id">${escHtml(c.id)}</div>
+            ${typeBadgeHtml}
+          </div>
           <div class="tc-cve-title-sub">${escHtml(c.title.length>70?c.title.substring(0,70)+'…':c.title)}</div>
-          ${uniqueTag}
         </td>
         <td>${validationHtml}</td>
         <td>${assetHtml}</td>
@@ -3293,13 +3302,16 @@ function openCvePickerModal(){
   _tcCveFilter = 'all';
   
   const total = TC_CVE_PICKER.length;
-  const customCount = TC_CVE_PICKER.filter(c => c.source === 'unique_ced' || c.tc).length;
-  const nativeCount = total - customCount;
+  const tcOnlyCount = TC_CVE_PICKER.filter(c => !c.tc && c.source !== 'unique_ced').length;
+  const tcCedCount = TC_CVE_PICKER.filter(c => c.tc).length;
+  const cedOnlyCount = TC_CVE_PICKER.filter(c => !c.tc && c.source === 'unique_ced').length;
+  
   const pills = document.querySelectorAll('.tc-facet-pill');
-  if(pills.length >= 3){
+  if(pills.length >= 4){
     pills[0].textContent = `All (${total})`;
-    pills[1].textContent = `TruConfirm Native (${nativeCount})`;
-    pills[2].textContent = `Custom Exploit Detection (${customCount})`;
+    pills[1].textContent = `TruConfirm only (${tcOnlyCount})`;
+    pills[2].textContent = `TruConfirm + CED (${tcCedCount})`;
+    pills[3].textContent = `Unique · CED (${cedOnlyCount})`;
   }
   
   tcRenderCveFacets();
@@ -3321,8 +3333,9 @@ function tcRenderCveFacets(){
   if(!pills.length) return;
   pills.forEach(p => p.classList.remove('active'));
   if(_tcCveFilter === 'all') pills[0].classList.add('active');
-  if(_tcCveFilter === 'native') pills[1].classList.add('active');
-  if(_tcCveFilter === 'custom') pills[2].classList.add('active');
+  if(_tcCveFilter === 'tc') pills[1].classList.add('active');
+  if(_tcCveFilter === 'tc_ced') pills[2].classList.add('active');
+  if(_tcCveFilter === 'ced') pills[3].classList.add('active');
 }
 
 function renderCvePickerList(){
@@ -3332,10 +3345,12 @@ function renderCvePickerList(){
   
   let filtered = TC_CVE_PICKER.filter(c => c.id.toLowerCase().includes(q) || c.title.toLowerCase().includes(q));
   
-  if(_tcCveFilter === 'native'){
+  if(_tcCveFilter === 'tc'){
     filtered = filtered.filter(c => !c.tc && c.source !== 'unique_ced');
-  } else if(_tcCveFilter === 'custom'){
-    filtered = filtered.filter(c => c.tc || c.source === 'unique_ced');
+  } else if(_tcCveFilter === 'tc_ced'){
+    filtered = filtered.filter(c => c.tc);
+  } else if(_tcCveFilter === 'ced'){
+    filtered = filtered.filter(c => !c.tc && c.source === 'unique_ced');
   }
 
   if(!filtered.length){
@@ -3345,14 +3360,25 @@ function renderCvePickerList(){
   
   listEl.innerHTML = filtered.map(c => {
     const isAdded = !!_tcSelectedCves.find(x=>x.id===c.id);
-    const customBadge = (c.source === 'unique_ced' || c.tc) ? `<span class="tc-custom-pill">C</span>` : '';
-    const uniqueLabel = c.source === 'unique_ced' ? `<div class="tc-badge-teal-muted" style="margin-top:4px;width:fit-content;font-size:10px">Unique • CED</div>` : '';
     
-    let explBg, explColor, explBorder;
-    if (c.exploit === 'Actively Exploited') { explBg = 'rgba(239,68,68,0.1)'; explColor = '#ef4444'; explBorder = 'rgba(239,68,68,0.2)'; }
-    else if (c.exploit === 'PoC Exploit') { explBg = 'rgba(245,158,11,0.1)'; explColor = '#f59e0b'; explBorder = 'rgba(245,158,11,0.2)'; }
-    else { explBg = 'rgba(156,163,175,0.1)'; explColor = '#9ca3af'; explBorder = 'rgba(156,163,175,0.2)'; }
-    const explBadge = `<span style="display:inline-block;background:${explBg};color:${explColor};border:1px solid ${explBorder};border-radius:4px;padding:2px 6px;font-size:10px;font-weight:600;margin-right:8px;">${c.exploit}</span>`;
+    // Taxonomy Badge
+    const typeStr = c.tc ? 'tc_ced' : (c.source === 'unique_ced' ? 'ced' : 'tc');
+    let typeBadgeHtml = '';
+    if(typeStr === 'tc') {
+      typeBadgeHtml = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(59,130,246,0.1);color:var(--accent);">TC</span>`;
+    } else if(typeStr === 'tc_ced') {
+      typeBadgeHtml = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;">TC+CED</span>`;
+    } else {
+      typeBadgeHtml = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;">CED</span>`;
+    }
+    
+    // Exploitability dot
+    let explDot;
+    if (c.exploit === 'Actively Exploited') explDot = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#ef4444;margin-right:4px;"></span>';
+    else if (c.exploit === 'PoC Exploit') explDot = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#f59e0b;margin-right:4px;"></span>';
+    else explDot = '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#9ca3af;margin-right:4px;"></span>';
+    const explHtml = `<div style="display:inline-flex;align-items:center;font-size:11px;color:var(--text-muted);margin-right:12px;">${explDot}${c.exploit}</div>`;
+    
     const assetBadge = `<span style="display:inline-flex;align-items:center;gap:4px;font-size:10px;color:var(--text-muted);"><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 0 0-2-2h-4a2 2 0 0 0-2 2v16"/></svg>${c.assets} Assets</span>`;
 
     return `<label class="tc-cve-list-item" style="padding:12px;border-bottom:1px solid var(--border);cursor:pointer;display:flex;align-items:flex-start;gap:12px;">
@@ -3360,14 +3386,13 @@ function renderCvePickerList(){
       <div style="flex:1;">
         <div style="display:flex;align-items:center;gap:6px;">
           <span style="font-size:13px;font-weight:600;color:var(--text-primary)">${escHtml(c.id)}</span>
-          ${customBadge}
+          ${typeBadgeHtml}
         </div>
         <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;margin-bottom:6px;">${escHtml(c.title)}</div>
         <div style="display:flex;align-items:center;">
-          ${explBadge}
+          ${explHtml}
           ${assetBadge}
         </div>
-        ${uniqueLabel}
       </div>
     </label>`;
   }).join('');
@@ -3564,39 +3589,95 @@ function tcAssessGoReview(){
 
   let cveRowsHtml = '';
   if(_tcSelectedCves.length){
-    cveRowsHtml = _tcSelectedCves.map(c=>{
-      const isHighRisk = c.assets > 50;
-      const assetHtml = `<span class="${isHighRisk ? 'tc-asset-high-risk' : ''}" style="${isHighRisk ? '' : 'color:var(--text-secondary)'}">${monSvg}&ensp;${c.assets}</span>`;
+    const grpBoth = [];
+    const grpCed = [];
+    const grpTc = [];
 
+    _tcSelectedCves.forEach((c, idx) => {
       const orig = TC_CVE_PICKER.find(x => x.id === c.id);
       const supportsCED = orig ? (orig.tc || c.fromCev) : false;
-      let validationHtml = '';
-      if (!supportsCED) {
-        validationHtml = `<div style="color:var(--text-muted);font-size:12px;padding:4px 0;font-weight:500;">TruConfirm scan</div>`;
-      } else if (c.fromCev) {
-        const testTag = c.testMode ? `<span class="tc-test-tag" title="CED scan will validate the exploit but will not update your scan results or findings. Use this to verify the detection works before running in production."><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3v13a3 3 0 0 0 6 0V3M6 3h12M4 21h16M12 11v1"/></svg>Test</span>` : '';
-        validationHtml = `<div style="display:inline-flex;align-items:center;gap:6px;background:rgba(59,130,246,.1);border:1px solid rgba(59,130,246,.3);border-radius:4px;padding:4px 8px;font-size:11px;color:var(--accent);font-weight:600;">Custom Exploit Detection (CED) Scan${testTag}</div>`;
-      } else {
-        const testTag = (c.scanMode !== 'tc_only' && c.testMode) ? `<span class="tc-test-tag" title="CED scan will validate the exploit but will not update your scan results or findings. Use this to verify the detection works before running in production."><svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 3v13a3 3 0 0 0 6 0V3M6 3h12M4 21h16M12 11v1"/></svg>Test</span>` : '';
-        const lbl = c.scanMode === 'both' ? 'Run both TruConfirm and CED scans' : (c.scanMode === 'ced_only' ? 'Run CED scan only' : 'Run TruConfirm scan only');
-        const bg = c.scanMode === 'tc_only' ? 'var(--bg-hover)' : 'rgba(59,130,246,.1)';
-        const borderColor = c.scanMode === 'tc_only' ? 'var(--border)' : 'rgba(59,130,246,.3)';
-        const color = c.scanMode === 'tc_only' ? 'var(--text-muted)' : 'var(--accent)';
-        
-        validationHtml = `<div style="display:inline-flex;align-items:center;gap:6px;background:${bg};border:1px solid ${borderColor};border-radius:4px;padding:4px 8px;font-size:11px;color:${color};font-weight:${c.scanMode==='tc_only'?500:600};">${lbl}${testTag}</div>`;
-      }
+      if(!supportsCED) grpTc.push({c, idx});
+      else if(c.fromCev) grpCed.push({c, idx});
+      else grpBoth.push({c, idx});
+    });
 
-      return `<tr class="tc-rv-cve-row">
-        <td class="tc-rv-td-title">
-          <div class="tc-rv-cve-id">${escHtml(c.id)}</div>
-          <div class="tc-rv-cve-title">${escHtml(c.title)}</div>
-        </td>
-        <td class="tc-rv-td-val-logic">${validationHtml}</td>
-        <td class="tc-rv-td-assets">${assetHtml}</td>
-      </tr>`;
-    }).join('');
+    const numTestBoth = grpBoth.filter(x => x.c.scanMode !== 'tc_only' && x.c.testMode).length;
+    const bothTestStr = numTestBoth > 0 ? `(${numTestBoth} test mode on)` : '';
+    
+    const numTestCed = grpCed.filter(x => x.c.testMode).length;
+    const cedTestStr = numTestCed > 0 ? `(${numTestCed} test mode on)` : '';
+
+    const summaryText = `${_tcSelectedCves.length} CVEs: ${grpBoth.length} TC+CED ${bothTestStr} · ${grpTc.length} TC (auto) · ${grpCed.length} CED ${cedTestStr}`;
+    const summaryBarHtml = `<div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text-secondary);margin-bottom:16px;">${summaryText}</div>`;
+
+    function renderRvGroup(grp, title, badgeHtml, defaultExpanded=true, type='tc_ced') {
+      if(!grp.length) return '';
+      const rows = grp.map(({c, idx}) => {
+        const isHighRisk = c.assets > 50;
+        const assetHtml = `<span class="${isHighRisk ? 'tc-asset-high-risk' : ''}" style="${isHighRisk ? '' : 'color:var(--text-secondary)'}">${monSvg}&ensp;${c.assets}</span>`;
+
+        let validationHtml = '';
+        if(type === 'tc') {
+          validationHtml = `<div style="color:var(--text-muted);font-size:12px;padding:4px 0;font-weight:500;">TruConfirm scan <span style="color:var(--text-tertiary);opacity:0.6;">(auto)</span></div>`;
+        } else if (type === 'ced') {
+          const testStr = c.testMode ? `<span style="font-size:11px;color:var(--accent);margin-left:8px">(Test mode on)</span>` : '';
+          validationHtml = `<div style="color:var(--text-muted);font-size:12px;padding:4px 0;font-weight:500;">CED scan${testStr}</div>`;
+        } else {
+          const testStr = c.testMode ? `<span style="font-size:11px;color:var(--accent);margin-left:8px">(Test mode on)</span>` : '';
+          validationHtml = `
+            <div style="display:flex;align-items:center;gap:8px;">
+              <select class="tc-badge-select" style="font-size:11px;padding:2px 20px 2px 6px;height:24px;" onchange="tcUpdateCveConfig(${idx}, 'scanMode', this.value); tcAssessGoReview();">
+                <option value="both" ${c.scanMode==='both'?'selected':''}>Run both TC and CED scans</option>
+                <option value="ced_only" ${c.scanMode==='ced_only'?'selected':''}>CED scan only</option>
+                <option value="tc_only" ${c.scanMode==='tc_only'?'selected':''}>TruConfirm scan only</option>
+              </select>
+              ${(c.scanMode !== 'tc_only' && c.testMode) ? testStr : ''}
+            </div>
+          `;
+        }
+
+        return `
+          <div style="display:flex;align-items:flex-start;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border);">
+            <div style="flex:1;">
+              <div style="font-weight:600;font-size:13px;color:var(--text-primary);display:flex;align-items:center;gap:6px;">
+                ${escHtml(c.id)}
+              </div>
+              <div style="font-size:11px;color:var(--text-secondary);margin-top:2px;">${escHtml(c.title)}</div>
+              <div style="margin-top:6px;">${validationHtml}</div>
+            </div>
+            <div style="display:flex;flex-direction:column;align-items:flex-end;">
+              ${assetHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      return `
+        <details class="tc-rv-group" ${defaultExpanded ? 'open' : ''} style="margin-bottom:12px;border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+          <summary style="background:var(--bg-hover);padding:12px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;">
+            <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;">
+              ${badgeHtml}
+              ${title} <span style="color:var(--text-muted);font-weight:400;">(${grp.length})</span>
+            </div>
+            <button class="tc-rv-edit-btn" onclick="tcAssessStep(2)" title="Edit">${pencilSvg}</button>
+          </summary>
+          <div style="padding:0 12px;background:var(--bg-panel);">
+            ${rows}
+          </div>
+        </details>
+      `;
+    }
+
+    const badgeTC_CED = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;">TC+CED</span>`;
+    const badgeCED = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;">CED</span>`;
+    const badgeTC = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(59,130,246,0.1);color:var(--accent);">TC</span>`;
+
+    cveRowsHtml = summaryBarHtml;
+    cveRowsHtml += renderRvGroup(grpBoth, 'TruConfirm + CED', badgeTC_CED, true, 'tc_ced');
+    cveRowsHtml += renderRvGroup(grpCed, 'Unique · CED', badgeCED, true, 'ced');
+    cveRowsHtml += renderRvGroup(grpTc, 'TruConfirm only', badgeTC, false, 'tc');
   } else {
-    cveRowsHtml = `<tr><td colspan="4" style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px">No CVEs selected</td></tr>`;
+    cveRowsHtml = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;border:1px solid var(--border);border-radius:6px;">No CVEs selected</div>`;
   }
 
   $('tc-assess-step-3').innerHTML = `
@@ -3638,19 +3719,9 @@ function tcAssessGoReview(){
       ${hostHtml}
 
       <!-- CVE Details -->
-      <div class="tc-rv-subsect-hdr" style="margin-top:20px">CVE Details</div>
+      <div class="tc-rv-subsect-hdr" style="margin-top:20px;margin-bottom:12px;">CVE Details</div>
       <div class="tc-rv-subsect-body">
-        <div class="tc-rv-subsect-inner-ttl">Selected CVEs</div>
-        <div class="tc-rv-cve-tbl-wrap">
-          <table class="tc-rv-cve-tbl">
-            <thead><tr>
-              <th>Title</th>
-              <th>Validation Logic ${editSvg}</th>
-              <th>Impacted Assets</th>
-            </tr></thead>
-            <tbody>${cveRowsHtml}</tbody>
-          </table>
-        </div>
+        ${cveRowsHtml}
       </div>
     </div>
 
