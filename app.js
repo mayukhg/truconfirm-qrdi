@@ -3900,6 +3900,14 @@ function renderScanAssessmentTable() {
   const grpTc = [];
   const grpCed = [];
 
+  let countTotal = 0;
+  let countExploited = 0;
+  let countNotExploited = 0;
+  let countDivergent = 0;
+  let countTc = 0;
+  let countTcCed = 0;
+  let countCed = 0;
+
   TC_CVE_PICKER.forEach((c, idx) => {
     let typeStr = '';
     if (c.tc) typeStr = 'tc_ced';
@@ -3909,6 +3917,15 @@ function renderScanAssessmentTable() {
     // Mock divergent status for tc_ced based on id
     c.isDivergent = (typeStr === 'tc_ced' && c.id.charCodeAt(c.id.length-1) % 2 === 0);
     c.isExploited = (c.exploit === 'Actively Exploited' || c.exploit === 'PoC Exploit');
+
+    // Tally stats
+    countTotal++;
+    if (c.isExploited) countExploited++;
+    else countNotExploited++;
+    if (c.isDivergent) countDivergent++;
+    if (typeStr === 'tc') countTc++;
+    if (typeStr === 'tc_ced') countTcCed++;
+    if (typeStr === 'ced') countCed++;
 
     // Apply Filter
     if (currentSaFilter === 'exploited' && !c.isExploited) return;
@@ -4009,6 +4026,20 @@ function renderScanAssessmentTable() {
   html += renderGroup(grpCed, 'Unique CVE - CED results', badgeCED);
 
   tblContainer.innerHTML = html;
+
+  // Update Tier 1 Breakdown values
+  if ($('sa-bd-tc-val')) $('sa-bd-tc-val').textContent = countTc;
+  if ($('sa-bd-tcced-val')) $('sa-bd-tcced-val').textContent = countTcCed;
+  if ($('sa-bd-ced-val')) $('sa-bd-ced-val').textContent = countCed;
+
+  // Update Tier 2 Filter Tabs
+  if ($('sa-flt-all')) $('sa-flt-all').innerHTML = `All (${countTotal})`;
+  if ($('sa-flt-exploited')) $('sa-flt-exploited').innerHTML = `Exploited (${countExploited})`;
+  if ($('sa-flt-not-exploited')) $('sa-flt-not-exploited').innerHTML = `Not exploited (${countNotExploited})`;
+  if ($('sa-flt-divergent')) $('sa-flt-divergent').innerHTML = `Divergent (${countDivergent})`;
+  if ($('sa-flt-tc')) $('sa-flt-tc').innerHTML = `TC <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countTc})`;
+  if ($('sa-flt-tcced')) $('sa-flt-tcced').innerHTML = `TC+CED <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countTcCed})`;
+  if ($('sa-flt-ced')) $('sa-flt-ced').innerHTML = `CED <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countCed})`;
 }
 
 function openCveDrilldown(cveId) {
