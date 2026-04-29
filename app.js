@@ -3989,12 +3989,12 @@ function renderScanAssessmentTable() {
     }).join('');
   }
 
-  function renderGroup(grp, title, badgeHtml) {
+  function renderGroup(grp, type, title) {
     if (!grp.length) return '';
     return `
       <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;margin-bottom:20px;overflow:hidden;">
         <div style="background:var(--bg-hover);padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);">
-          ${badgeHtml} ${title} (${grp.length})
+          ${title} (${grp.length})
         </div>
         <table class="sa-table">
           <thead>
@@ -4003,27 +4003,23 @@ function renderScanAssessmentTable() {
               <th style="width:8%">QVSS</th>
               <th style="width:15%">TC NATIVE RESULT</th>
               <th style="width:15%">CED RESULT</th>
-              <th style="width:10%">${title.includes('Unique') ? 'TEST MODE' : (title.includes('Native') ? 'EXPLOITABILITY' : 'STATUS')}</th>
+              <th style="width:10%">${type === 'ced' ? 'TEST MODE' : (type === 'tc' ? 'EXPLOITABILITY' : 'STATUS')}</th>
               <th style="width:17%">ASSET</th>
               <th style="width:10%">FOUND</th>
             </tr>
           </thead>
           <tbody>
-            ${renderRows(grp, title.includes('+') ? 'tc_ced' : (title.includes('Native') ? 'tc' : 'ced'))}
+            ${renderRows(grp, type)}
           </tbody>
         </table>
       </div>
     `;
   }
 
-  const badgeTC_CED = `<span class="tc-tooltip" data-tooltip="Shows results which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;">TC+CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
-  const badgeTC = `<span class="tc-tooltip" data-tooltip="Shows results which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);">TC <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
-  const badgeCED = `<span class="tc-tooltip" data-tooltip="Shows results which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);">CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
-
   let html = '';
-  html += renderGroup(grpBoth, 'TruConfirm + CED results', badgeTC_CED);
-  html += renderGroup(grpTc, 'TruConfirm Native results', badgeTC);
-  html += renderGroup(grpCed, 'Unique CVE - CED results', badgeCED);
+  html += renderGroup(grpTc, 'tc', 'TruConfirm Native Scan results');
+  html += renderGroup(grpCed, 'ced', 'Custom Exploit Detection Scan results');
+  html += renderGroup(grpBoth, 'tc_ced', 'TruConfirm Native + Custom Exploit Detection Scans results');
 
   tblContainer.innerHTML = html;
 
