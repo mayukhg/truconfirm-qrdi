@@ -4016,9 +4016,9 @@ function renderScanAssessmentTable() {
     `;
   }
 
-  const badgeTC_CED = `<span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;">TC+CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
-  const badgeTC = `<span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);">TC <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
-  const badgeCED = `<span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);">CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
+  const badgeTC_CED = `<span class="tc-tooltip" data-tooltip="Shows results which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;">TC+CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
+  const badgeTC = `<span class="tc-tooltip" data-tooltip="Shows results which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);">TC <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
+  const badgeCED = `<span class="tc-tooltip" data-tooltip="Shows results which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);">CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
 
   let html = '';
   html += renderGroup(grpBoth, 'TruConfirm + CED results', badgeTC_CED);
@@ -4036,7 +4036,7 @@ function renderScanAssessmentTable() {
   if ($('sa-flt-all')) $('sa-flt-all').innerHTML = `All (${countTotal})`;
   if ($('sa-flt-exploited')) $('sa-flt-exploited').innerHTML = `Exploited (${countExploited})`;
   if ($('sa-flt-not-exploited')) $('sa-flt-not-exploited').innerHTML = `Not exploited (${countNotExploited})`;
-  if ($('sa-flt-divergent')) $('sa-flt-divergent').innerHTML = `Divergent (${countDivergent})`;
+  if ($('sa-flt-divergent')) $('sa-flt-divergent').innerHTML = `Divergent Results (${countDivergent})`;
   if ($('sa-flt-tc')) $('sa-flt-tc').innerHTML = `TC <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countTc})`;
   if ($('sa-flt-tcced')) $('sa-flt-tcced').innerHTML = `TC+CED <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countTcCed})`;
   if ($('sa-flt-ced')) $('sa-flt-ced').innerHTML = `CED <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countCed})`;
@@ -4059,9 +4059,9 @@ function openCveDrilldown(cveId) {
   // Build Drilldown content
   const content = $('sa-drilldown-content');
   
-  const badgeTC_CED = `<span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;margin-left:8px;">TC+CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
-  const badgeTC = `<span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);margin-left:8px;">TC <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
-  const badgeCED = `<span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);margin-left:8px;">CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
+  const badgeTC_CED = `<span class="tc-tooltip" data-tooltip="Shows results which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;margin-left:8px;">TC+CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
+  const badgeTC = `<span class="tc-tooltip" data-tooltip="Shows results which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);margin-left:8px;">TC <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
+  const badgeCED = `<span class="tc-tooltip" data-tooltip="Shows results which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);margin-left:8px;">CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
 
   let badgeHtml = badgeTC_CED;
   if (typeStr === 'tc') badgeHtml = badgeTC;
@@ -4091,7 +4091,7 @@ function openCveDrilldown(cveId) {
   const tcSideHtml = `
       <div style="border:1px solid var(--border);border-radius:6px;padding:16px;${typeStr === 'ced' ? 'opacity:0.4;pointer-events:none;' : ''}">
         <div style="font-size:11px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-          <span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);">TC <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>
+          <span class="tc-tooltip" data-tooltip="Shows results which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);">TC <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>
           TRUCONFIRM NATIVE
         </div>
         ${typeStr === 'ced' ? '<div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:12px;">Not applicable</div>' : `
@@ -4109,7 +4109,7 @@ function openCveDrilldown(cveId) {
   const cedSideHtml = `
       <div style="border:1px solid var(--border);border-radius:6px;padding:16px;${typeStr === 'tc' ? 'opacity:0.4;pointer-events:none;' : ''}">
         <div style="font-size:11px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:16px;">
-          <span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);">CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>
+          <span class="tc-tooltip" data-tooltip="Shows results which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);">CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>
           CUSTOM EXPLOIT DETECTION
         </div>
         ${typeStr === 'tc' ? '<div style="font-size:12px;color:var(--text-muted);font-weight:600;margin-bottom:12px;">Not applicable</div>' : `

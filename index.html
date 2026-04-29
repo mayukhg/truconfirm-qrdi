@@ -200,7 +200,7 @@
               
               <!-- TC -->
               <div class="sa-bd-card" style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:16px;">
-                <div class="sa-bd-type-lbl tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);margin-bottom:12px;">
+                <div class="sa-bd-type-lbl tc-tooltip" data-tooltip="Shows results which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);margin-bottom:12px;">
                   TruConfirm Native CVE <span style="opacity:0.6;margin-left:4px">ⓘ</span>
                 </div>
                 <div class="sa-bd-main-val" id="sa-bd-tc-val" style="font-size:24px;font-weight:700;color:#fff;">62</div>
@@ -213,7 +213,7 @@
               
               <!-- TC+CED -->
               <div class="sa-bd-card" style="background:var(--bg-panel);border:1px solid #a855f7;border-radius:6px;padding:16px;">
-                <div class="sa-bd-type-lbl tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2);margin-bottom:12px;">
+                <div class="sa-bd-type-lbl tc-tooltip" data-tooltip="Shows results which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2);margin-bottom:12px;">
                   CVE associated with TruConfirm and Custom Exploit Detection <span style="opacity:0.6;margin-left:4px">ⓘ</span>
                 </div>
                 <div class="sa-bd-main-val" id="sa-bd-tcced-val" style="font-size:24px;font-weight:700;color:#fff;">48</div>
@@ -227,7 +227,7 @@
               
               <!-- CED -->
               <div class="sa-bd-card" style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:16px;">
-                <div class="sa-bd-type-lbl tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);margin-bottom:12px;">
+                <div class="sa-bd-type-lbl tc-tooltip" data-tooltip="Shows results which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);margin-bottom:12px;">
                   Unique CVE with Custom Exploit Detection <span style="opacity:0.6;margin-left:4px">ⓘ</span>
                 </div>
                 <div class="sa-bd-main-val" id="sa-bd-ced-val" style="font-size:24px;font-weight:700;color:#fff;">35</div>
@@ -252,10 +252,10 @@
              <button id="sa-flt-all" class="sa-filter-btn active" onclick="saFilter('all', this)">All (145)</button>
              <button id="sa-flt-exploited" class="sa-filter-btn" onclick="saFilter('exploited', this)">Exploited (89)</button>
              <button id="sa-flt-not-exploited" class="sa-filter-btn" onclick="saFilter('not_exploited', this)">Not exploited (56)</button>
-             <button id="sa-flt-divergent" class="sa-filter-btn sa-f-warn" onclick="saFilter('divergent', this)">Divergent (7)</button>
-             <button id="sa-flt-tc" class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list" onclick="saFilter('tc', this)">TC ⓘ (62)</button>
-             <button id="sa-flt-tcced" class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" onclick="saFilter('tc_ced', this)">TC+CED ⓘ (48)</button>
-             <button id="sa-flt-ced" class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" onclick="saFilter('ced', this)">CED ⓘ (35)</button>
+             <button id="sa-flt-divergent" class="sa-filter-btn sa-f-warn tc-tooltip" data-tooltip="Shows results where scan outcomes of TruConfirm Native and Custom Exploit Detection are divergent" onclick="saFilter('divergent', this)">Divergent Results (7)</button>
+             <button id="sa-flt-tc" class="sa-filter-btn tc-tooltip" data-tooltip="Shows results which are part of TruConfirm Native CVE list" onclick="saFilter('tc', this)">TC ⓘ (62)</button>
+             <button id="sa-flt-tcced" class="sa-filter-btn tc-tooltip" data-tooltip="Shows results which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" onclick="saFilter('tc_ced', this)">TC+CED ⓘ (48)</button>
+             <button id="sa-flt-ced" class="sa-filter-btn tc-tooltip" data-tooltip="Shows results which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" onclick="saFilter('ced', this)">CED ⓘ (35)</button>
           </div>
 
           <div class="sa-table-controls" style="display:flex;align-items:center;margin-bottom:12px;">
