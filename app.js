@@ -3258,13 +3258,14 @@ function renderCveContent(){
     }).join('');
   }
 
-  function renderGroupTbody(grp, title) {
+  function renderGroupTbody(grp, title, tooltip) {
     if (!grp.length) return '';
+    const infoIcon = tooltip ? `<span class="tc-tooltip" style="display:inline-flex;align-items:center;margin-left:6px;color:inherit;opacity:0.6;vertical-align:-2px;" data-tooltip="${tooltip}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>` : '';
     return `
       <tbody>
         <tr class="tc-cve-group-hdr">
           <td colspan="5" style="background:var(--bg-hover); padding:6px 12px; font-size:11px; font-weight:600; color:var(--text-muted); border-top:1px solid var(--border); border-bottom:1px solid var(--border);">
-            ${title} (${grp.length})
+            ${title} (${grp.length}) ${infoIcon}
           </td>
         </tr>
       </tbody>
@@ -3308,9 +3309,9 @@ function renderCveContent(){
         <th>IMPACTED ASSETS</th>
         <th style="width:32px"></th>
       </tr></thead>
-      ${renderGroupTbody(grpBoth, 'TruConfirm + CED')}
-      ${renderGroupTbody(grpCed, 'Unique CVE - CED')}
-      ${renderGroupTbody(grpTc, 'TruConfirm only')}
+      ${renderGroupTbody(grpBoth, 'TruConfirm + CED', 'Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection')}
+      ${renderGroupTbody(grpTc, 'TruConfirm Native', 'Shows the list of all CVEs which are part of TruConfirm Native CVE list')}
+      ${renderGroupTbody(grpCed, 'Unique CVE - CED', 'Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection')}
     </table>
   </div>`;
 }
@@ -3359,10 +3360,15 @@ function openCvePickerModal(){
   
   const pills = document.querySelectorAll('.tc-facet-pill');
   if(pills.length >= 4){
-    pills[0].textContent = `All (${total})`;
-    pills[1].textContent = `TruConfirm only (${tcOnlyCount})`;
-    pills[2].textContent = `TruConfirm + CED (${tcCedCount})`;
-    pills[3].textContent = `Unique CVE - CED (${cedOnlyCount})`;
+    const tAll = "Shows the list of all CVEs related to TruConfirm Native and Custom Exploit Detection";
+    const tTc = "Shows the list of all CVEs which are part of TruConfirm Native CVE list";
+    const tCed = "Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection";
+    const tBoth = "Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection";
+    const infoIcon = `<span class="tc-tooltip" style="display:inline-flex;align-items:center;margin-left:6px;color:var(--text-muted);opacity:0.8;vertical-align:-2px" data-tooltip="{t}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>`;
+    pills[0].innerHTML = `All (${total}) ${infoIcon.replace('{t}', tAll)}`;
+    pills[1].innerHTML = `TruConfirm Native (${tcOnlyCount}) ${infoIcon.replace('{t}', tTc)}`;
+    pills[2].innerHTML = `Unique CVE - CED (${cedOnlyCount}) ${infoIcon.replace('{t}', tCed)}`;
+    pills[3].innerHTML = `TruConfirm + CED (${tcCedCount}) ${infoIcon.replace('{t}', tBoth)}`;
   }
   
   tcRenderCveFacets();
@@ -3385,8 +3391,8 @@ function tcRenderCveFacets(){
   pills.forEach(p => p.classList.remove('active'));
   if(_tcCveFilter === 'all') pills[0].classList.add('active');
   if(_tcCveFilter === 'tc') pills[1].classList.add('active');
-  if(_tcCveFilter === 'tc_ced') pills[2].classList.add('active');
-  if(_tcCveFilter === 'ced') pills[3].classList.add('active');
+  if(_tcCveFilter === 'ced') pills[2].classList.add('active');
+  if(_tcCveFilter === 'tc_ced') pills[3].classList.add('active');
 }
 
 function renderCvePickerList(){
@@ -3661,7 +3667,7 @@ function tcAssessGoReview(){
     const summaryText = `${_tcSelectedCves.length} CVEs: ${grpBoth.length} TC+CED ${bothTestStr} · ${grpTc.length} TC (auto) · ${grpCed.length} CED ${cedTestStr}`;
     const summaryBarHtml = `<div style="background:rgba(255,255,255,0.03);border:1px solid var(--border);border-radius:6px;padding:8px 12px;font-size:12px;color:var(--text-secondary);margin-bottom:16px;">${summaryText}</div>`;
 
-    function renderRvGroup(grp, title, badgeHtml, defaultExpanded=true, type='tc_ced') {
+    function renderRvGroup(grp, title, badgeHtml, defaultExpanded=true, type='tc_ced', tooltip='') {
       if(!grp.length) return '';
       const rows = grp.map(({c, idx}) => {
         const isHighRisk = c.assets > 50;
@@ -3703,12 +3709,14 @@ function tcAssessGoReview(){
         `;
       }).join('');
 
+      const infoIcon = tooltip ? `<span class="tc-tooltip" style="display:inline-flex;align-items:center;margin-left:6px;color:inherit;opacity:0.6;vertical-align:-2px;" data-tooltip="${tooltip}"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg></span>` : '';
+
       return `
         <details class="tc-rv-group" ${defaultExpanded ? 'open' : ''} style="margin-bottom:12px;border:1px solid var(--border);border-radius:6px;overflow:hidden;">
           <summary style="background:var(--bg-hover);padding:12px;cursor:pointer;list-style:none;display:flex;align-items:center;justify-content:space-between;">
             <div style="display:flex;align-items:center;gap:8px;font-size:13px;font-weight:600;">
               ${badgeHtml}
-              ${title} <span style="color:var(--text-muted);font-weight:400;">(${grp.length})</span>
+              ${title} <span style="color:var(--text-muted);font-weight:400;">(${grp.length})</span> ${infoIcon}
             </div>
             <button class="tc-rv-edit-btn" onclick="tcAssessStep(2)" title="Edit">${pencilSvg}</button>
           </summary>
@@ -3723,10 +3731,14 @@ function tcAssessGoReview(){
     const badgeCED = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;">CED</span>`;
     const badgeTC = `<span style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(59,130,246,0.1);color:var(--accent);">TC</span>`;
 
+    const tTc = "Shows the list of all CVEs which are part of TruConfirm Native CVE list";
+    const tCed = "Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection";
+    const tBoth = "Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection";
+
     cveRowsHtml = summaryBarHtml;
-    cveRowsHtml += renderRvGroup(grpBoth, 'TruConfirm + CED', badgeTC_CED, true, 'tc_ced');
-    cveRowsHtml += renderRvGroup(grpCed, 'Unique CVE - CED', badgeCED, true, 'ced');
-    cveRowsHtml += renderRvGroup(grpTc, 'TruConfirm only', badgeTC, false, 'tc');
+    cveRowsHtml += renderRvGroup(grpBoth, 'TruConfirm + CED', badgeTC_CED, true, 'tc_ced', tBoth);
+    cveRowsHtml += renderRvGroup(grpTc, 'TruConfirm Native', badgeTC, false, 'tc', tTc);
+    cveRowsHtml += renderRvGroup(grpCed, 'Unique CVE - CED', badgeCED, true, 'ced', tCed);
   } else {
     cveRowsHtml = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;border:1px solid var(--border);border-radius:6px;">No CVEs selected</div>`;
   }
