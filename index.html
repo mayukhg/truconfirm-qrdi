@@ -249,13 +249,13 @@
           
           <!-- Filters -->
           <div class="sa-filters" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
-             <button class="sa-filter-btn active">All (145)</button>
-             <button class="sa-filter-btn">Exploited (89)</button>
-             <button class="sa-filter-btn">Not exploited (56)</button>
-             <button class="sa-filter-btn sa-f-warn">Divergent (7)</button>
-             <button class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list">TC ⓘ (62)</button>
-             <button class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection">TC+CED ⓘ (48)</button>
-             <button class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection">CED ⓘ (35)</button>
+             <button class="sa-filter-btn active" onclick="saFilter('all', this)">All (145)</button>
+             <button class="sa-filter-btn" onclick="saFilter('exploited', this)">Exploited (89)</button>
+             <button class="sa-filter-btn" onclick="saFilter('not_exploited', this)">Not exploited (56)</button>
+             <button class="sa-filter-btn sa-f-warn" onclick="saFilter('divergent', this)">Divergent (7)</button>
+             <button class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list" onclick="saFilter('tc', this)">TC ⓘ (62)</button>
+             <button class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" onclick="saFilter('tc_ced', this)">TC+CED ⓘ (48)</button>
+             <button class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" onclick="saFilter('ced', this)">CED ⓘ (35)</button>
           </div>
 
           <div class="sa-table-controls" style="display:flex;align-items:center;margin-bottom:12px;">

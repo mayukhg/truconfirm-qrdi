@@ -3863,6 +3863,15 @@ probeBackend();
 //  SCAN ASSESSMENT LOGIC
 // ─────────────────────────────────────────────
 
+let currentSaFilter = 'all';
+
+function saFilter(type, btn) {
+  currentSaFilter = type;
+  document.querySelectorAll('.sa-filter-btn').forEach(b => b.classList.remove('active'));
+  if(btn) btn.classList.add('active');
+  renderScanAssessmentTable();
+}
+
 function openScanAssessment() {
   const listLayout = $('scan-list-layout');
   const assessLayout = $('scan-assessment-layout');
@@ -3891,8 +3900,24 @@ function renderScanAssessmentTable() {
   const grpTc = [];
   const grpCed = [];
 
-  TC_CVE_PICKER.forEach(c => {
-    const typeStr = c.tc ? 'tc_ced' : (c.source === 'unique_ced' ? 'ced' : 'tc');
+  TC_CVE_PICKER.forEach((c, idx) => {
+    let typeStr = '';
+    if (c.tc) typeStr = 'tc_ced';
+    else if (!c.tc && c.source === 'unique_ced') typeStr = 'ced';
+    else typeStr = 'tc';
+
+    // Mock divergent status for tc_ced based on id
+    c.isDivergent = (typeStr === 'tc_ced' && c.id.charCodeAt(c.id.length-1) % 2 === 0);
+    c.isExploited = (c.exploit === 'Actively Exploited' || c.exploit === 'PoC Exploit');
+
+    // Apply Filter
+    if (currentSaFilter === 'exploited' && !c.isExploited) return;
+    if (currentSaFilter === 'not_exploited' && c.isExploited) return;
+    if (currentSaFilter === 'divergent' && !c.isDivergent) return;
+    if (currentSaFilter === 'tc' && typeStr !== 'tc') return;
+    if (currentSaFilter === 'tc_ced' && typeStr !== 'tc_ced') return;
+    if (currentSaFilter === 'ced' && typeStr !== 'ced') return;
+
     if (typeStr === 'tc_ced') grpBoth.push(c);
     else if (typeStr === 'tc') grpTc.push(c);
     else grpCed.push(c);
@@ -3910,7 +3935,7 @@ function renderScanAssessmentTable() {
 
       if (type === 'tc_ced') {
         tcResult = `<span class="sa-badge sa-badge-green"><span class="sa-dot sa-dot-green" style="margin-right:4px"></span>Validated</span>`;
-        if (Math.random() > 0.5) {
+        if (!c.isDivergent) {
           cedResult = `<span class="sa-badge sa-badge-green"><span class="sa-dot sa-dot-green" style="margin-right:4px"></span>Validated</span>`;
           statusHtml = `<span class="sa-badge sa-badge-green">Aligned</span>`;
         } else {
@@ -3979,9 +4004,9 @@ function renderScanAssessmentTable() {
   const badgeCED = `<span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);">CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
 
   let html = '';
-  html += renderGroup(grpBoth.slice(0, 5), 'TruConfirm + CED results', badgeTC_CED);
-  html += renderGroup(grpTc.slice(0, 5), 'TruConfirm Native results', badgeTC);
-  html += renderGroup(grpCed.slice(0, 5), 'Unique CVE - CED results', badgeCED);
+  html += renderGroup(grpBoth, 'TruConfirm + CED results', badgeTC_CED);
+  html += renderGroup(grpTc, 'TruConfirm Native results', badgeTC);
+  html += renderGroup(grpCed, 'Unique CVE - CED results', badgeCED);
 
   tblContainer.innerHTML = html;
 }
