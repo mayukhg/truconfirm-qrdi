@@ -3309,7 +3309,7 @@ function renderCveContent(){
         <th style="width:32px"></th>
       </tr></thead>
       ${renderGroupTbody(grpBoth, 'TruConfirm + CED')}
-      ${renderGroupTbody(grpCed, 'Unique · CED')}
+      ${renderGroupTbody(grpCed, 'Unique CVE - CED')}
       ${renderGroupTbody(grpTc, 'TruConfirm only')}
     </table>
   </div>`;
@@ -3362,7 +3362,7 @@ function openCvePickerModal(){
     pills[0].textContent = `All (${total})`;
     pills[1].textContent = `TruConfirm only (${tcOnlyCount})`;
     pills[2].textContent = `TruConfirm + CED (${tcCedCount})`;
-    pills[3].textContent = `Unique · CED (${cedOnlyCount})`;
+    pills[3].textContent = `Unique CVE - CED (${cedOnlyCount})`;
   }
   
   tcRenderCveFacets();
@@ -3725,7 +3725,7 @@ function tcAssessGoReview(){
 
     cveRowsHtml = summaryBarHtml;
     cveRowsHtml += renderRvGroup(grpBoth, 'TruConfirm + CED', badgeTC_CED, true, 'tc_ced');
-    cveRowsHtml += renderRvGroup(grpCed, 'Unique · CED', badgeCED, true, 'ced');
+    cveRowsHtml += renderRvGroup(grpCed, 'Unique CVE - CED', badgeCED, true, 'ced');
     cveRowsHtml += renderRvGroup(grpTc, 'TruConfirm only', badgeTC, false, 'tc');
   } else {
     cveRowsHtml = `<div style="text-align:center;padding:20px;color:var(--text-muted);font-size:12px;border:1px solid var(--border);border-radius:6px;">No CVEs selected</div>`;
