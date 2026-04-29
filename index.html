@@ -649,6 +649,32 @@
             <div class="rm-sb-more">31 more ▾</div>
           </div>
         </div>
+
+        <!-- Validation Status -->
+        <div class="rm-sb-sect">
+          <div class="rm-sb-sect-hdr" data-sect="validation" onclick="rmToggleSect('validation')">
+            <span class="rm-sb-sect-lbl">Validation status</span><span class="rm-sb-chev">▾</span>
+          </div>
+          <div id="rm-sect-validation">
+            <div class="rm-sb-item" data-cat="validation" data-val="tc" onclick="rmToggleFilter('validation','tc')"><span>Validated by TC</span><span class="rm-sb-cnt" id="flt-cnt-val-tc">0</span></div>
+            <div class="rm-sb-item" data-cat="validation" data-val="ced" onclick="rmToggleFilter('validation','ced')"><span>Validated by CED</span><span class="rm-sb-cnt" id="flt-cnt-val-ced">0</span></div>
+            <div class="rm-sb-item" data-cat="validation" data-val="both" onclick="rmToggleFilter('validation','both')"><span>Both validated</span><span class="rm-sb-cnt" id="flt-cnt-val-both">0</span></div>
+            <div class="rm-sb-item" data-cat="validation" data-val="divergent" onclick="rmToggleFilter('validation','divergent')"><span>Divergent</span><span class="rm-sb-cnt" id="flt-cnt-val-divergent">0</span></div>
+            <div class="rm-sb-item" data-cat="validation" data-val="not_validated" onclick="rmToggleFilter('validation','not_validated')"><span>Not validated</span><span class="rm-sb-cnt" id="flt-cnt-val-none">0</span></div>
+          </div>
+        </div>
+
+        <!-- CVE Type -->
+        <div class="rm-sb-sect">
+          <div class="rm-sb-sect-hdr" data-sect="cvetype" onclick="rmToggleSect('cvetype')">
+            <span class="rm-sb-sect-lbl">CVE type</span><span class="rm-sb-chev">▾</span>
+          </div>
+          <div id="rm-sect-cvetype">
+            <div class="rm-sb-item" data-cat="cvetype" data-val="tc" onclick="rmToggleFilter('cvetype','tc')"><span>TC</span><span class="rm-sb-cnt" id="flt-cnt-cve-tc">0</span></div>
+            <div class="rm-sb-item" data-cat="cvetype" data-val="tc_ced" onclick="rmToggleFilter('cvetype','tc_ced')"><span>TC+CED</span><span class="rm-sb-cnt" id="flt-cnt-cve-tcced">0</span></div>
+            <div class="rm-sb-item" data-cat="cvetype" data-val="ced" onclick="rmToggleFilter('cvetype','ced')"><span>CED</span><span class="rm-sb-cnt" id="flt-cnt-cve-ced">0</span></div>
+          </div>
+        </div>
       </div><!-- /rm-sidebar -->
 
       <!-- ── Main Content ── -->
@@ -713,9 +739,9 @@
                 <th>Title</th>
                 <th>Technology / Category</th>
                 <th>QVSS Base <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:middle"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg></th>
+                <th>Validation</th>
                 <th>Sources</th>
                 <th>Impacted Asset</th>
-                <th>Supporting Artifacts</th>
                 <th>LifeCycle</th>
                 <th>TruRisk™ Score</th>
               </tr>
