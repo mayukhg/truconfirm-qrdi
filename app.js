@@ -4037,9 +4037,9 @@ function renderScanAssessmentTable() {
   if ($('sa-flt-exploited')) $('sa-flt-exploited').innerHTML = `Exploited (${countExploited})`;
   if ($('sa-flt-not-exploited')) $('sa-flt-not-exploited').innerHTML = `Not exploited (${countNotExploited})`;
   if ($('sa-flt-divergent')) $('sa-flt-divergent').innerHTML = `Divergent Results (${countDivergent})`;
-  if ($('sa-flt-tc')) $('sa-flt-tc').innerHTML = `TC <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countTc})`;
-  if ($('sa-flt-tcced')) $('sa-flt-tcced').innerHTML = `TC+CED <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countTcCed})`;
-  if ($('sa-flt-ced')) $('sa-flt-ced').innerHTML = `CED <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countCed})`;
+  if ($('sa-flt-tc')) $('sa-flt-tc').innerHTML = `TruConfirm Native Scan <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countTc})`;
+  if ($('sa-flt-ced')) $('sa-flt-ced').innerHTML = `Custom Exploit Detection Scan <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countCed})`;
+  if ($('sa-flt-tcced')) $('sa-flt-tcced').innerHTML = `TruConfirm Native + Custom Exploit Detection Scans <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countTcCed})`;
 }
 
 function openCveDrilldown(cveId) {
