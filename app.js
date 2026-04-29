@@ -3904,6 +3904,7 @@ function renderScanAssessmentTable() {
   let countExploited = 0;
   let countNotExploited = 0;
   let countDivergent = 0;
+  let countTemporary = 0;
   let countTc = 0;
   let countTcCed = 0;
   let countCed = 0;
@@ -3916,6 +3917,7 @@ function renderScanAssessmentTable() {
 
     // Mock divergent status for tc_ced based on id
     c.isDivergent = (typeStr === 'tc_ced' && c.id.charCodeAt(c.id.length-1) % 2 === 0);
+    c.isTestMode = (typeStr !== 'tc' && c.id.charCodeAt(c.id.length-2) % 2 === 0);
     c.isExploited = (c.exploit === 'Actively Exploited' || c.exploit === 'PoC Exploit');
 
     // Tally stats
@@ -3923,6 +3925,7 @@ function renderScanAssessmentTable() {
     if (c.isExploited) countExploited++;
     else countNotExploited++;
     if (c.isDivergent) countDivergent++;
+    if (c.isTestMode) countTemporary++;
     if (typeStr === 'tc') countTc++;
     if (typeStr === 'tc_ced') countTcCed++;
     if (typeStr === 'ced') countCed++;
@@ -3931,6 +3934,7 @@ function renderScanAssessmentTable() {
     if (currentSaFilter === 'exploited' && !c.isExploited) return;
     if (currentSaFilter === 'not_exploited' && c.isExploited) return;
     if (currentSaFilter === 'divergent' && !c.isDivergent) return;
+    if (currentSaFilter === 'temporary' && !c.isTestMode) return;
     if (currentSaFilter === 'tc' && typeStr !== 'tc') return;
     if (currentSaFilter === 'tc_ced' && typeStr !== 'tc_ced') return;
     if (currentSaFilter === 'ced' && typeStr !== 'ced') return;
@@ -3966,7 +3970,7 @@ function renderScanAssessmentTable() {
       } else if (type === 'ced') {
         tcResult = '—';
         cedResult = `<span class="sa-badge sa-badge-red"><span class="sa-dot sa-dot-red" style="margin-right:4px"></span>Not exploited</span>`;
-        statusHtml = 'Test';
+        statusHtml = c.isTestMode ? 'Test' : 'Production';
       }
 
       return `<tr onclick="openCveDrilldown('${c.id}')" style="cursor:pointer;">
@@ -4033,6 +4037,7 @@ function renderScanAssessmentTable() {
   if ($('sa-flt-exploited')) $('sa-flt-exploited').innerHTML = `Exploited (${countExploited})`;
   if ($('sa-flt-not-exploited')) $('sa-flt-not-exploited').innerHTML = `Not exploited (${countNotExploited})`;
   if ($('sa-flt-divergent')) $('sa-flt-divergent').innerHTML = `Divergent Results (${countDivergent})`;
+  if ($('sa-flt-temporary')) $('sa-flt-temporary').innerHTML = `Temporary Scan results <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countTemporary})`;
   if ($('sa-flt-tc')) $('sa-flt-tc').innerHTML = `TruConfirm Native Scan <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countTc})`;
   if ($('sa-flt-ced')) $('sa-flt-ced').innerHTML = `Custom Exploit Detection Scan <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countCed})`;
   if ($('sa-flt-tcced')) $('sa-flt-tcced').innerHTML = `TruConfirm Native + Custom Exploit Detection Scans <span style="opacity:0.6;margin-left:4px">ⓘ</span> (${countTcCed})`;
@@ -4051,6 +4056,7 @@ function openCveDrilldown(cveId) {
   else typeStr = 'tc';
 
   const isDivergent = (typeStr === 'tc_ced' && cve.id.charCodeAt(cve.id.length-1) % 2 === 0);
+  const isTestMode = (typeStr !== 'tc' && cve.id.charCodeAt(cve.id.length-2) % 2 === 0);
 
   // Build Drilldown content
   const content = $('sa-drilldown-content');
@@ -4114,7 +4120,7 @@ function openCveDrilldown(cveId) {
             ? '<span class="sa-badge sa-badge-red"><span class="sa-dot sa-dot-red" style="margin-right:4px;"></span>Not exploited</span>' 
             : '<span class="sa-badge sa-badge-green"><span class="sa-dot sa-dot-green" style="margin-right:4px;"></span>Exploit validated</span>'}
         </div>
-        <div style="font-size:12px;color:var(--text-primary);margin-bottom:4px;font-weight:600;">Custom script - Test mode</div>
+        <div style="font-size:12px;color:var(--text-primary);margin-bottom:4px;font-weight:600;">Custom script - ${isTestMode ? 'Test mode' : 'Production mode'}</div>
         <div style="font-size:11px;color:var(--text-muted);margin-bottom:20px;">Tested: Apr 16, 2026</div>
         <div style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;">Impacted assets (${cve.assets || 1})</div>
         <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">ec2-100-53-123-246<br>db-server-01</div>
