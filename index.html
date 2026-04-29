@@ -103,7 +103,7 @@
 
     <!-- ══ SCAN TAB ══ -->
     <div class="tab-view" id="view-scan">
-      <div class="scan-list-layout">
+      <div class="scan-list-layout" id="scan-list-layout">
         <!-- Toolbar -->
         <div class="scan-toolbar">
           <div class="scan-tb-left">
@@ -146,6 +146,144 @@
             <tbody id="scan-tbl-body"></tbody>
           </table>
         </div>
+      </div>
+
+      <!-- SCAN ASSESSMENT DASHBOARD -->
+      <div class="scan-assessment-layout" id="scan-assessment-layout" style="display:none">
+        
+        <div class="sa-header-actions" style="margin-bottom:20px;">
+           <a href="#" class="tc-link" onclick="closeScanAssessment();return false">&lt; Back to scans</a>
+        </div>
+
+        <!-- TIER 1 -->
+        <div class="sa-tier1">
+          <h3 class="sa-tier-title" style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:12px;letter-spacing:0.5px;">TIER 1 &mdash; DASHBOARD SUMMARY</h3>
+          
+          <div class="sa-dash-hdr" style="margin-bottom:20px;">
+            <div style="font-size:16px;font-weight:700;display:flex;align-items:center;gap:12px;color:#fff;">
+              TruConfirm-Scan : enterprise quarterly 
+              <span style="font-size:10px;padding:2px 6px;border-radius:4px;background:rgba(34,197,94,0.15);color:#22c55e;">Finished</span>
+            </div>
+            <div style="font-size:12px;color:var(--text-secondary);margin-top:4px;">
+              Created by Parul Saraf - 2 hours ago - 14 hosts scanned
+            </div>
+          </div>
+
+          <!-- 5 Metric Cards -->
+          <div class="sa-metric-grid" style="display:grid;grid-template-columns:repeat(5, 1fr);gap:12px;margin-bottom:24px;">
+            <div class="sa-metric" style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:12px;">
+              <div class="sa-m-num" style="font-size:20px;font-weight:700;color:#fff;">145</div>
+              <div class="sa-m-lbl" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Scanned vulns</div>
+            </div>
+            <div class="sa-metric" style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:12px;">
+              <div class="sa-m-num" style="font-size:20px;font-weight:700;color:#fff;">89</div>
+              <div class="sa-m-lbl" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Exploit validated</div>
+            </div>
+            <div class="sa-metric" style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:12px;">
+              <div class="sa-m-num" style="font-size:20px;font-weight:700;color:#fff;">56</div>
+              <div class="sa-m-lbl" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Not exploited</div>
+            </div>
+            <div class="sa-metric" style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:12px;">
+              <div class="sa-m-num" style="font-size:20px;font-weight:700;color:#f97316;">7</div>
+              <div class="sa-m-lbl" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Divergent results</div>
+            </div>
+            <div class="sa-metric" style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:12px;">
+              <div class="sa-m-num" style="font-size:20px;font-weight:700;color:#fff;">14</div>
+              <div class="sa-m-lbl" style="font-size:11px;color:var(--text-muted);margin-top:4px;">Active hosts</div>
+            </div>
+          </div>
+
+          <!-- Breakdown by CVE Type -->
+          <div class="sa-breakdown-sec" style="margin-bottom:40px;">
+            <div class="sa-bd-lbl" style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:12px;letter-spacing:0.5px;">BREAKDOWN BY CVE TYPE</div>
+            <div class="sa-bd-grid" style="display:grid;grid-template-columns:repeat(3, 1fr);gap:12px;">
+              
+              <!-- TC -->
+              <div class="sa-bd-card" style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:16px;">
+                <div class="sa-bd-type-lbl tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);margin-bottom:12px;">
+                  TC <span style="opacity:0.6;margin-left:4px">ⓘ</span>
+                </div>
+                <div class="sa-bd-main-val" style="font-size:24px;font-weight:700;color:#fff;">62</div>
+                <div class="sa-bd-sub-val" style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">TruConfirm Native only</div>
+                <div class="sa-bd-stats" style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:12px;">
+                  <div><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:4px;"></span>51 validated</div>
+                  <div><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#ef4444;margin-right:4px;"></span>11 not exploited</div>
+                </div>
+              </div>
+              
+              <!-- TC+CED -->
+              <div class="sa-bd-card" style="background:var(--bg-panel);border:1px solid #a855f7;border-radius:6px;padding:16px;">
+                <div class="sa-bd-type-lbl tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;border:1px solid rgba(168,85,247,0.2);margin-bottom:12px;">
+                  TC+CED <span style="opacity:0.6;margin-left:4px">ⓘ</span>
+                </div>
+                <div class="sa-bd-main-val" style="font-size:24px;font-weight:700;color:#fff;">48</div>
+                <div class="sa-bd-sub-val" style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">TruConfirm + CED</div>
+                <div class="sa-bd-stats" style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:12px;">
+                  <div><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:4px;"></span>31 both validated</div>
+                  <div><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#f97316;margin-right:4px;"></span>7 divergent</div>
+                  <div><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#ef4444;margin-right:4px;"></span>10 not exploited</div>
+                </div>
+              </div>
+              
+              <!-- CED -->
+              <div class="sa-bd-card" style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;padding:16px;">
+                <div class="sa-bd-type-lbl tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);margin-bottom:12px;">
+                  CED <span style="opacity:0.6;margin-left:4px">ⓘ</span>
+                </div>
+                <div class="sa-bd-main-val" style="font-size:24px;font-weight:700;color:#fff;">35</div>
+                <div class="sa-bd-sub-val" style="font-size:11px;color:var(--text-muted);margin-bottom:12px;">Unique CVE - CED only</div>
+                <div class="sa-bd-stats" style="font-size:11px;color:var(--text-secondary);display:flex;align-items:center;gap:12px;">
+                  <div><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#22c55e;margin-right:4px;"></span>7 validated</div>
+                  <div><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#ef4444;margin-right:4px;"></span>16 not exploited</div>
+                  <div><span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#9ca3af;margin-right:4px;"></span>12 test mode</div>
+                </div>
+              </div>
+
+            </div>
+          </div>
+        </div>
+
+        <!-- TIER 2 -->
+        <div class="sa-tier2" id="sa-tier2-main" style="margin-bottom:40px;">
+          <h3 class="sa-tier-title" style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:12px;letter-spacing:0.5px;">TIER 2 &mdash; COMPACT SORTABLE TABLE</h3>
+          
+          <!-- Filters -->
+          <div class="sa-filters" style="display:flex;gap:8px;margin-bottom:16px;flex-wrap:wrap;">
+             <button class="sa-filter-btn active">All (145)</button>
+             <button class="sa-filter-btn">Exploited (89)</button>
+             <button class="sa-filter-btn">Not exploited (56)</button>
+             <button class="sa-filter-btn sa-f-warn">Divergent (7)</button>
+             <button class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list">TC ⓘ (62)</button>
+             <button class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection">TC+CED ⓘ (48)</button>
+             <button class="sa-filter-btn tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection">CED ⓘ (35)</button>
+          </div>
+
+          <div class="sa-table-controls" style="display:flex;align-items:center;margin-bottom:12px;">
+            <input type="text" class="tc-input" placeholder="Search CVEs..." style="width:300px">
+            <div style="margin-left:auto;font-size:12px;color:var(--text-muted)">Sort: <b style="color:var(--text-primary)">Severity</b></div>
+          </div>
+
+          <!-- Dynamic Table -->
+          <div id="sa-dynamic-tables"></div>
+
+          <div class="sa-pagination" style="display:flex;justify-content:space-between;align-items:center;font-size:12px;color:var(--text-muted);margin-top:12px;padding:8px 0;">
+            <span>Showing 1&ndash;25 of 145 vulnerabilities</span>
+            <span>Page 1 of 6 <span style="margin-left:8px;cursor:pointer;font-weight:700;color:var(--text-primary);">&lt; &gt;</span></span>
+          </div>
+        </div>
+
+        <!-- TIER 3 DRILLDOWN -->
+        <div class="sa-tier3" id="sa-tier3-drilldown" style="display:none;margin-bottom:40px;">
+          <h3 class="sa-tier-title" style="font-size:11px;color:var(--text-muted);font-weight:700;margin-bottom:12px;letter-spacing:0.5px;">TIER 3 &mdash; DRILL-DOWN CARD (CLICK ANY CVE ROW)</h3>
+          <div style="margin-bottom:12px">
+            <a href="#" class="tc-link" onclick="closeCveDrilldown();return false">&lt; Back to results</a>
+          </div>
+          
+          <div class="sa-drilldown-card" id="sa-drilldown-content" style="background:var(--bg-panel);border:1px solid var(--border);border-radius:8px;padding:20px;">
+             <!-- Populated by JS -->
+          </div>
+        </div>
+
       </div>
     </div>
 

@@ -1044,7 +1044,7 @@ function renderScanTab(){
     const scopeIpHtml = r.scopeIp === '—'
       ? `<span style="color:var(--text-muted)">—</span>`
       : `<div class="scan-scope-ip">${escHtml(r.scopeIp)}</div>`;
-    return `<tr class="${rowCls}">
+    return `<tr class="${rowCls}" onclick="openScanAssessment()" style="cursor:pointer">
       <td style="width:36px;text-align:center"><input type="checkbox"></td>
       <td class="scan-td-title">
         <div class="scan-row-title">${escHtml(r.title)}</div>
@@ -3858,3 +3858,204 @@ function tcTagsTab(tab){
 
 // ── Boot the API layer ────────────────────────────────────────────────────────
 probeBackend();
+
+// ─────────────────────────────────────────────
+//  SCAN ASSESSMENT LOGIC
+// ─────────────────────────────────────────────
+
+function openScanAssessment() {
+  const listLayout = $('scan-list-layout');
+  const assessLayout = $('scan-assessment-layout');
+  if (listLayout && assessLayout) {
+    listLayout.style.display = 'none';
+    assessLayout.style.display = 'block';
+    renderScanAssessmentTable();
+  }
+}
+
+function closeScanAssessment() {
+  const listLayout = $('scan-list-layout');
+  const assessLayout = $('scan-assessment-layout');
+  if (listLayout && assessLayout) {
+    listLayout.style.display = 'block';
+    assessLayout.style.display = 'none';
+  }
+}
+
+function renderScanAssessmentTable() {
+  const tblContainer = $('sa-dynamic-tables');
+  if (!tblContainer) return;
+
+  // Group data
+  const grpBoth = [];
+  const grpTc = [];
+  const grpCed = [];
+
+  TC_CVE_PICKER.forEach(c => {
+    const typeStr = c.tc ? 'tc_ced' : (c.source === 'unique_ced' ? 'ced' : 'tc');
+    if (typeStr === 'tc_ced') grpBoth.push(c);
+    else if (typeStr === 'tc') grpTc.push(c);
+    else grpCed.push(c);
+  });
+
+  function renderRows(grp, type) {
+    if (!grp.length) return '';
+    return grp.map(c => {
+      // Logic for status and results based on type
+      let tcResult = '—';
+      let cedResult = '—';
+      let statusHtml = '—';
+      let assetHtml = `ec2-100-53-123<br><span style="color:var(--text-muted)">+${c.assets} more</span>`;
+      let foundDate = 'Apr 16';
+
+      if (type === 'tc_ced') {
+        tcResult = `<span class="sa-badge sa-badge-green"><span class="sa-dot sa-dot-green" style="margin-right:4px"></span>Validated</span>`;
+        if (Math.random() > 0.5) {
+          cedResult = `<span class="sa-badge sa-badge-green"><span class="sa-dot sa-dot-green" style="margin-right:4px"></span>Validated</span>`;
+          statusHtml = `<span class="sa-badge sa-badge-green">Aligned</span>`;
+        } else {
+          cedResult = `<span class="sa-badge sa-badge-red"><span class="sa-dot sa-dot-red" style="margin-right:4px"></span>Not exploited</span>`;
+          statusHtml = `<span class="sa-badge sa-badge-orange">Divergent</span>`;
+        }
+      } else if (type === 'tc') {
+        tcResult = `<span class="sa-badge sa-badge-green"><span class="sa-dot sa-dot-green" style="margin-right:4px"></span>Validated</span>`;
+        cedResult = `<span style="font-weight:600">No public exploit</span>`;
+        statusHtml = '';
+      } else if (type === 'ced') {
+        tcResult = '—';
+        cedResult = `<span class="sa-badge sa-badge-red"><span class="sa-dot sa-dot-red" style="margin-right:4px"></span>Not exploited</span>`;
+        statusHtml = 'Test';
+      }
+
+      return `<tr onclick="openCveDrilldown('${c.id}')" style="cursor:pointer;">
+        <td>
+          <div style="font-weight:600;color:var(--accent);margin-bottom:4px;">${c.id}</div>
+          <div style="font-size:11px;color:var(--text-secondary);max-width:250px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${escHtml(c.title)}">${escHtml(c.title)}</div>
+        </td>
+        <td>
+          <div class="sa-qvss-box">
+            <span style="color:#ef4444">C</span>
+            <span style="border-top:1px solid var(--border);width:100%;text-align:center;color:#ef4444">9.9</span>
+          </div>
+        </td>
+        <td>${tcResult}</td>
+        <td>${cedResult}</td>
+        <td>${statusHtml}</td>
+        <td>${assetHtml}</td>
+        <td>${foundDate}</td>
+      </tr>`;
+    }).join('');
+  }
+
+  function renderGroup(grp, title, badgeHtml) {
+    if (!grp.length) return '';
+    return `
+      <div style="background:var(--bg-panel);border:1px solid var(--border);border-radius:6px;margin-bottom:20px;overflow:hidden;">
+        <div style="background:var(--bg-hover);padding:8px 12px;font-size:12px;font-weight:600;color:var(--text-muted);display:flex;align-items:center;gap:8px;border-bottom:1px solid var(--border);">
+          ${badgeHtml} ${title} (${grp.length})
+        </div>
+        <table class="sa-table">
+          <thead>
+            <tr>
+              <th style="width:25%">CVE</th>
+              <th style="width:8%">QVSS</th>
+              <th style="width:15%">TC NATIVE RESULT</th>
+              <th style="width:15%">CED RESULT</th>
+              <th style="width:10%">${title.includes('Unique') ? 'TEST MODE' : (title.includes('Native') ? 'EXPLOITABILITY' : 'STATUS')}</th>
+              <th style="width:17%">ASSET</th>
+              <th style="width:10%">FOUND</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${renderRows(grp, title.includes('+') ? 'tc_ced' : (title.includes('Native') ? 'tc' : 'ced'))}
+          </tbody>
+        </table>
+      </div>
+    `;
+  }
+
+  const badgeTC_CED = `<span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;">TC+CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
+  const badgeTC = `<span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);">TC <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
+  const badgeCED = `<span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);">CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
+
+  let html = '';
+  html += renderGroup(grpBoth.slice(0, 5), 'TruConfirm + CED results', badgeTC_CED);
+  html += renderGroup(grpTc.slice(0, 5), 'TruConfirm Native results', badgeTC);
+  html += renderGroup(grpCed.slice(0, 5), 'Unique CVE - CED results', badgeCED);
+
+  tblContainer.innerHTML = html;
+}
+
+function openCveDrilldown(cveId) {
+  const cve = TC_CVE_PICKER.find(c => c.id === cveId) || TC_CVE_PICKER[0];
+  $('sa-tier2-main').style.display = 'none';
+  const drilldown = $('sa-tier3-drilldown');
+  drilldown.style.display = 'block';
+
+  // Build Drilldown content
+  const content = $('sa-drilldown-content');
+  
+  const badgeTC_CED = `<span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list as well as associated with a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;font-weight:600;background:rgba(168,85,247,0.1);color:#a855f7;margin-left:8px;">TC+CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>`;
+  
+  content.innerHTML = `
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;">
+      <div style="font-size:16px;font-weight:700;display:flex;align-items:center;color:#fff;">
+        ${cve.id} ${badgeTC_CED} <span style="margin-left:12px;font-size:14px;color:var(--text-secondary);font-weight:400;">${escHtml(cve.title)}</span>
+      </div>
+      <div style="border:1px solid #ef4444;color:#ef4444;padding:2px 8px;border-radius:4px;font-size:11px;font-weight:700;">Critical - 10.0</div>
+    </div>
+
+    <div style="background:rgba(249,115,22,0.1);border-left:3px solid #f97316;color:#f97316;padding:8px 12px;font-size:12px;font-weight:600;border-radius:4px;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+      <span class="sa-dot sa-dot-orange"></span> Results diverge &mdash; TruConfirm Native validated, CED did not exploit
+    </div>
+
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;">
+      
+      <!-- TC Side -->
+      <div style="border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+          <span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are part of TruConfirm Native CVE list" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;background:rgba(255,255,255,0.05);color:var(--text-primary);border:1px solid var(--border);">TC <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>
+          TRUCONFIRM NATIVE
+        </div>
+        <div style="margin-bottom:12px;">
+          <span class="sa-badge sa-badge-green"><span class="sa-dot sa-dot-green" style="margin-right:4px;"></span>Exploit validated</span>
+        </div>
+        <div style="font-size:12px;color:var(--text-primary);margin-bottom:4px;font-weight:600;">No public exploit - Signature-based</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:20px;">Validated: Apr 16, 2026</div>
+
+        <div style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;">Impacted assets (3)</div>
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">
+          ec2-100-53-123-246<br>
+          ec2-100-53-123-247<br>
+          db-server-01
+        </div>
+      </div>
+
+      <!-- CED Side -->
+      <div style="border:1px solid var(--border);border-radius:6px;padding:16px;">
+        <div style="font-size:11px;font-weight:700;color:var(--text-muted);display:flex;align-items:center;gap:8px;margin-bottom:16px;">
+          <span class="tc-tooltip" data-tooltip="Shows the list of all CVEs which are not part of TruConfirm native CVEs but are associated to a Custom Exploit Detection" style="display:inline-flex;align-items:center;padding:2px 6px;border-radius:4px;font-size:10px;background:rgba(20,184,166,0.1);color:#14b8a6;border:1px solid rgba(20,184,166,0.2);">CED <span style="opacity:0.6;margin-left:4px">ⓘ</span></span>
+          CUSTOM EXPLOIT DETECTION
+        </div>
+        <div style="margin-bottom:12px;display:flex;align-items:center;gap:6px;font-size:12px;font-weight:600;color:var(--text-primary);">
+          <span class="sa-dot sa-dot-red"></span> Not exploitable
+        </div>
+        <div style="font-size:12px;color:var(--text-primary);margin-bottom:4px;font-weight:600;">Custom script - Test mode</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:20px;">Tested: Apr 16, 2026 (no impact)</div>
+
+        <div style="font-size:11px;font-weight:700;color:var(--text-secondary);margin-bottom:8px;">Impacted assets (3)</div>
+        <div style="font-size:11px;color:var(--text-muted);line-height:1.6;">
+          ec2-100-53-123-246<br>
+          ec2-100-53-123-247<br>
+          db-server-01
+        </div>
+      </div>
+
+    </div>
+  `;
+}
+
+function closeCveDrilldown() {
+  $('sa-tier3-drilldown').style.display = 'none';
+  $('sa-tier2-main').style.display = 'block';
+}
